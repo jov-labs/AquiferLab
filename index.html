@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AQUIFER LAB</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <aside class="panel controls-panel" aria-labelledby="controls-title">
+        <div>
+          <p class="eyebrow">AQUIFER LAB</p>
+          <h1 id="controls-title">Controles</h1>
+          <p class="panel-copy">Bombeo de pozos fijos en el acuífero confinado.</p>
+        </div>
+
+        <label class="slider-control" for="well-a-rate">
+          <span>Bombeo pozo A</span>
+          <output id="well-a-value" for="well-a-rate">0 L/s</output>
+          <input id="well-a-rate" type="range" min="0" max="50" step="1" value="0" />
+        </label>
+
+        <label class="slider-control" for="well-b-rate">
+          <span>Bombeo pozo B</span>
+          <output id="well-b-value" for="well-b-rate">0 L/s</output>
+          <input id="well-b-rate" type="range" min="0" max="50" step="1" value="0" />
+        </label>
+
+        <div class="legend" aria-label="Leyenda científica">
+          <p><span class="legend-swatch river"></span>Río: carga fija h = 100 m</p>
+          <p><span class="legend-swatch surface"></span>Superficie piezométrica</p>
+          <p><span class="legend-swatch aquifer"></span>Acuífero confinado modelado</p>
+          <p>Las unidades superior y basal son sólo contexto visual; no participan en el cálculo.</p>
+          <p>Superficie piezométrica mostrada respecto a h = 100 m.</p>
+        </div>
+      </aside>
+
+      <main class="scene-panel" aria-label="Visualización Three.js del acuífero">
+        <div id="scene-container"></div>
+        <p class="scene-hint">Arrastra para rotar · rueda para zoom · botón derecho para desplazar</p>
+      </main>
+
+      <aside class="panel results-panel" aria-labelledby="results-title">
+        <div>
+          <p class="eyebrow">SOLUCIÓN ACTUAL</p>
+          <h2 id="results-title">Resultados</h2>
+        </div>
+        <dl class="metrics">
+          <div>
+            <dt>Estado</dt>
+            <dd id="result-status" data-status="pending">Calculando</dd>
+          </div>
+          <div>
+            <dt>Iteraciones</dt>
+            <dd id="result-iterations">—</dd>
+          </div>
+          <div>
+            <dt>Carga mínima</dt>
+            <dd id="result-min-head">—</dd>
+          </div>
+          <div>
+            <dt>Carga máxima</dt>
+            <dd id="result-max-head">—</dd>
+          </div>
+          <div>
+            <dt>Carga en pozo A</dt>
+            <dd id="result-well-a-head">—</dd>
+          </div>
+          <div>
+            <dt>Carga en pozo B</dt>
+            <dd id="result-well-b-head">—</dd>
+          </div>
+        </dl>
+        <p id="solver-message" class="solver-message" aria-live="polite"></p>
+      </aside>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

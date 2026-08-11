@@ -90,7 +90,7 @@ export function createDefaultModelInput(): GroundwaterModelInput {
       headMeters: riverHeadMeters,
     })),
     wells: [],
-    tolerance: 1e-8,
+    tolerance: 1e-6,
     maxIterations: 20_000,
   };
 }

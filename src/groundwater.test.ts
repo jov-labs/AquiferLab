@@ -148,6 +148,29 @@ describe("solver de flujo confinado", () => {
     expect(pumping.headsMeters[20][20]).toBeLessThan(noPumping.headsMeters[20][20]);
   });
 
+  it("converge con la configuración por defecto a 50 L/s en el pozo A", () => {
+    const result = solveGroundwater({
+      ...createDefaultModelInput(),
+      wells: [
+        {
+          row: 20,
+          column: 20,
+          rateCubicMetersPerDay: litersPerSecondToCubicMetersPerDay(50),
+        },
+      ],
+    });
+
+    expect(result.converged).toBe(true);
+    expect(result.isValid).toBe(true);
+    expect(result.iterations).toBeLessThanOrEqual(20_000);
+    expect(result.residualMeters).toBeLessThanOrEqual(1e-6);
+    for (const row of result.headsMeters) {
+      for (const head of row) {
+        expect(Number.isFinite(head)).toBe(true);
+      }
+    }
+  });
+
   it("es exactamente determinista para entradas idénticas", () => {
     const model: GroundwaterModelInput = {
       ...testModel(),
