@@ -25,6 +25,8 @@ const wellBHead = getElement<HTMLElement>("result-well-b-head");
 const solverMessage = getElement<HTMLElement>("solver-message");
 const darcyMax = getElement<HTMLElement>("result-darcy-max");
 const darcyFlowToggle = getElement<HTMLInputElement>("show-darcy-flow");
+const geologicalCutToggle = getElement<HTMLInputElement>("enable-geological-cut");
+const cutPosition = getElement<HTMLInputElement>("cut-position");
 
 const baseInput = createDefaultModelInput();
 const scene = createAquiferScene(
@@ -139,6 +141,15 @@ darcyFlowToggle.addEventListener("change", () => {
   scene.setDarcyFlowVisible(darcyFlowToggle.checked);
 });
 
+function updateGeologicalCut(): void {
+  cutPosition.disabled = !geologicalCutToggle.checked;
+  scene.setGeologicalCut(geologicalCutToggle.checked, Number(cutPosition.value));
+}
+
+geologicalCutToggle.addEventListener("change", updateGeologicalCut);
+cutPosition.addEventListener("input", updateGeologicalCut);
+
 updateSliderLabels();
 scene.setDarcyFlowVisible(darcyFlowToggle.checked);
+updateGeologicalCut();
 recalculate();

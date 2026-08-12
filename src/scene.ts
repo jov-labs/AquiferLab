@@ -30,6 +30,7 @@ export interface AquiferScene {
   updatePiezometricSurface(data: PiezometricSurfaceData): void;
   updateDarcyFlow(data: DarcyOverlayData): void;
   setDarcyFlowVisible(visible: boolean): void;
+  setGeologicalCut(enabled: boolean, positionPercent: number): void;
 }
 
 /** Representación Three.js: recibe campos ya resueltos, sin cálculo hidrogeológico. */
@@ -47,6 +48,7 @@ export function createAquiferScene(
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.localClippingEnabled = true;
   container.append(renderer.domElement);
 
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -61,9 +63,18 @@ export function createAquiferScene(
   scene.add(keyLight);
   scene.add(new THREE.GridHelper(2_200, 22, 0x2a4259, 0x192a3a).translateY(-42));
 
-  addGeologicalContext(scene, domain);
-  addRiver(scene, domain);
-  const wellLabels = wells.map((well) => addWellMarker(scene, container, domain, well));
+  const cutPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0);
+  const clippingPlanes = [cutPlane];
+  const clippingMaterials: THREE.Material[] = [];
+  const cutHelper = new THREE.PlaneHelper(cutPlane, Math.max(domain.widthMeters, domain.heightMeters) * 1.1, 0x78dce8);
+  cutHelper.visible = false;
+  scene.add(cutHelper);
+
+  addGeologicalContext(scene, domain, clippingMaterials);
+  addRiver(scene, domain, clippingMaterials);
+  const wellLabels = wells.map((well) =>
+    addWellMarker(scene, container, domain, well, clippingMaterials),
+  );
 
   const surfaceGeometry = createSurfaceGeometry(domain);
   const surfaceMaterial = new THREE.MeshStandardMaterial({
@@ -74,6 +85,7 @@ export function createAquiferScene(
     roughness: 0.35,
     metalness: 0.05,
   });
+  clippingMaterials.push(surfaceMaterial);
   const surface = new THREE.Mesh(surfaceGeometry, surfaceMaterial);
   surface.renderOrder = 2;
   scene.add(surface);
@@ -82,6 +94,8 @@ export function createAquiferScene(
   darcyGroup.renderOrder = 3;
   scene.add(darcyGroup);
   const darcyArrows: THREE.Group[] = [];
+  let cutEnabled = false;
+  let cutX = domain.widthMeters / 2;
 
   const resize = () => {
     const width = Math.max(container.clientWidth, 1);
@@ -95,7 +109,7 @@ export function createAquiferScene(
 
   const render = () => {
     controls.update();
-    updateWellLabelPositions(camera, container, wellLabels);
+    updateWellLabelPositions(camera, container, wellLabels, cutEnabled, cutX);
     renderer.render(scene, camera);
     window.requestAnimationFrame(render);
   };
@@ -106,15 +120,36 @@ export function createAquiferScene(
       updateSurfaceVertices(surfaceGeometry, domain, data);
     },
     updateDarcyFlow(data: DarcyOverlayData): void {
-      updateDarcyArrows(darcyGroup, darcyArrows, domain, data);
+      updateDarcyArrows(darcyGroup, darcyArrows, domain, data, cutEnabled, cutX);
     },
     setDarcyFlowVisible(visible: boolean): void {
       darcyGroup.visible = visible;
     },
+    setGeologicalCut(enabled: boolean, positionPercent: number): void {
+      const clampedPercent = THREE.MathUtils.clamp(positionPercent, 0, 100);
+      cutX = -domain.widthMeters / 2 + (clampedPercent / 100) * domain.widthMeters;
+      cutPlane.constant = cutX;
+      if (cutEnabled !== enabled) {
+        for (const material of clippingMaterials) {
+          material.clippingPlanes = enabled ? clippingPlanes : [];
+          material.needsUpdate = true;
+        }
+        cutEnabled = enabled;
+      }
+      cutHelper.visible = enabled;
+      cutHelper.updateMatrixWorld();
+      for (const arrow of darcyArrows) {
+        arrow.visible = isRetainedByCut(arrow.userData.originX as number, cutEnabled, cutX);
+      }
+    },
   };
 }
 
-function addGeologicalContext(scene: THREE.Scene, domain: SceneDomain): void {
+function addGeologicalContext(
+  scene: THREE.Scene,
+  domain: SceneDomain,
+  clippingMaterials: THREE.Material[],
+): void {
   const layers = [
     { name: "Unidad superior (contexto)", y: -12, color: 0x9d805f },
     { name: "Acuífero confinado", y: -25, color: 0x2d8d9b },
@@ -130,6 +165,7 @@ function addGeologicalContext(scene: THREE.Scene, domain: SceneDomain): void {
       roughness: 0.8,
       depthWrite: false,
     });
+    clippingMaterials.push(material);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.name = layer.name;
     mesh.position.y = layer.y;
@@ -138,13 +174,18 @@ function addGeologicalContext(scene: THREE.Scene, domain: SceneDomain): void {
   }
 }
 
-function addRiver(scene: THREE.Scene, domain: SceneDomain): void {
+function addRiver(
+  scene: THREE.Scene,
+  domain: SceneDomain,
+  clippingMaterials: THREE.Material[],
+): void {
   const geometry = new THREE.BoxGeometry(24, 5, domain.heightMeters);
   const material = new THREE.MeshStandardMaterial({
     color: 0x287fd1,
     emissive: 0x0a315d,
     roughness: 0.25,
   });
+  clippingMaterials.push(material);
   const river = new THREE.Mesh(geometry, material);
   // column = 0 está en el borde occidental del dominio visual.
   river.position.set(-domain.widthMeters / 2, 1, 0);
@@ -157,6 +198,7 @@ function addWellMarker(
   container: HTMLElement,
   domain: SceneDomain,
   well: WellMarker,
+  clippingMaterials: THREE.Material[],
 ): { marker: THREE.Mesh; label: HTMLDivElement } {
   const geometry = new THREE.CylinderGeometry(18, 18, 72, 20);
   const material = new THREE.MeshStandardMaterial({
@@ -164,6 +206,7 @@ function addWellMarker(
     emissive: 0x5a3d00,
     roughness: 0.45,
   });
+  clippingMaterials.push(material);
   const marker = new THREE.Mesh(geometry, material);
   const position = cellCenterPosition(domain, well.row, well.column);
   marker.position.set(position.x, -2, position.z);
@@ -221,6 +264,8 @@ function updateDarcyArrows(
   arrows: THREE.Group[],
   domain: SceneDomain,
   data: DarcyOverlayData,
+  cutEnabled: boolean,
+  cutX: number,
 ): void {
   for (const arrow of arrows) {
     group.remove(arrow);
@@ -252,6 +297,8 @@ function updateDarcyArrows(
       position.z,
     );
     const arrow = createDarcyArrow(origin, direction, length);
+    arrow.userData.originX = origin.x;
+    arrow.visible = isRetainedByCut(origin.x, cutEnabled, cutX);
     arrows.push(arrow);
     group.add(arrow);
   }
@@ -314,6 +361,8 @@ function updateWellLabelPositions(
   camera: THREE.Camera,
   container: HTMLElement,
   wellLabels: readonly { marker: THREE.Mesh; label: HTMLDivElement }[],
+  cutEnabled: boolean,
+  cutX: number,
 ): void {
   const width = container.clientWidth;
   const height = container.clientHeight;
@@ -325,13 +374,18 @@ function updateWellLabelPositions(
       projected.y >= -1 &&
       projected.y <= 1 &&
       projected.z >= -1 &&
-      projected.z <= 1;
+      projected.z <= 1 &&
+      isRetainedByCut(marker.position.x, cutEnabled, cutX);
     label.hidden = !isVisible;
     if (isVisible) {
       label.style.left = `${(projected.x * 0.5 + 0.5) * width}px`;
       label.style.top = `${(-projected.y * 0.5 + 0.5) * height}px`;
     }
   }
+}
+
+function isRetainedByCut(x: number, cutEnabled: boolean, cutX: number): boolean {
+  return !cutEnabled || x <= cutX;
 }
 
 function cellCenterPosition(

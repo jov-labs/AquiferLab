@@ -97,6 +97,30 @@ h2 {
   accent-color: #49cce7;
 }
 
+.cut-position-control {
+  display: grid;
+  gap: 10px;
+  color: #d9e8f5;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cut-range {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  color: #91a8bd;
+  font-size: 0.72rem;
+}
+
+.cut-range input:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
 output {
   color: #62d8f2;
   font-size: 1.25rem;

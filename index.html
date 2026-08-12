@@ -32,6 +32,20 @@
           <span>Mostrar flujo de Darcy</span>
         </label>
 
+        <label class="checkbox-control" for="enable-geological-cut">
+          <input id="enable-geological-cut" type="checkbox" />
+          <span>Activar corte geológico</span>
+        </label>
+
+        <label class="cut-position-control" for="cut-position">
+          <span>Posición del corte</span>
+          <span class="cut-range">
+            <span>0 %</span>
+            <input id="cut-position" type="range" min="0" max="100" step="1" value="50" disabled />
+            <span>100 %</span>
+          </span>
+        </label>
+
         <div class="legend" aria-label="Leyenda científica">
           <p><span class="legend-swatch river"></span>Río: carga fija h = 100 m</p>
           <p><span class="legend-swatch surface"></span>Superficie piezométrica</p>
@@ -41,6 +55,7 @@
           <p>Superficie piezométrica mostrada respecto a h = 100 m.</p>
           <p>Longitud de flechas con escala visual √normalizada; la dirección y el orden relativo de magnitudes se conservan.</p>
           <p>Las flechas son un campo vectorial superpuesto, no trayectorias físicas de partículas.</p>
+          <p>Corte geológico: visualización; no modifica el modelo hidráulico.</p>
         </div>
       </aside>
 

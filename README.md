@@ -32,6 +32,9 @@ Darcy, calculado como `q = -K ∇h` a partir de las cargas del solver. No
 representa velocidad intersticial ni trayectorias de partículas; la longitud
 de las flechas está normalizada sólo para su visualización.
 
+El corte geológico interactivo es exclusivamente visual: abre el bloque con
+un plano vertical y no modifica el modelo hidráulico ni recalcula el flujo.
+
 ## Comandos
 
 ```bash
