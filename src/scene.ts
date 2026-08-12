@@ -1,6 +1,15 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { LineMaterial } from "three/addons/lines/LineMaterial.js";
+import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
+import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 import type { DarcyFlowField } from "./flow.js";
+
+const SURFACE_GRID_INTERVAL = 3;
+const OVERLAY_SURFACE_MARGIN_METERS = 8;
+const DARCY_OVERLAY_OFFSET_METERS = 16;
+const DARCY_VISUAL_SAMPLE_INTERVAL = 5;
+const DARCY_MAX_ARROW_LENGTH = 364;
 
 export interface SceneDomain {
   widthMeters: number;
@@ -17,6 +26,7 @@ export interface WellMarker {
 
 export interface PiezometricSurfaceData {
   headsMeters: readonly (readonly number[])[];
+  drawdownMeters: readonly (readonly number[])[];
   referenceHeadMeters: number;
 }
 
@@ -61,8 +71,6 @@ export function createAquiferScene(
   const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
   keyLight.position.set(900, 1_500, 600);
   scene.add(keyLight);
-  scene.add(new THREE.GridHelper(2_200, 22, 0x2a4259, 0x192a3a).translateY(-42));
-
   const cutPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0);
   const clippingPlanes = [cutPlane];
   const clippingMaterials: THREE.Material[] = [];
@@ -79,6 +87,7 @@ export function createAquiferScene(
   const surfaceGeometry = createSurfaceGeometry(domain);
   const surfaceMaterial = new THREE.MeshStandardMaterial({
     color: 0x3cd7ff,
+    vertexColors: true,
     transparent: true,
     opacity: 0.72,
     side: THREE.DoubleSide,
@@ -89,11 +98,26 @@ export function createAquiferScene(
   const surface = new THREE.Mesh(surfaceGeometry, surfaceMaterial);
   surface.renderOrder = 2;
   scene.add(surface);
+  const surfaceGridGeometry = new LineSegmentsGeometry();
+  const surfaceGridMaterial = new LineMaterial({
+    color: 0x000000,
+    linewidth: 1.3,
+    transparent: true,
+    opacity: 0.92,
+    depthWrite: false,
+  });
+  clippingMaterials.push(surfaceGridMaterial);
+  const surfaceGrid = new LineSegments2(surfaceGridGeometry, surfaceGridMaterial);
+  surfaceGrid.name = "Cuadrícula de superficie piezométrica";
+  surfaceGrid.renderOrder = 3;
+  surfaceGrid.frustumCulled = false;
+  scene.add(surfaceGrid);
   const darcyGroup = new THREE.Group();
   darcyGroup.name = "Campo de descarga específica de Darcy";
-  darcyGroup.renderOrder = 3;
+  darcyGroup.renderOrder = 4;
   scene.add(darcyGroup);
   const darcyArrows: THREE.Group[] = [];
+  let overlayY = 0;
   let cutEnabled = false;
   let cutX = domain.widthMeters / 2;
   let lastWidth = 0;
@@ -111,6 +135,7 @@ export function createAquiferScene(
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height, false);
+    surfaceGridMaterial.resolution.set(width, height);
   };
   const scheduleResize = () => {
     if (resizeFrame === 0) {
@@ -131,9 +156,11 @@ export function createAquiferScene(
   return {
     updatePiezometricSurface(data: PiezometricSurfaceData): void {
       updateSurfaceVertices(surfaceGeometry, domain, data);
+      overlayY = surfaceMaximumY(data.headsMeters, data.referenceHeadMeters) + OVERLAY_SURFACE_MARGIN_METERS;
+      updateSurfaceGrid(surfaceGridGeometry, domain, overlayY);
     },
     updateDarcyFlow(data: DarcyOverlayData): void {
-      updateDarcyArrows(darcyGroup, darcyArrows, domain, data, cutEnabled, cutX);
+      updateDarcyArrows(darcyGroup, darcyArrows, domain, data, overlayY, cutEnabled, cutX);
     },
     setDarcyFlowVisible(visible: boolean): void {
       darcyGroup.visible = visible;
@@ -237,6 +264,7 @@ function addWellMarker(
 function createSurfaceGeometry(domain: SceneDomain): THREE.BufferGeometry {
   const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(domain.rows * domain.columns * 3);
+  const colors = new Float32Array(domain.rows * domain.columns * 3);
   const indices: number[] = [];
 
   for (let row = 0; row < domain.rows - 1; row += 1) {
@@ -250,6 +278,7 @@ function createSurfaceGeometry(domain: SceneDomain): THREE.BufferGeometry {
   }
 
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
   geometry.setIndex(indices);
   return geometry;
 }
@@ -260,16 +289,160 @@ function updateSurfaceVertices(
   data: PiezometricSurfaceData,
 ): void {
   const positions = geometry.getAttribute("position") as THREE.BufferAttribute;
+  const colors = geometry.getAttribute("color") as THREE.BufferAttribute;
+  const { minimumDrawdownMeters, maximumDrawdownMeters } = drawdownRange(data.drawdownMeters);
+  const hasNegativeDrawdown = minimumDrawdownMeters < 0;
+  const zeroColor = new THREE.Color(0x38d7ff);
+  const positiveColor = new THREE.Color(0x7f3cff);
+  const negativeColor = new THREE.Color(0x3155d9);
+  const vertexColor = new THREE.Color();
   for (let row = 0; row < domain.rows; row += 1) {
     for (let column = 0; column < domain.columns; column += 1) {
       const index = row * domain.columns + column;
       const position = cellCenterPosition(domain, row, column);
       positions.setXYZ(index, position.x, data.headsMeters[row][column] - data.referenceHeadMeters, position.z);
+      const drawdown = data.drawdownMeters[row][column];
+      setDrawdownColor(
+        vertexColor,
+        drawdown,
+        minimumDrawdownMeters,
+        maximumDrawdownMeters,
+        hasNegativeDrawdown,
+        negativeColor,
+        zeroColor,
+        positiveColor,
+      );
+      colors.setXYZ(index, vertexColor.r, vertexColor.g, vertexColor.b);
     }
   }
   positions.needsUpdate = true;
+  colors.needsUpdate = true;
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
+}
+
+function updateSurfaceGrid(
+  geometry: LineSegmentsGeometry,
+  domain: SceneDomain,
+  overlayY: number,
+): void {
+  const positions: number[] = [];
+  const rows = gridLineIndices(domain.rows);
+  const columns = gridLineIndices(domain.columns);
+  for (const row of rows) {
+    for (let index = 0; index < columns.length - 1; index += 1) {
+      addSurfaceGridSegment(
+        positions,
+        domain,
+        row,
+        columns[index],
+        row,
+        columns[index + 1],
+        overlayY,
+      );
+    }
+  }
+  for (const column of columns) {
+    for (let index = 0; index < rows.length - 1; index += 1) {
+      addSurfaceGridSegment(
+        positions,
+        domain,
+        rows[index],
+        column,
+        rows[index + 1],
+        column,
+        overlayY,
+      );
+    }
+  }
+  geometry.setPositions(positions);
+  geometry.computeBoundingSphere();
+}
+
+function gridLineIndices(size: number): number[] {
+  const indices: number[] = [];
+  for (let index = 0; index < size; index += SURFACE_GRID_INTERVAL) {
+    indices.push(index);
+  }
+  if (indices[indices.length - 1] !== size - 1) {
+    indices.push(size - 1);
+  }
+  return indices;
+}
+
+function addSurfaceGridSegment(
+  positions: number[],
+  domain: SceneDomain,
+  startRow: number,
+  startColumn: number,
+  endRow: number,
+  endColumn: number,
+  overlayY: number,
+): void {
+  const start = cellCenterPosition(domain, startRow, startColumn);
+  const end = cellCenterPosition(domain, endRow, endColumn);
+  positions.push(
+    start.x,
+    overlayY,
+    start.z,
+    end.x,
+    overlayY,
+    end.z,
+  );
+}
+
+function surfaceMaximumY(
+  headsMeters: readonly (readonly number[])[],
+  referenceHeadMeters: number,
+): number {
+  let maximumY = Number.NEGATIVE_INFINITY;
+  for (const row of headsMeters) {
+    for (const headMeters of row) {
+      maximumY = Math.max(maximumY, headMeters - referenceHeadMeters);
+    }
+  }
+  return maximumY;
+}
+
+function drawdownRange(drawdownMeters: readonly (readonly number[])[]): {
+  minimumDrawdownMeters: number;
+  maximumDrawdownMeters: number;
+} {
+  let minimumDrawdownMeters = Number.POSITIVE_INFINITY;
+  let maximumDrawdownMeters = Number.NEGATIVE_INFINITY;
+  for (const row of drawdownMeters) {
+    for (const drawdown of row) {
+      minimumDrawdownMeters = Math.min(minimumDrawdownMeters, drawdown);
+      maximumDrawdownMeters = Math.max(maximumDrawdownMeters, drawdown);
+    }
+  }
+  return { minimumDrawdownMeters, maximumDrawdownMeters };
+}
+
+function setDrawdownColor(
+  target: THREE.Color,
+  drawdown: number,
+  minimumDrawdownMeters: number,
+  maximumDrawdownMeters: number,
+  hasNegativeDrawdown: boolean,
+  negativeColor: THREE.Color,
+  zeroColor: THREE.Color,
+  positiveColor: THREE.Color,
+): void {
+  if (minimumDrawdownMeters === maximumDrawdownMeters) {
+    target.copy(zeroColor);
+    return;
+  }
+  if (hasNegativeDrawdown && drawdown < 0) {
+    const relative = drawdown / minimumDrawdownMeters;
+    target.lerpColors(zeroColor, negativeColor, relative);
+    return;
+  }
+  if (maximumDrawdownMeters <= 0) {
+    target.copy(zeroColor);
+    return;
+  }
+  target.lerpColors(zeroColor, positiveColor, drawdown / maximumDrawdownMeters);
 }
 
 function updateDarcyArrows(
@@ -277,6 +450,7 @@ function updateDarcyArrows(
   arrows: THREE.Group[],
   domain: SceneDomain,
   data: DarcyOverlayData,
+  overlayY: number,
   cutEnabled: boolean,
   cutX: number,
 ): void {
@@ -291,8 +465,11 @@ function updateDarcyArrows(
   }
 
   for (const vector of data.field.vectors) {
-    // El cálculo contiene cada celda interior; sólo se muestrea cada cuatro para legibilidad.
-    if ((vector.row - 1) % 4 !== 0 || (vector.column - 1) % 4 !== 0) {
+    // El cálculo contiene cada celda interior; sólo se muestrea cada cinco para legibilidad.
+    if (
+      (vector.row - 1) % DARCY_VISUAL_SAMPLE_INTERVAL !== 0 ||
+      (vector.column - 1) % DARCY_VISUAL_SAMPLE_INTERVAL !== 0
+    ) {
       continue;
     }
     if (vector.magnitudeMetersPerDay <= Number.EPSILON) {
@@ -303,10 +480,10 @@ function updateDarcyArrows(
     const direction = new THREE.Vector3(vector.qxMetersPerDay, 0, vector.qzMetersPerDay).normalize();
     const relativeMagnitude = vector.magnitudeMetersPerDay / data.field.maxMagnitudeMetersPerDay;
     const visualRelativeMagnitude = Math.sqrt(relativeMagnitude);
-    const length = 280 * visualRelativeMagnitude;
+    const length = DARCY_MAX_ARROW_LENGTH * visualRelativeMagnitude;
     const origin = new THREE.Vector3(
       position.x,
-      data.headsMeters[vector.row][vector.column] - data.referenceHeadMeters + 2,
+      overlayY + DARCY_OVERLAY_OFFSET_METERS,
       position.z,
     );
     const arrow = createDarcyArrow(origin, direction, length);
@@ -329,10 +506,14 @@ function createDarcyArrow(
     new THREE.Vector3(0, 1, 0),
     direction,
   );
-  const material = new THREE.MeshStandardMaterial({
-    color: 0xff3b30,
-    emissive: 0x5a0805,
-    roughness: 0.35,
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xff0000,
+    transparent: false,
+    opacity: 1,
+    blending: THREE.NormalBlending,
+    depthTest: true,
+    depthWrite: true,
+    vertexColors: false,
   });
   const shaft = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 4.5, shaftLength, 10), material);
   shaft.position.copy(origin).addScaledVector(direction, shaftLength / 2);

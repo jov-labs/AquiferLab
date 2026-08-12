@@ -9,6 +9,7 @@ import {
   type GroundwaterModelInput,
   type GroundwaterResult,
 } from "./groundwater.js";
+import { calculateDrawdown, type DrawdownResult } from "./drawdown.js";
 import { calculateDarcyFlow } from "./flow.js";
 import { createAquiferScene } from "./scene.js";
 
@@ -28,6 +29,12 @@ const wellAHead = getElement<HTMLElement>("result-well-a-head");
 const wellBHead = getElement<HTMLElement>("result-well-b-head");
 const solverMessage = getElement<HTMLElement>("solver-message");
 const darcyMax = getElement<HTMLElement>("result-darcy-max");
+const maxDrawdown = getElement<HTMLElement>("result-max-drawdown");
+const wellADrawdown = getElement<HTMLElement>("result-well-a-drawdown");
+const wellBDrawdown = getElement<HTMLElement>("result-well-b-drawdown");
+const drawdownLegendMinimum = getElement<HTMLElement>("drawdown-legend-minimum");
+const drawdownLegendZero = getElement<HTMLElement>("drawdown-legend-zero");
+const drawdownLegendMaximum = getElement<HTMLElement>("drawdown-legend-maximum");
 const darcyFlowToggle = getElement<HTMLInputElement>("show-darcy-flow");
 const geologicalCutToggle = getElement<HTMLInputElement>("enable-geological-cut");
 const cutPosition = getElement<HTMLInputElement>("cut-position");
@@ -90,6 +97,16 @@ function currentInput(): GroundwaterModelInput {
   };
 }
 
+function referenceInput(actualInput: GroundwaterModelInput): GroundwaterModelInput {
+  return {
+    ...actualInput,
+    wells: actualInput.wells.map((well) => ({
+      ...well,
+      rateCubicMetersPerDay: 0,
+    })),
+  };
+}
+
 function updateSliderLabels(): void {
   wellAValue.value = `${wellARate.value} L/s`;
   wellBValue.value = `${wellBRate.value} L/s`;
@@ -140,34 +157,49 @@ function toSuperscript(value: number): string {
 }
 
 function recalculate(): void {
-  const input = currentInput();
-  let result: GroundwaterResult;
+  const actualInput = currentInput();
+  const referenceInputForScenario = referenceInput(actualInput);
+  let referenceResult: GroundwaterResult;
+  let actualResult: GroundwaterResult;
+  let drawdown: DrawdownResult;
   try {
-    result = solveGroundwater(input);
+    referenceResult = solveGroundwater(referenceInputForScenario);
+    actualResult = solveGroundwater(actualInput);
+    if (
+      !referenceResult.converged ||
+      !referenceResult.isValid ||
+      !actualResult.converged ||
+      !actualResult.isValid
+    ) {
+      showNoConvergence("El escenario de referencia o el actual no es válido; se conserva la última superficie válida.");
+      return;
+    }
+    drawdown = calculateDrawdown(referenceResult.headsMeters, actualResult.headsMeters);
   } catch (error) {
     showNoConvergence(error instanceof Error ? error.message : "Error del solver.");
     return;
   }
 
-  if (!result.converged || !result.isValid) {
-    showNoConvergence("El campo nuevo no es válido; se conserva la última superficie válida.");
-    return;
-  }
-
-  const darcyFlow = calculateDarcyFlow(input, result.headsMeters);
+  const darcyFlow = calculateDarcyFlow(actualInput, actualResult.headsMeters);
   scene.updatePiezometricSurface({
-    headsMeters: result.headsMeters,
+    headsMeters: actualResult.headsMeters,
+    drawdownMeters: drawdown.drawdownMeters,
     referenceHeadMeters: REFERENCE_HEAD_METERS,
   });
   scene.updateDarcyFlow({
     field: darcyFlow,
-    headsMeters: result.headsMeters,
+    headsMeters: actualResult.headsMeters,
     referenceHeadMeters: REFERENCE_HEAD_METERS,
   });
-  showResult(result, darcyFlow.maxMagnitudeMetersPerDay);
+  showResult(actualResult, darcyFlow.maxMagnitudeMetersPerDay, drawdown);
+  updateDrawdownLegend(drawdown.drawdownMeters);
 }
 
-function showResult(result: GroundwaterResult, maxDarcyMetersPerDay: number): void {
+function showResult(
+  result: GroundwaterResult,
+  maxDarcyMetersPerDay: number,
+  drawdown: DrawdownResult,
+): void {
   status.textContent = "Convergió";
   status.dataset.status = "valid";
   iterations.textContent = String(result.iterations);
@@ -176,7 +208,25 @@ function showResult(result: GroundwaterResult, maxDarcyMetersPerDay: number): vo
   wellAHead.textContent = formatMeters(result.headsMeters[WELL_A.row][WELL_A.column]);
   wellBHead.textContent = formatMeters(result.headsMeters[WELL_B.row][WELL_B.column]);
   darcyMax.textContent = formatMetersPerDay(maxDarcyMetersPerDay);
+  maxDrawdown.textContent = formatMeters(drawdown.maxDrawdownMeters);
+  wellADrawdown.textContent = formatMeters(drawdown.drawdownMeters[WELL_A.row][WELL_A.column]);
+  wellBDrawdown.textContent = formatMeters(drawdown.drawdownMeters[WELL_B.row][WELL_B.column]);
   solverMessage.textContent = "";
+}
+
+function updateDrawdownLegend(drawdownMeters: readonly (readonly number[])[]): void {
+  let minimumDrawdownMeters = Number.POSITIVE_INFINITY;
+  let maximumDrawdownMeters = Number.NEGATIVE_INFINITY;
+  for (const row of drawdownMeters) {
+    for (const drawdown of row) {
+      minimumDrawdownMeters = Math.min(minimumDrawdownMeters, drawdown);
+      maximumDrawdownMeters = Math.max(maximumDrawdownMeters, drawdown);
+    }
+  }
+  drawdownLegendMinimum.textContent = formatMeters(minimumDrawdownMeters);
+  drawdownLegendMaximum.textContent = formatMeters(maximumDrawdownMeters);
+  drawdownLegendZero.hidden = minimumDrawdownMeters >= 0;
+  drawdownLegendZero.textContent = "0.000 m";
 }
 
 function showNoConvergence(message: string): void {
@@ -188,6 +238,12 @@ function showNoConvergence(message: string): void {
   wellAHead.textContent = "—";
   wellBHead.textContent = "—";
   darcyMax.textContent = "—";
+  maxDrawdown.textContent = "—";
+  wellADrawdown.textContent = "—";
+  wellBDrawdown.textContent = "—";
+  drawdownLegendMinimum.textContent = "—";
+  drawdownLegendMaximum.textContent = "—";
+  drawdownLegendZero.hidden = true;
   solverMessage.textContent = message;
 }
 

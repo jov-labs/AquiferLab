@@ -39,6 +39,10 @@ La interfaz permite variar K, recarga, espesor hidráulico y carga prescrita
 del río. El bloque geológico continúa siendo esquemático y no cambia su escala
 vertical al modificar el espesor hidráulico.
 
+La superficie piezométrica conserva su geometría basada en la carga hidráulica
+actual y usa color por vértice para mostrar el abatimiento estacionario respecto
+del mismo escenario sin bombeo. El color no representa la magnitud de Darcy.
+
 ## Comandos
 
 ```bash

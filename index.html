@@ -128,7 +128,28 @@
             <dt>Q Darcy máx.</dt>
             <dd id="result-darcy-max">—</dd>
           </div>
+          <div>
+            <dt>Abatimiento máx.</dt>
+            <dd id="result-max-drawdown">—</dd>
+          </div>
+          <div>
+            <dt>Abatimiento en pozo A</dt>
+            <dd id="result-well-a-drawdown">—</dd>
+          </div>
+          <div>
+            <dt>Abatimiento en pozo B</dt>
+            <dd id="result-well-b-drawdown">—</dd>
+          </div>
         </dl>
+        <section class="drawdown-legend" aria-label="Escala de abatimiento">
+          <h3>Abatimiento</h3>
+          <div class="drawdown-scale" aria-hidden="true"></div>
+          <div class="drawdown-labels">
+            <span id="drawdown-legend-minimum">—</span>
+            <span id="drawdown-legend-zero" hidden>0.000 m</span>
+            <span id="drawdown-legend-maximum">—</span>
+          </div>
+        </section>
         <p id="solver-message" class="solver-message" aria-live="polite"></p>
       </aside>
     </div>

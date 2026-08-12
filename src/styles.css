@@ -262,6 +262,34 @@ input[type="range"] {
   border-bottom: 1px solid #203247;
 }
 
+.drawdown-legend {
+  display: grid;
+  gap: 8px;
+}
+
+.drawdown-legend h3 {
+  margin: 0;
+  color: #91a8bd;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.drawdown-scale {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3155d9 0%, #38d7ff 50%, #7f3cff 100%);
+}
+
+.drawdown-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #c8d8e8;
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+}
+
 dt {
   color: #91a8bd;
   font-size: 0.72rem;
