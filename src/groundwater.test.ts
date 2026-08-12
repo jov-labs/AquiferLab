@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   createDefaultModelInput,
   litersPerSecondToCubicMetersPerDay,
+  metersPerDayToMetersPerSecond,
+  metersPerDayToMillimetersPerYear,
   metersPerSecondToMetersPerDay,
   millimetersPerYearToMetersPerDay,
   solveGroundwater,
@@ -28,6 +30,22 @@ describe("conversiones centralizadas", () => {
 
   it("convierte bombeo de L/s a m³/día", () => {
     expect(litersPerSecondToCubicMetersPerDay(1)).toBeCloseTo(86.4, 12);
+  });
+
+  it("compone correctamente la conversión inversa de K", () => {
+    const metersPerDay = 0.864;
+    expect(metersPerSecondToMetersPerDay(metersPerDayToMetersPerSecond(metersPerDay))).toBeCloseTo(
+      metersPerDay,
+      12,
+    );
+  });
+
+  it("compone correctamente la conversión inversa de recarga", () => {
+    const metersPerDay = 120 / 1_000 / 365;
+    expect(millimetersPerYearToMetersPerDay(metersPerDayToMillimetersPerYear(metersPerDay))).toBeCloseTo(
+      metersPerDay,
+      16,
+    );
   });
 });
 

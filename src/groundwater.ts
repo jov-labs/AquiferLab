@@ -58,10 +58,22 @@ export function metersPerSecondToMetersPerDay(value: number): number {
   return value * SECONDS_PER_DAY;
 }
 
+/** Conversión centralizada de K: m/día a m/s. */
+export function metersPerDayToMetersPerSecond(value: number): number {
+  assertFinite(value, "La conductividad en m/día");
+  return value / SECONDS_PER_DAY;
+}
+
 /** Conversión centralizada de recarga: mm/año a m/día. */
 export function millimetersPerYearToMetersPerDay(value: number): number {
   assertFinite(value, "La recarga en mm/año");
   return value / 1_000 / DAYS_PER_YEAR;
+}
+
+/** Conversión centralizada de recarga: m/día a mm/año. */
+export function metersPerDayToMillimetersPerYear(value: number): number {
+  assertFinite(value, "La recarga en m/día");
+  return value * 1_000 * DAYS_PER_YEAR;
 }
 
 /** Conversión centralizada de bombeo: L/s a m³/día. */

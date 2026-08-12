@@ -35,6 +35,10 @@ de las flechas está normalizada sólo para su visualización.
 El corte geológico interactivo es exclusivamente visual: abre el bloque con
 un plano vertical y no modifica el modelo hidráulico ni recalcula el flujo.
 
+La interfaz permite variar K, recarga, espesor hidráulico y carga prescrita
+del río. El bloque geológico continúa siendo esquemático y no cambia su escala
+vertical al modificar el espesor hidráulico.
+
 ## Comandos
 
 ```bash

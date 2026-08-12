@@ -10,22 +10,24 @@
 }
 
 html,
-body,
-#app {
+body {
   width: 100%;
+  height: 100%;
   min-width: 0;
-  min-height: 100%;
   margin: 0;
 }
 
 body {
-  min-height: 100vh;
+  min-height: 0;
 }
 
 #app {
   display: grid;
   grid-template-columns: minmax(220px, 280px) minmax(420px, 1fr) minmax(220px, 280px);
-  min-height: 100vh;
+  width: 100%;
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .panel {
@@ -35,6 +37,7 @@ body {
   padding: 28px 24px;
   background: #0c1827;
   border-color: #203247;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -121,6 +124,26 @@ h2 {
   opacity: 0.38;
 }
 
+.parameter-section {
+  display: grid;
+  gap: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #203247;
+}
+
+.parameter-section h2 {
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.parameter-note {
+  margin: 0;
+  color: #91a8bd;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
 output {
   color: #62d8f2;
   font-size: 1.25rem;
@@ -169,11 +192,19 @@ input[type="range"] {
 
 .scene-panel {
   position: relative;
-  min-height: 100vh;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
 }
 
-#scene-container,
+#scene-container {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
 #scene-container canvas {
   display: block;
   width: 100%;
@@ -262,7 +293,10 @@ dd {
 @media (max-width: 960px) {
   #app {
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(520px, 65vh) auto;
+    grid-template-rows: auto clamp(520px, 60vh, 720px) auto;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
   }
 
   .panel {
@@ -283,6 +317,7 @@ dd {
   }
 
   .scene-panel {
+    height: clamp(520px, 60vh, 720px);
     min-height: 0;
   }
 }

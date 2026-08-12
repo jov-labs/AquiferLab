@@ -1,6 +1,10 @@
 import {
   createDefaultModelInput,
   litersPerSecondToCubicMetersPerDay,
+  metersPerDayToMetersPerSecond,
+  metersPerDayToMillimetersPerYear,
+  metersPerSecondToMetersPerDay,
+  millimetersPerYearToMetersPerDay,
   solveGroundwater,
   type GroundwaterModelInput,
   type GroundwaterResult,
@@ -27,8 +31,17 @@ const darcyMax = getElement<HTMLElement>("result-darcy-max");
 const darcyFlowToggle = getElement<HTMLInputElement>("show-darcy-flow");
 const geologicalCutToggle = getElement<HTMLInputElement>("enable-geological-cut");
 const cutPosition = getElement<HTMLInputElement>("cut-position");
+const hydraulicConductivityExponent = getElement<HTMLInputElement>("hydraulic-conductivity-exponent");
+const hydraulicConductivityValue = getElement<HTMLOutputElement>("hydraulic-conductivity-value");
+const recharge = getElement<HTMLInputElement>("recharge");
+const rechargeValue = getElement<HTMLOutputElement>("recharge-value");
+const aquiferThickness = getElement<HTMLInputElement>("aquifer-thickness");
+const aquiferThicknessValue = getElement<HTMLOutputElement>("aquifer-thickness-value");
+const riverHead = getElement<HTMLInputElement>("river-head");
+const riverHeadValue = getElement<HTMLOutputElement>("river-head-value");
 
 const baseInput = createDefaultModelInput();
+initializeParameterControls(baseInput);
 const scene = createAquiferScene(
   getElement<HTMLElement>("scene-container"),
   {
@@ -49,8 +62,19 @@ function getElement<ElementType extends HTMLElement>(id: string): ElementType {
 }
 
 function currentInput(): GroundwaterModelInput {
+  const defaultInput = createDefaultModelInput();
+  const hydraulicConductivityMetersPerSecond = 10 ** Number(hydraulicConductivityExponent.value);
   return {
-    ...createDefaultModelInput(),
+    ...defaultInput,
+    hydraulicConductivityMetersPerDay: metersPerSecondToMetersPerDay(
+      hydraulicConductivityMetersPerSecond,
+    ),
+    rechargeMetersPerDay: millimetersPerYearToMetersPerDay(Number(recharge.value)),
+    thicknessMeters: Number(aquiferThickness.value),
+    fixedHeadCells: defaultInput.fixedHeadCells.map((cell) => ({
+      ...cell,
+      headMeters: Number(riverHead.value),
+    })),
     wells: [
       {
         row: WELL_A.row,
@@ -69,6 +93,50 @@ function currentInput(): GroundwaterModelInput {
 function updateSliderLabels(): void {
   wellAValue.value = `${wellARate.value} L/s`;
   wellBValue.value = `${wellBRate.value} L/s`;
+}
+
+function initializeParameterControls(defaultInput: GroundwaterModelInput): void {
+  hydraulicConductivityExponent.value = String(
+    Math.log10(metersPerDayToMetersPerSecond(defaultInput.hydraulicConductivityMetersPerDay)),
+  );
+  recharge.value = String(metersPerDayToMillimetersPerYear(defaultInput.rechargeMetersPerDay));
+  aquiferThickness.value = String(defaultInput.thicknessMeters);
+  riverHead.value = String(defaultInput.fixedHeadCells[0].headMeters);
+  updateParameterLabels();
+}
+
+function updateParameterLabels(): void {
+  const exponent = Number(hydraulicConductivityExponent.value);
+  hydraulicConductivityValue.value = `K = ${formatScientific(10 ** exponent)} m/s`;
+  rechargeValue.value = `${recharge.value} mm/año`;
+  aquiferThicknessValue.value = `${aquiferThickness.value} m`;
+  riverHeadValue.value = `${riverHead.value} m`;
+}
+
+function formatScientific(value: number): string {
+  const exponent = Math.floor(Math.log10(value));
+  const coefficient = value / 10 ** exponent;
+  return `${coefficient.toFixed(2)} × 10${toSuperscript(exponent)}`;
+}
+
+function toSuperscript(value: number): string {
+  const digits: Record<string, string> = {
+    "-": "⁻",
+    "0": "⁰",
+    "1": "¹",
+    "2": "²",
+    "3": "³",
+    "4": "⁴",
+    "5": "⁵",
+    "6": "⁶",
+    "7": "⁷",
+    "8": "⁸",
+    "9": "⁹",
+  };
+  return String(value)
+    .split("")
+    .map((digit) => digits[digit])
+    .join("");
 }
 
 function recalculate(): void {
@@ -135,6 +203,16 @@ for (const slider of [wellARate, wellBRate]) {
   slider.addEventListener("input", updateSliderLabels);
   // change se dispara al confirmar el valor, evitando solves por cada paso del arrastre.
   slider.addEventListener("change", recalculate);
+}
+
+for (const parameterControl of [
+  hydraulicConductivityExponent,
+  recharge,
+  aquiferThickness,
+  riverHead,
+]) {
+  parameterControl.addEventListener("input", updateParameterLabels);
+  parameterControl.addEventListener("change", recalculate);
 }
 
 darcyFlowToggle.addEventListener("change", () => {

@@ -96,16 +96,29 @@ export function createAquiferScene(
   const darcyArrows: THREE.Group[] = [];
   let cutEnabled = false;
   let cutX = domain.widthMeters / 2;
+  let lastWidth = 0;
+  let lastHeight = 0;
+  let resizeFrame = 0;
 
   const resize = () => {
-    const width = Math.max(container.clientWidth, 1);
-    const height = Math.max(container.clientHeight, 1);
+    resizeFrame = 0;
+    const { width, height } = container.getBoundingClientRect();
+    if (width <= 0 || height <= 0 || (width === lastWidth && height === lastHeight)) {
+      return;
+    }
+    lastWidth = width;
+    lastHeight = height;
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height, false);
   };
-  new ResizeObserver(resize).observe(container);
+  const scheduleResize = () => {
+    if (resizeFrame === 0) {
+      resizeFrame = window.requestAnimationFrame(resize);
+    }
+  };
   resize();
+  new ResizeObserver(scheduleResize).observe(container);
 
   const render = () => {
     controls.update();

@@ -46,6 +46,36 @@
           </span>
         </label>
 
+        <section class="parameter-section" aria-labelledby="parameter-title">
+          <h2 id="parameter-title">Parámetros del acuífero</h2>
+
+          <label class="slider-control" for="hydraulic-conductivity-exponent">
+            <span>Conductividad hidráulica K</span>
+            <output id="hydraulic-conductivity-value" for="hydraulic-conductivity-exponent">—</output>
+            <input id="hydraulic-conductivity-exponent" type="range" min="-6" max="-4" step="0.1" />
+          </label>
+
+          <label class="slider-control" for="recharge">
+            <span>Recarga</span>
+            <output id="recharge-value" for="recharge">—</output>
+            <input id="recharge" type="range" min="0" max="500" step="10" />
+          </label>
+
+          <label class="slider-control" for="aquifer-thickness">
+            <span>Espesor del acuífero</span>
+            <output id="aquifer-thickness-value" for="aquifer-thickness">—</output>
+            <input id="aquifer-thickness" type="range" min="10" max="100" step="5" />
+          </label>
+
+          <label class="slider-control" for="river-head">
+            <span>Carga del río</span>
+            <output id="river-head-value" for="river-head">—</output>
+            <input id="river-head" type="range" min="80" max="120" step="1" />
+          </label>
+
+          <p class="parameter-note">Espesor hidráulico configurable; bloque geológico esquemático sin escala vertical.</p>
+        </section>
+
         <div class="legend" aria-label="Leyenda científica">
           <p><span class="legend-swatch river"></span>Río: carga fija h = 100 m</p>
           <p><span class="legend-swatch surface"></span>Superficie piezométrica</p>
