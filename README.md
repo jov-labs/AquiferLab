@@ -27,6 +27,11 @@ campo de carga calculado por el motor en una superficie piezométrica; no
 resuelve el flujo. Las unidades superior y basal son contexto visual
 esquemático: sólo el acuífero confinado participa en el modelo hidráulico.
 
+La escena también superpone un campo horizontal de descarga específica de
+Darcy, calculado como `q = -K ∇h` a partir de las cargas del solver. No
+representa velocidad intersticial ni trayectorias de partículas; la longitud
+de las flechas está normalizada sólo para su visualización.
+
 ## Comandos
 
 ```bash

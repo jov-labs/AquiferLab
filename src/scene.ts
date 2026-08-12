@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import type { DarcyFlowField } from "./flow.js";
 
 export interface SceneDomain {
   widthMeters: number;
@@ -19,8 +20,16 @@ export interface PiezometricSurfaceData {
   referenceHeadMeters: number;
 }
 
+export interface DarcyOverlayData {
+  field: DarcyFlowField;
+  headsMeters: readonly (readonly number[])[];
+  referenceHeadMeters: number;
+}
+
 export interface AquiferScene {
   updatePiezometricSurface(data: PiezometricSurfaceData): void;
+  updateDarcyFlow(data: DarcyOverlayData): void;
+  setDarcyFlowVisible(visible: boolean): void;
 }
 
 /** Representación Three.js: recibe campos ya resueltos, sin cálculo hidrogeológico. */
@@ -32,7 +41,7 @@ export function createAquiferScene(
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x09111f);
 
-  const camera = new THREE.PerspectiveCamera(42, 1, 1, 10_000);
+  const camera = new THREE.PerspectiveCamera(42, 1, 1, 40_000);
   camera.position.set(1_700, 1_450, 1_700);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -44,7 +53,7 @@ export function createAquiferScene(
   controls.target.set(0, -10, 0);
   controls.enableDamping = true;
   controls.minDistance = 500;
-  controls.maxDistance = 5_000;
+  controls.maxDistance = 20_000;
 
   scene.add(new THREE.HemisphereLight(0xb9d8ff, 0x152033, 2.2));
   const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
@@ -54,9 +63,7 @@ export function createAquiferScene(
 
   addGeologicalContext(scene, domain);
   addRiver(scene, domain);
-  for (const well of wells) {
-    addWellMarker(scene, domain, well);
-  }
+  const wellLabels = wells.map((well) => addWellMarker(scene, container, domain, well));
 
   const surfaceGeometry = createSurfaceGeometry(domain);
   const surfaceMaterial = new THREE.MeshStandardMaterial({
@@ -70,6 +77,11 @@ export function createAquiferScene(
   const surface = new THREE.Mesh(surfaceGeometry, surfaceMaterial);
   surface.renderOrder = 2;
   scene.add(surface);
+  const darcyGroup = new THREE.Group();
+  darcyGroup.name = "Campo de descarga específica de Darcy";
+  darcyGroup.renderOrder = 3;
+  scene.add(darcyGroup);
+  const darcyArrows: THREE.Group[] = [];
 
   const resize = () => {
     const width = Math.max(container.clientWidth, 1);
@@ -83,6 +95,7 @@ export function createAquiferScene(
 
   const render = () => {
     controls.update();
+    updateWellLabelPositions(camera, container, wellLabels);
     renderer.render(scene, camera);
     window.requestAnimationFrame(render);
   };
@@ -91,6 +104,12 @@ export function createAquiferScene(
   return {
     updatePiezometricSurface(data: PiezometricSurfaceData): void {
       updateSurfaceVertices(surfaceGeometry, domain, data);
+    },
+    updateDarcyFlow(data: DarcyOverlayData): void {
+      updateDarcyArrows(darcyGroup, darcyArrows, domain, data);
+    },
+    setDarcyFlowVisible(visible: boolean): void {
+      darcyGroup.visible = visible;
     },
   };
 }
@@ -133,7 +152,12 @@ function addRiver(scene: THREE.Scene, domain: SceneDomain): void {
   scene.add(river);
 }
 
-function addWellMarker(scene: THREE.Scene, domain: SceneDomain, well: WellMarker): void {
+function addWellMarker(
+  scene: THREE.Scene,
+  container: HTMLElement,
+  domain: SceneDomain,
+  well: WellMarker,
+): { marker: THREE.Mesh; label: HTMLDivElement } {
   const geometry = new THREE.CylinderGeometry(18, 18, 72, 20);
   const material = new THREE.MeshStandardMaterial({
     color: 0xf3c760,
@@ -145,6 +169,13 @@ function addWellMarker(scene: THREE.Scene, domain: SceneDomain, well: WellMarker
   marker.position.set(position.x, -2, position.z);
   marker.name = well.label;
   scene.add(marker);
+
+  const label = document.createElement("div");
+  label.className = "well-label";
+  label.textContent = well.label.slice(-1);
+  label.setAttribute("aria-label", well.label);
+  container.append(label);
+  return { marker, label };
 }
 
 function createSurfaceGeometry(domain: SceneDomain): THREE.BufferGeometry {
@@ -183,6 +214,124 @@ function updateSurfaceVertices(
   positions.needsUpdate = true;
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
+}
+
+function updateDarcyArrows(
+  group: THREE.Group,
+  arrows: THREE.Group[],
+  domain: SceneDomain,
+  data: DarcyOverlayData,
+): void {
+  for (const arrow of arrows) {
+    group.remove(arrow);
+    disposeDarcyArrow(arrow);
+  }
+  arrows.length = 0;
+
+  if (data.field.maxMagnitudeMetersPerDay <= Number.EPSILON) {
+    return;
+  }
+
+  for (const vector of data.field.vectors) {
+    // El cálculo contiene cada celda interior; sólo se muestrea cada cuatro para legibilidad.
+    if ((vector.row - 1) % 4 !== 0 || (vector.column - 1) % 4 !== 0) {
+      continue;
+    }
+    if (vector.magnitudeMetersPerDay <= Number.EPSILON) {
+      continue;
+    }
+
+    const position = cellCenterPosition(domain, vector.row, vector.column);
+    const direction = new THREE.Vector3(vector.qxMetersPerDay, 0, vector.qzMetersPerDay).normalize();
+    const relativeMagnitude = vector.magnitudeMetersPerDay / data.field.maxMagnitudeMetersPerDay;
+    const visualRelativeMagnitude = Math.sqrt(relativeMagnitude);
+    const length = 280 * visualRelativeMagnitude;
+    const origin = new THREE.Vector3(
+      position.x,
+      data.headsMeters[vector.row][vector.column] - data.referenceHeadMeters + 2,
+      position.z,
+    );
+    const arrow = createDarcyArrow(origin, direction, length);
+    arrows.push(arrow);
+    group.add(arrow);
+  }
+}
+
+function createDarcyArrow(
+  origin: THREE.Vector3,
+  direction: THREE.Vector3,
+  length: number,
+): THREE.Group {
+  const arrow = new THREE.Group();
+  const shaftLength = length * 0.7;
+  const headLength = length - shaftLength;
+  const orientation = new THREE.Quaternion().setFromUnitVectors(
+    new THREE.Vector3(0, 1, 0),
+    direction,
+  );
+  const material = new THREE.MeshStandardMaterial({
+    color: 0xff3b30,
+    emissive: 0x5a0805,
+    roughness: 0.35,
+  });
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 4.5, shaftLength, 10), material);
+  shaft.position.copy(origin).addScaledVector(direction, shaftLength / 2);
+  shaft.quaternion.copy(orientation);
+  shaft.renderOrder = 4;
+
+  const head = new THREE.Mesh(
+    new THREE.ConeGeometry(14, headLength, 12),
+    material.clone(),
+  );
+  head.position.copy(origin).addScaledVector(direction, shaftLength + headLength / 2);
+  head.quaternion.copy(orientation);
+  head.renderOrder = 4;
+
+  arrow.add(shaft, head);
+  return arrow;
+}
+
+function disposeDarcyArrow(arrow: THREE.Group): void {
+  arrow.traverse((object) => {
+    if (object instanceof THREE.Mesh) {
+      object.geometry.dispose();
+      disposeMaterial(object.material);
+    }
+  });
+}
+
+function disposeMaterial(material: THREE.Material | THREE.Material[]): void {
+  if (Array.isArray(material)) {
+    for (const item of material) {
+      item.dispose();
+    }
+    return;
+  }
+  material.dispose();
+}
+
+function updateWellLabelPositions(
+  camera: THREE.Camera,
+  container: HTMLElement,
+  wellLabels: readonly { marker: THREE.Mesh; label: HTMLDivElement }[],
+): void {
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  for (const { marker, label } of wellLabels) {
+    const projected = marker.position.clone().add(new THREE.Vector3(0, 40, 0)).project(camera);
+    const isVisible =
+      projected.x >= -1 &&
+      projected.x <= 1 &&
+      projected.y >= -1 &&
+      projected.y <= 1 &&
+      projected.z >= -1 &&
+      projected.z <= 1;
+    label.hidden = !isVisible;
+    if (isVisible) {
+      label.style.left = `${(projected.x * 0.5 + 0.5) * width}px`;
+      label.style.top = `${(-projected.y * 0.5 + 0.5) * height}px`;
+    }
+  }
 }
 
 function cellCenterPosition(

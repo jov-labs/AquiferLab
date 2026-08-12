@@ -5,6 +5,7 @@ import {
   type GroundwaterModelInput,
   type GroundwaterResult,
 } from "./groundwater.js";
+import { calculateDarcyFlow } from "./flow.js";
 import { createAquiferScene } from "./scene.js";
 
 const REFERENCE_HEAD_METERS = 100;
@@ -22,6 +23,8 @@ const maxHead = getElement<HTMLElement>("result-max-head");
 const wellAHead = getElement<HTMLElement>("result-well-a-head");
 const wellBHead = getElement<HTMLElement>("result-well-b-head");
 const solverMessage = getElement<HTMLElement>("solver-message");
+const darcyMax = getElement<HTMLElement>("result-darcy-max");
+const darcyFlowToggle = getElement<HTMLInputElement>("show-darcy-flow");
 
 const baseInput = createDefaultModelInput();
 const scene = createAquiferScene(
@@ -67,9 +70,10 @@ function updateSliderLabels(): void {
 }
 
 function recalculate(): void {
+  const input = currentInput();
   let result: GroundwaterResult;
   try {
-    result = solveGroundwater(currentInput());
+    result = solveGroundwater(input);
   } catch (error) {
     showNoConvergence(error instanceof Error ? error.message : "Error del solver.");
     return;
@@ -80,14 +84,20 @@ function recalculate(): void {
     return;
   }
 
+  const darcyFlow = calculateDarcyFlow(input, result.headsMeters);
   scene.updatePiezometricSurface({
     headsMeters: result.headsMeters,
     referenceHeadMeters: REFERENCE_HEAD_METERS,
   });
-  showResult(result);
+  scene.updateDarcyFlow({
+    field: darcyFlow,
+    headsMeters: result.headsMeters,
+    referenceHeadMeters: REFERENCE_HEAD_METERS,
+  });
+  showResult(result, darcyFlow.maxMagnitudeMetersPerDay);
 }
 
-function showResult(result: GroundwaterResult): void {
+function showResult(result: GroundwaterResult, maxDarcyMetersPerDay: number): void {
   status.textContent = "Convergió";
   status.dataset.status = "valid";
   iterations.textContent = String(result.iterations);
@@ -95,6 +105,7 @@ function showResult(result: GroundwaterResult): void {
   maxHead.textContent = formatMeters(result.maxHeadMeters);
   wellAHead.textContent = formatMeters(result.headsMeters[WELL_A.row][WELL_A.column]);
   wellBHead.textContent = formatMeters(result.headsMeters[WELL_B.row][WELL_B.column]);
+  darcyMax.textContent = formatMetersPerDay(maxDarcyMetersPerDay);
   solverMessage.textContent = "";
 }
 
@@ -106,11 +117,16 @@ function showNoConvergence(message: string): void {
   maxHead.textContent = "—";
   wellAHead.textContent = "—";
   wellBHead.textContent = "—";
+  darcyMax.textContent = "—";
   solverMessage.textContent = message;
 }
 
 function formatMeters(value: number): string {
   return `${value.toFixed(3)} m`;
+}
+
+function formatMetersPerDay(value: number): string {
+  return `${value.toFixed(4)} m/día`;
 }
 
 for (const slider of [wellARate, wellBRate]) {
@@ -119,5 +135,10 @@ for (const slider of [wellARate, wellBRate]) {
   slider.addEventListener("change", recalculate);
 }
 
+darcyFlowToggle.addEventListener("change", () => {
+  scene.setDarcyFlowVisible(darcyFlowToggle.checked);
+});
+
 updateSliderLabels();
+scene.setDarcyFlowVisible(darcyFlowToggle.checked);
 recalculate();
