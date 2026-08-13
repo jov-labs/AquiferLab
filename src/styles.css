@@ -153,6 +153,7 @@ output {
   color: #62d8f2;
   font-size: 1.25rem;
   font-variant-numeric: tabular-nums;
+  text-transform: none;
 }
 
 input[type="range"] {

@@ -75,6 +75,26 @@ describe("validación del modelo", () => {
       }),
     ).toThrow(/carga fija/);
   });
+
+  it("rechaza celdas Dirichlet fuera de las dimensiones de la malla", () => {
+    expect(() =>
+      solveGroundwater({
+        ...testModel(),
+        fixedHeadCells: [{ row: 41, column: 0, headMeters: 100 }],
+      }),
+    ).toThrow(/fuera de la malla/);
+  });
+
+  it("rechaza cargas Dirichlet NaN o infinitas", () => {
+    for (const headMeters of [Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() =>
+        solveGroundwater({
+          ...testModel(),
+          fixedHeadCells: [{ row: 0, column: 0, headMeters }],
+        }),
+      ).toThrow(/número finito/);
+    }
+  });
 });
 
 describe("solver de flujo confinado", () => {
@@ -85,6 +105,25 @@ describe("solver de flujo confinado", () => {
     for (const cell of model.fixedHeadCells) {
       expect(result.headsMeters[cell.row][cell.column]).toBe(cell.headMeters);
     }
+  });
+
+  it("mantiene un campo Dirichlet espacial con cargas distintas", () => {
+    const model: GroundwaterModelInput = {
+      ...testModel(),
+      fixedHeadCells: [
+        { row: 0, column: 0, headMeters: 91 },
+        { row: 0, column: 1, headMeters: 97.5 },
+        { row: 1, column: 0, headMeters: 104 },
+      ],
+      wells: [],
+    };
+    const before = structuredClone(model);
+    const result = solveGroundwater(model);
+
+    for (const cell of model.fixedHeadCells) {
+      expect(result.headsMeters[cell.row][cell.column]).toBe(cell.headMeters);
+    }
+    expect(model).toEqual(before);
   });
 
   it("reproduce el benchmark 1D de recarga con río y límite de no flujo", () => {

@@ -43,6 +43,24 @@ La superficie piezométrica conserva su geometría basada en la carga hidráulic
 actual y usa color por vértice para mostrar el abatimiento estacionario respecto
 del mismo escenario sin bombeo. El color no representa la magnitud de Darcy.
 
+## Estimación dentro del pozo
+
+La carga calculada en la celda que contiene un pozo es una magnitud de malla y
+no equivale a la carga física a un radio de pozo concreto. AQUIFER LAB conserva
+esa carga de celda y añade por separado una estimación dentro del pozo mediante
+la corrección de Peaceman para el modelo isotrópico actual.
+
+El radio equivalente es `re = 0.14 × √(Δx² + Δz²)`, la transmisividad es
+`T = K × b` y la pérdida entre celda y pozo se estima como
+`Δh = Q/(2πT) × ln(re/rw)`. Por tanto, `h_pozo = h_celda - Δh` y
+`s_pozo = s_celda + Δh`. El radio `rw` es un parámetro independiente para cada
+pozo y sólo afecta estas métricas: no modifica el solve, la superficie
+piezométrica, el campo de Darcy ni el mapa de abatimiento.
+
+La estimación supone un pozo ideal completamente penetrante en un acuífero
+confinado, homogéneo e isotrópico. No incluye skin, pérdidas de pantalla, flujo
+turbulento, pérdidas en la columna del pozo ni penetración parcial.
+
 ## Comandos
 
 ```bash

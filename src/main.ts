@@ -12,6 +12,11 @@ import {
 import { calculateDrawdown, type DrawdownResult } from "./drawdown.js";
 import { calculateDarcyFlow } from "./flow.js";
 import { createAquiferScene, getPositiveDrawdownColor } from "./scene.js";
+import {
+  estimateWellDrawdownMeters,
+  estimateWellHeadMeters,
+  type WellCorrectionParameters,
+} from "./well-correction.js";
 
 const REFERENCE_HEAD_METERS = 100;
 const WELL_A = { row: 20, column: 20, label: "Pozo A" };
@@ -21,17 +26,25 @@ const wellARate = getElement<HTMLInputElement>("well-a-rate");
 const wellBRate = getElement<HTMLInputElement>("well-b-rate");
 const wellAValue = getElement<HTMLOutputElement>("well-a-value");
 const wellBValue = getElement<HTMLOutputElement>("well-b-value");
+const wellARadius = getElement<HTMLInputElement>("well-a-radius");
+const wellBRadius = getElement<HTMLInputElement>("well-b-radius");
+const wellARadiusValue = getElement<HTMLOutputElement>("well-a-radius-value");
+const wellBRadiusValue = getElement<HTMLOutputElement>("well-b-radius-value");
 const status = getElement<HTMLElement>("result-status");
 const iterations = getElement<HTMLElement>("result-iterations");
 const minHead = getElement<HTMLElement>("result-min-head");
 const maxHead = getElement<HTMLElement>("result-max-head");
 const wellAHead = getElement<HTMLElement>("result-well-a-head");
 const wellBHead = getElement<HTMLElement>("result-well-b-head");
+const estimatedWellAHead = getElement<HTMLElement>("result-estimated-well-a-head");
+const estimatedWellBHead = getElement<HTMLElement>("result-estimated-well-b-head");
 const solverMessage = getElement<HTMLElement>("solver-message");
 const darcyMax = getElement<HTMLElement>("result-darcy-max");
 const maxDrawdown = getElement<HTMLElement>("result-max-drawdown");
 const wellADrawdown = getElement<HTMLElement>("result-well-a-drawdown");
 const wellBDrawdown = getElement<HTMLElement>("result-well-b-drawdown");
+const estimatedWellADrawdown = getElement<HTMLElement>("result-estimated-well-a-drawdown");
+const estimatedWellBDrawdown = getElement<HTMLElement>("result-estimated-well-b-drawdown");
 const drawdownLegendMinimum = getElement<HTMLElement>("drawdown-legend-minimum");
 const drawdownLegendZero = getElement<HTMLElement>("drawdown-legend-zero");
 const drawdownLegendMaximum = getElement<HTMLElement>("drawdown-legend-maximum");
@@ -61,6 +74,14 @@ const scene = createAquiferScene(
   },
   [WELL_A, WELL_B],
 );
+
+interface LastWellMetricState {
+  input: GroundwaterModelInput;
+  result: GroundwaterResult;
+  drawdown: DrawdownResult;
+}
+
+let lastWellMetricState: LastWellMetricState | null = null;
 
 function getElement<ElementType extends HTMLElement>(id: string): ElementType {
   const element = document.getElementById(id);
@@ -110,8 +131,13 @@ function referenceInput(actualInput: GroundwaterModelInput): GroundwaterModelInp
 }
 
 function updateSliderLabels(): void {
-  wellAValue.value = `${wellARate.value} L/s`;
-  wellBValue.value = `${wellBRate.value} L/s`;
+  wellAValue.value = `${wellARate.value} l/s`;
+  wellBValue.value = `${wellBRate.value} l/s`;
+}
+
+function updateWellRadiusLabels(): void {
+  wellARadiusValue.value = `${Number(wellARadius.value).toFixed(2)} m`;
+  wellBRadiusValue.value = `${Number(wellBRadius.value).toFixed(2)} m`;
 }
 
 function initializeParameterControls(defaultInput: GroundwaterModelInput): void {
@@ -193,11 +219,12 @@ function recalculate(): void {
     headsMeters: actualResult.headsMeters,
     referenceHeadMeters: REFERENCE_HEAD_METERS,
   });
-  showResult(actualResult, darcyFlow.maxMagnitudeMetersPerDay, drawdown);
+  showResult(actualInput, actualResult, darcyFlow.maxMagnitudeMetersPerDay, drawdown);
   updateDrawdownLegend(drawdown.drawdownMeters);
 }
 
 function showResult(
+  input: GroundwaterModelInput,
   result: GroundwaterResult,
   maxDarcyMetersPerDay: number,
   drawdown: DrawdownResult,
@@ -213,7 +240,52 @@ function showResult(
   maxDrawdown.textContent = formatDrawdownMeters(drawdown.maxDrawdownMeters);
   wellADrawdown.textContent = formatDrawdownMeters(drawdown.drawdownMeters[WELL_A.row][WELL_A.column]);
   wellBDrawdown.textContent = formatDrawdownMeters(drawdown.drawdownMeters[WELL_B.row][WELL_B.column]);
+  lastWellMetricState = { input, result, drawdown };
+  updateEstimatedWellMetrics();
   solverMessage.textContent = "";
+}
+
+function correctionParameters(
+  input: GroundwaterModelInput,
+  wellIndex: number,
+  wellRadiusMeters: number,
+): WellCorrectionParameters {
+  return {
+    cellWidthMeters: input.widthMeters / input.columns,
+    cellHeightMeters: input.heightMeters / input.rows,
+    hydraulicConductivityMetersPerDay: input.hydraulicConductivityMetersPerDay,
+    thicknessMeters: input.thicknessMeters,
+    extractionRateCubicMetersPerDay: input.wells[wellIndex].rateCubicMetersPerDay,
+    wellRadiusMeters,
+  };
+}
+
+function updateEstimatedWellMetrics(): void {
+  if (!lastWellMetricState) {
+    return;
+  }
+  const { input, result, drawdown } = lastWellMetricState;
+  const parametersA = correctionParameters(input, 0, Number(wellARadius.value));
+  const parametersB = correctionParameters(input, 1, Number(wellBRadius.value));
+  estimatedWellAHead.textContent = formatMeters(
+    estimateWellHeadMeters(result.headsMeters[WELL_A.row][WELL_A.column], parametersA),
+  );
+  estimatedWellBHead.textContent = formatMeters(
+    estimateWellHeadMeters(result.headsMeters[WELL_B.row][WELL_B.column], parametersB),
+  );
+  estimatedWellADrawdown.textContent = formatDrawdownMeters(
+    estimateWellDrawdownMeters(drawdown.drawdownMeters[WELL_A.row][WELL_A.column], parametersA),
+  );
+  estimatedWellBDrawdown.textContent = formatDrawdownMeters(
+    estimateWellDrawdownMeters(drawdown.drawdownMeters[WELL_B.row][WELL_B.column], parametersB),
+  );
+}
+
+function clearEstimatedWellMetrics(): void {
+  estimatedWellAHead.textContent = "—";
+  estimatedWellBHead.textContent = "—";
+  estimatedWellADrawdown.textContent = "—";
+  estimatedWellBDrawdown.textContent = "—";
 }
 
 function updateDrawdownLegend(drawdownMeters: readonly (readonly number[])[]): void {
@@ -256,6 +328,7 @@ function positiveDrawdownLegendGradient(
 }
 
 function showNoConvergence(message: string): void {
+  lastWellMetricState = null;
   status.textContent = "NO CONVERGIÓ";
   status.dataset.status = "invalid";
   iterations.textContent = "—";
@@ -267,6 +340,7 @@ function showNoConvergence(message: string): void {
   maxDrawdown.textContent = "—";
   wellADrawdown.textContent = "—";
   wellBDrawdown.textContent = "—";
+  clearEstimatedWellMetrics();
   drawdownLegendMinimum.textContent = "—";
   drawdownLegendMaximum.textContent = "—";
   drawdownLegendZero.hidden = true;
@@ -289,6 +363,13 @@ for (const slider of [wellARate, wellBRate]) {
   slider.addEventListener("input", updateSliderLabels);
   // change se dispara al confirmar el valor, evitando solves por cada paso del arrastre.
   slider.addEventListener("change", recalculate);
+}
+
+for (const radiusControl of [wellARadius, wellBRadius]) {
+  radiusControl.addEventListener("input", () => {
+    updateWellRadiusLabels();
+    updateEstimatedWellMetrics();
+  });
 }
 
 for (const parameterControl of [
@@ -315,6 +396,7 @@ geologicalCutToggle.addEventListener("change", updateGeologicalCut);
 cutPosition.addEventListener("input", updateGeologicalCut);
 
 updateSliderLabels();
+updateWellRadiusLabels();
 scene.setDarcyFlowVisible(darcyFlowToggle.checked);
 updateGeologicalCut();
 recalculate();

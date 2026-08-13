@@ -17,14 +17,26 @@
 
         <label class="slider-control" for="well-a-rate">
           <span>Bombeo pozo A</span>
-          <output id="well-a-value" for="well-a-rate">0 L/s</output>
+          <output id="well-a-value" for="well-a-rate">0 l/s</output>
           <input id="well-a-rate" type="range" min="0" max="50" step="1" value="0" />
+        </label>
+
+        <label class="slider-control" for="well-a-radius">
+          <span>Radio pozo A</span>
+          <output id="well-a-radius-value" for="well-a-radius">0.10 m</output>
+          <input id="well-a-radius" type="range" min="0.05" max="0.50" step="0.01" value="0.10" />
         </label>
 
         <label class="slider-control" for="well-b-rate">
           <span>Bombeo pozo B</span>
-          <output id="well-b-value" for="well-b-rate">0 L/s</output>
+          <output id="well-b-value" for="well-b-rate">0 l/s</output>
           <input id="well-b-rate" type="range" min="0" max="50" step="1" value="0" />
+        </label>
+
+        <label class="slider-control" for="well-b-radius">
+          <span>Radio pozo B</span>
+          <output id="well-b-radius-value" for="well-b-radius">0.10 m</output>
+          <input id="well-b-radius" type="range" min="0.05" max="0.50" step="0.01" value="0.10" />
         </label>
 
         <label class="checkbox-control" for="show-darcy-flow">
@@ -109,7 +121,7 @@
             <dd id="result-iterations">—</dd>
           </div>
           <div>
-            <dt>Carga mínima</dt>
+            <dt>Carga mínima de malla</dt>
             <dd id="result-min-head">—</dd>
           </div>
           <div>
@@ -117,30 +129,47 @@
             <dd id="result-max-head">—</dd>
           </div>
           <div>
-            <dt>Carga en pozo A</dt>
+            <dt>Carga en celda A</dt>
             <dd id="result-well-a-head">—</dd>
           </div>
           <div>
-            <dt>Carga en pozo B</dt>
+            <dt>Carga en celda B</dt>
             <dd id="result-well-b-head">—</dd>
+          </div>
+          <div>
+            <dt>Carga estimada pozo A</dt>
+            <dd id="result-estimated-well-a-head">—</dd>
+          </div>
+          <div>
+            <dt>Carga estimada pozo B</dt>
+            <dd id="result-estimated-well-b-head">—</dd>
           </div>
           <div>
             <dt>Q Darcy máx.</dt>
             <dd id="result-darcy-max">—</dd>
           </div>
           <div>
-            <dt>Abatimiento máx.</dt>
+            <dt>Abatimiento máx. de malla</dt>
             <dd id="result-max-drawdown">—</dd>
           </div>
           <div>
-            <dt>Abatimiento en pozo A</dt>
+            <dt>Abatimiento en celda A</dt>
             <dd id="result-well-a-drawdown">—</dd>
           </div>
           <div>
-            <dt>Abatimiento en pozo B</dt>
+            <dt>Abatimiento en celda B</dt>
             <dd id="result-well-b-drawdown">—</dd>
           </div>
+          <div>
+            <dt>Abatimiento estimado pozo A</dt>
+            <dd id="result-estimated-well-a-drawdown">—</dd>
+          </div>
+          <div>
+            <dt>Abatimiento estimado pozo B</dt>
+            <dd id="result-estimated-well-b-drawdown">—</dd>
+          </div>
         </dl>
+        <p class="parameter-note">Estimación Peaceman para pozo ideal completamente penetrante, sin pérdidas de pantalla ni skin.</p>
         <section class="drawdown-legend" aria-label="Escala de abatimiento">
           <h3>Abatimiento</h3>
           <div id="drawdown-scale" class="drawdown-scale" aria-hidden="true"></div>
