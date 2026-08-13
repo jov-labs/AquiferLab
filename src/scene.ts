@@ -7,9 +7,44 @@ import type { DarcyFlowField } from "./flow.js";
 
 const SURFACE_GRID_INTERVAL = 3;
 const OVERLAY_SURFACE_MARGIN_METERS = 8;
+const GRID_OVERLAY_OFFSET_METERS = 0.75;
 const DARCY_OVERLAY_OFFSET_METERS = 16;
-const DARCY_VISUAL_SAMPLE_INTERVAL = 5;
-const DARCY_MAX_ARROW_LENGTH = 364;
+const DARCY_VISUAL_SAMPLE_INTERVAL = 7;
+const DARCY_MAX_ARROW_LENGTH = 480;
+const DARCY_DOMAIN_MARGIN = 32;
+const MIN_DARCY_ARROW_LENGTH = 24;
+const CUT_LABEL_PLANE_TOLERANCE_METERS = 1e-6;
+
+/** Escala visual pura del abatimiento no negativo usando el rango real visible. */
+export function getPositiveDrawdownColor(
+  drawdownMeters: number,
+  minimumDrawdownMeters: number,
+  maximumDrawdownMeters: number,
+): THREE.Color {
+  const minimumColor = new THREE.Color(0xffffff);
+  if (maximumDrawdownMeters === minimumDrawdownMeters) {
+    return minimumColor;
+  }
+  const normalized = THREE.MathUtils.clamp(
+    (drawdownMeters - minimumDrawdownMeters) /
+      (maximumDrawdownMeters - minimumDrawdownMeters),
+    0,
+    1,
+  );
+  const visualT = Math.pow(normalized, 0.70);
+  const [start, end, segmentT] = visualT <= 0.5
+    ? [[255, 255, 255], [31, 122, 58], visualT / 0.5]
+    : [[31, 122, 58], [139, 0, 0], (visualT - 0.5) / 0.5];
+  const red = THREE.MathUtils.lerp(start[0], end[0], segmentT);
+  const green = THREE.MathUtils.lerp(start[1], end[1], segmentT);
+  const blue = THREE.MathUtils.lerp(start[2], end[2], segmentT);
+  return new THREE.Color().setRGB(
+    red / 255,
+    green / 255,
+    blue / 255,
+    THREE.SRGBColorSpace,
+  );
+}
 
 export interface SceneDomain {
   widthMeters: number;
@@ -74,9 +109,6 @@ export function createAquiferScene(
   const cutPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0);
   const clippingPlanes = [cutPlane];
   const clippingMaterials: THREE.Material[] = [];
-  const cutHelper = new THREE.PlaneHelper(cutPlane, Math.max(domain.widthMeters, domain.heightMeters) * 1.1, 0x78dce8);
-  cutHelper.visible = false;
-  scene.add(cutHelper);
 
   addGeologicalContext(scene, domain, clippingMaterials);
   addRiver(scene, domain, clippingMaterials);
@@ -85,19 +117,26 @@ export function createAquiferScene(
   );
 
   const surfaceGeometry = createSurfaceGeometry(domain);
-  const surfaceMaterial = new THREE.MeshStandardMaterial({
-    color: 0x3cd7ff,
+  const surfaceMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
     vertexColors: true,
-    transparent: true,
-    opacity: 0.72,
+    transparent: false,
+    opacity: 1,
     side: THREE.DoubleSide,
-    roughness: 0.35,
-    metalness: 0.05,
   });
   clippingMaterials.push(surfaceMaterial);
   const surface = new THREE.Mesh(surfaceGeometry, surfaceMaterial);
+  surface.name = "Superficie piezométrica curvada (oculta en modo abatimiento)";
+  surface.visible = false;
   surface.renderOrder = 2;
   scene.add(surface);
+  const drawdownPlaneGeometry = createSurfaceGeometry(domain);
+  const drawdownPlaneMaterial = surfaceMaterial.clone();
+  clippingMaterials.push(drawdownPlaneMaterial);
+  const drawdownPlane = new THREE.Mesh(drawdownPlaneGeometry, drawdownPlaneMaterial);
+  drawdownPlane.name = "Mapa horizontal de abatimiento";
+  drawdownPlane.renderOrder = 2;
+  scene.add(drawdownPlane);
   const surfaceGridGeometry = new LineSegmentsGeometry();
   const surfaceGridMaterial = new LineMaterial({
     color: 0x000000,
@@ -123,6 +162,8 @@ export function createAquiferScene(
   let lastWidth = 0;
   let lastHeight = 0;
   let resizeFrame = 0;
+  const wellWorldPosition = new THREE.Vector3();
+  const wellLabelWorldPosition = new THREE.Vector3();
 
   const resize = () => {
     resizeFrame = 0;
@@ -147,7 +188,17 @@ export function createAquiferScene(
 
   const render = () => {
     controls.update();
-    updateWellLabelPositions(camera, container, wellLabels, cutEnabled, cutX);
+    scene.updateMatrixWorld(true);
+    camera.updateMatrixWorld();
+    updateWellLabelPositions(
+      camera,
+      container,
+      wellLabels,
+      cutEnabled,
+      cutPlane,
+      wellWorldPosition,
+      wellLabelWorldPosition,
+    );
     renderer.render(scene, camera);
     window.requestAnimationFrame(render);
   };
@@ -157,7 +208,8 @@ export function createAquiferScene(
     updatePiezometricSurface(data: PiezometricSurfaceData): void {
       updateSurfaceVertices(surfaceGeometry, domain, data);
       overlayY = surfaceMaximumY(data.headsMeters, data.referenceHeadMeters) + OVERLAY_SURFACE_MARGIN_METERS;
-      updateSurfaceGrid(surfaceGridGeometry, domain, overlayY);
+      updateSurfaceVertices(drawdownPlaneGeometry, domain, data, overlayY);
+      updateSurfaceGrid(surfaceGridGeometry, domain, overlayY + GRID_OVERLAY_OFFSET_METERS);
     },
     updateDarcyFlow(data: DarcyOverlayData): void {
       updateDarcyArrows(darcyGroup, darcyArrows, domain, data, overlayY, cutEnabled, cutX);
@@ -176,8 +228,6 @@ export function createAquiferScene(
         }
         cutEnabled = enabled;
       }
-      cutHelper.visible = enabled;
-      cutHelper.updateMatrixWorld();
       for (const arrow of darcyArrows) {
         arrow.visible = isRetainedByCut(arrow.userData.originX as number, cutEnabled, cutX);
       }
@@ -197,7 +247,7 @@ function addGeologicalContext(
   ];
 
   for (const layer of layers) {
-    const geometry = new THREE.BoxGeometry(domain.widthMeters, 10, domain.heightMeters);
+    const geometry = createGeologicalContextGeometry(domain);
     const material = new THREE.MeshStandardMaterial({
       color: layer.color,
       transparent: true,
@@ -212,6 +262,17 @@ function addGeologicalContext(
     mesh.renderOrder = 1;
     scene.add(mesh);
   }
+}
+
+function createGeologicalContextGeometry(domain: SceneDomain): THREE.BoxGeometry {
+  const geometry = new THREE.BoxGeometry(domain.widthMeters, 10, domain.heightMeters);
+  // BoxGeometry asigna el grupo 2 a la cara superior. Se conserva el resto del bloque como contexto lateral.
+  const sideAndBottomGroups = geometry.groups.filter((group) => group.materialIndex !== 2);
+  geometry.clearGroups();
+  for (const group of sideAndBottomGroups) {
+    geometry.addGroup(group.start, group.count, group.materialIndex);
+  }
+  return geometry;
 }
 
 function addRiver(
@@ -287,30 +348,35 @@ function updateSurfaceVertices(
   geometry: THREE.BufferGeometry,
   domain: SceneDomain,
   data: PiezometricSurfaceData,
+  flatY: number | undefined = undefined,
 ): void {
   const positions = geometry.getAttribute("position") as THREE.BufferAttribute;
   const colors = geometry.getAttribute("color") as THREE.BufferAttribute;
   const { minimumDrawdownMeters, maximumDrawdownMeters } = drawdownRange(data.drawdownMeters);
   const hasNegativeDrawdown = minimumDrawdownMeters < 0;
-  const zeroColor = new THREE.Color(0x38d7ff);
-  const positiveColor = new THREE.Color(0x7f3cff);
+  const zeroColor = new THREE.Color(0xffffff);
+  const divergentPositiveColor = new THREE.Color(0x001a4d);
   const negativeColor = new THREE.Color(0x3155d9);
   const vertexColor = new THREE.Color();
   for (let row = 0; row < domain.rows; row += 1) {
     for (let column = 0; column < domain.columns; column += 1) {
       const index = row * domain.columns + column;
       const position = cellCenterPosition(domain, row, column);
-      positions.setXYZ(index, position.x, data.headsMeters[row][column] - data.referenceHeadMeters, position.z);
-      const drawdown = data.drawdownMeters[row][column];
+      positions.setXYZ(
+        index,
+        position.x,
+        flatY ?? data.headsMeters[row][column] - data.referenceHeadMeters,
+        position.z,
+      );
       setDrawdownColor(
         vertexColor,
-        drawdown,
+        data.drawdownMeters[row][column],
         minimumDrawdownMeters,
         maximumDrawdownMeters,
         hasNegativeDrawdown,
         negativeColor,
         zeroColor,
-        positiveColor,
+        divergentPositiveColor,
       );
       colors.setXYZ(index, vertexColor.r, vertexColor.g, vertexColor.b);
     }
@@ -427,7 +493,7 @@ function setDrawdownColor(
   hasNegativeDrawdown: boolean,
   negativeColor: THREE.Color,
   zeroColor: THREE.Color,
-  positiveColor: THREE.Color,
+  divergentPositiveColor: THREE.Color,
 ): void {
   if (minimumDrawdownMeters === maximumDrawdownMeters) {
     target.copy(zeroColor);
@@ -442,7 +508,12 @@ function setDrawdownColor(
     target.copy(zeroColor);
     return;
   }
-  target.lerpColors(zeroColor, positiveColor, drawdown / maximumDrawdownMeters);
+  const normalized = drawdown / maximumDrawdownMeters;
+  if (hasNegativeDrawdown) {
+    target.lerpColors(zeroColor, divergentPositiveColor, normalized);
+    return;
+  }
+  target.copy(getPositiveDrawdownColor(drawdown, minimumDrawdownMeters, maximumDrawdownMeters));
 }
 
 function updateDarcyArrows(
@@ -465,7 +536,7 @@ function updateDarcyArrows(
   }
 
   for (const vector of data.field.vectors) {
-    // El cálculo contiene cada celda interior; sólo se muestrea cada cinco para legibilidad.
+    // El cálculo contiene cada celda interior; sólo se muestrea cada siete para legibilidad.
     if (
       (vector.row - 1) % DARCY_VISUAL_SAMPLE_INTERVAL !== 0 ||
       (vector.column - 1) % DARCY_VISUAL_SAMPLE_INTERVAL !== 0
@@ -480,18 +551,49 @@ function updateDarcyArrows(
     const direction = new THREE.Vector3(vector.qxMetersPerDay, 0, vector.qzMetersPerDay).normalize();
     const relativeMagnitude = vector.magnitudeMetersPerDay / data.field.maxMagnitudeMetersPerDay;
     const visualRelativeMagnitude = Math.sqrt(relativeMagnitude);
-    const length = DARCY_MAX_ARROW_LENGTH * visualRelativeMagnitude;
+    const requestedLength = DARCY_MAX_ARROW_LENGTH * visualRelativeMagnitude;
     const origin = new THREE.Vector3(
       position.x,
       overlayY + DARCY_OVERLAY_OFFSET_METERS,
       position.z,
     );
+    const availableLength = distanceToInsetDomainBoundary(origin, direction, domain);
+    const length = Math.min(requestedLength, availableLength);
+    if (length < MIN_DARCY_ARROW_LENGTH) {
+      continue;
+    }
     const arrow = createDarcyArrow(origin, direction, length);
     arrow.userData.originX = origin.x;
     arrow.visible = isRetainedByCut(origin.x, cutEnabled, cutX);
     arrows.push(arrow);
     group.add(arrow);
   }
+}
+
+function distanceToInsetDomainBoundary(
+  origin: THREE.Vector3,
+  direction: THREE.Vector3,
+  domain: SceneDomain,
+): number {
+  const minimumX = -domain.widthMeters / 2 + DARCY_DOMAIN_MARGIN;
+  const maximumX = domain.widthMeters / 2 - DARCY_DOMAIN_MARGIN;
+  const minimumZ = -domain.heightMeters / 2 + DARCY_DOMAIN_MARGIN;
+  const maximumZ = domain.heightMeters / 2 - DARCY_DOMAIN_MARGIN;
+  const distances: number[] = [];
+  const epsilon = 1e-12;
+
+  if (direction.x > epsilon) {
+    distances.push((maximumX - origin.x) / direction.x);
+  } else if (direction.x < -epsilon) {
+    distances.push((minimumX - origin.x) / direction.x);
+  }
+  if (direction.z > epsilon) {
+    distances.push((maximumZ - origin.z) / direction.z);
+  } else if (direction.z < -epsilon) {
+    distances.push((minimumZ - origin.z) / direction.z);
+  }
+
+  return Math.max(0, Math.min(...distances.filter(Number.isFinite)));
 }
 
 function createDarcyArrow(
@@ -507,7 +609,7 @@ function createDarcyArrow(
     direction,
   );
   const material = new THREE.MeshBasicMaterial({
-    color: 0xff0000,
+    color: 0xffd400,
     transparent: false,
     opacity: 1,
     blending: THREE.NormalBlending,
@@ -515,13 +617,13 @@ function createDarcyArrow(
     depthWrite: true,
     vertexColors: false,
   });
-  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 4.5, shaftLength, 10), material);
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(6.1, 6.1, shaftLength, 10), material);
   shaft.position.copy(origin).addScaledVector(direction, shaftLength / 2);
   shaft.quaternion.copy(orientation);
   shaft.renderOrder = 4;
 
   const head = new THREE.Mesh(
-    new THREE.ConeGeometry(14, headLength, 12),
+    new THREE.ConeGeometry(18, headLength, 12),
     material.clone(),
   );
   head.position.copy(origin).addScaledVector(direction, shaftLength + headLength / 2);
@@ -556,12 +658,18 @@ function updateWellLabelPositions(
   container: HTMLElement,
   wellLabels: readonly { marker: THREE.Mesh; label: HTMLDivElement }[],
   cutEnabled: boolean,
-  cutX: number,
+  cutPlane: THREE.Plane,
+  wellWorldPosition: THREE.Vector3,
+  wellLabelWorldPosition: THREE.Vector3,
 ): void {
   const width = container.clientWidth;
   const height = container.clientHeight;
   for (const { marker, label } of wellLabels) {
-    const projected = marker.position.clone().add(new THREE.Vector3(0, 40, 0)).project(camera);
+    marker.getWorldPosition(wellWorldPosition);
+    const projected = wellLabelWorldPosition
+      .copy(wellWorldPosition)
+      .setY(wellWorldPosition.y + 40)
+      .project(camera);
     const isVisible =
       projected.x >= -1 &&
       projected.x <= 1 &&
@@ -569,13 +677,22 @@ function updateWellLabelPositions(
       projected.y <= 1 &&
       projected.z >= -1 &&
       projected.z <= 1 &&
-      isRetainedByCut(marker.position.x, cutEnabled, cutX);
-    label.hidden = !isVisible;
+      isWellLabelRetainedByCut(wellWorldPosition, cutEnabled, cutPlane);
+    label.style.display = isVisible ? "" : "none";
     if (isVisible) {
       label.style.left = `${(projected.x * 0.5 + 0.5) * width}px`;
       label.style.top = `${(-projected.y * 0.5 + 0.5) * height}px`;
     }
   }
+}
+
+function isWellLabelRetainedByCut(
+  position: THREE.Vector3,
+  cutEnabled: boolean,
+  cutPlane: THREE.Plane,
+): boolean {
+  // Three.js descarta el semiespacio negativo del plano de recorte.
+  return !cutEnabled || cutPlane.distanceToPoint(position) >= -CUT_LABEL_PLANE_TOLERANCE_METERS;
 }
 
 function isRetainedByCut(x: number, cutEnabled: boolean, cutX: number): boolean {

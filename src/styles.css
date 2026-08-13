@@ -110,6 +110,11 @@ h2 {
   text-transform: uppercase;
 }
 
+#cut-position-value {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 .cut-range {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -278,7 +283,7 @@ input[type="range"] {
 .drawdown-scale {
   height: 10px;
   border-radius: 999px;
-  background: linear-gradient(90deg, #3155d9 0%, #38d7ff 50%, #7f3cff 100%);
+  background: linear-gradient(90deg, #ffffff 0%, #1f7a3a 50%, #8b0000 100%);
 }
 
 .drawdown-labels {

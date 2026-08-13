@@ -38,7 +38,7 @@
         </label>
 
         <label class="cut-position-control" for="cut-position">
-          <span>Posición del corte</span>
+          <span>Posición del corte <output id="cut-position-value" for="cut-position">—</output></span>
           <span class="cut-range">
             <span>0 %</span>
             <input id="cut-position" type="range" min="0" max="100" step="1" value="50" disabled />
@@ -143,7 +143,7 @@
         </dl>
         <section class="drawdown-legend" aria-label="Escala de abatimiento">
           <h3>Abatimiento</h3>
-          <div class="drawdown-scale" aria-hidden="true"></div>
+          <div id="drawdown-scale" class="drawdown-scale" aria-hidden="true"></div>
           <div class="drawdown-labels">
             <span id="drawdown-legend-minimum">—</span>
             <span id="drawdown-legend-zero" hidden>0.000 m</span>

@@ -11,7 +11,7 @@ import {
 } from "./groundwater.js";
 import { calculateDrawdown, type DrawdownResult } from "./drawdown.js";
 import { calculateDarcyFlow } from "./flow.js";
-import { createAquiferScene } from "./scene.js";
+import { createAquiferScene, getPositiveDrawdownColor } from "./scene.js";
 
 const REFERENCE_HEAD_METERS = 100;
 const WELL_A = { row: 20, column: 20, label: "Pozo A" };
@@ -35,9 +35,11 @@ const wellBDrawdown = getElement<HTMLElement>("result-well-b-drawdown");
 const drawdownLegendMinimum = getElement<HTMLElement>("drawdown-legend-minimum");
 const drawdownLegendZero = getElement<HTMLElement>("drawdown-legend-zero");
 const drawdownLegendMaximum = getElement<HTMLElement>("drawdown-legend-maximum");
+const drawdownScale = getElement<HTMLElement>("drawdown-scale");
 const darcyFlowToggle = getElement<HTMLInputElement>("show-darcy-flow");
 const geologicalCutToggle = getElement<HTMLInputElement>("enable-geological-cut");
 const cutPosition = getElement<HTMLInputElement>("cut-position");
+const cutPositionValue = getElement<HTMLOutputElement>("cut-position-value");
 const hydraulicConductivityExponent = getElement<HTMLInputElement>("hydraulic-conductivity-exponent");
 const hydraulicConductivityValue = getElement<HTMLOutputElement>("hydraulic-conductivity-value");
 const recharge = getElement<HTMLInputElement>("recharge");
@@ -208,9 +210,9 @@ function showResult(
   wellAHead.textContent = formatMeters(result.headsMeters[WELL_A.row][WELL_A.column]);
   wellBHead.textContent = formatMeters(result.headsMeters[WELL_B.row][WELL_B.column]);
   darcyMax.textContent = formatMetersPerDay(maxDarcyMetersPerDay);
-  maxDrawdown.textContent = formatMeters(drawdown.maxDrawdownMeters);
-  wellADrawdown.textContent = formatMeters(drawdown.drawdownMeters[WELL_A.row][WELL_A.column]);
-  wellBDrawdown.textContent = formatMeters(drawdown.drawdownMeters[WELL_B.row][WELL_B.column]);
+  maxDrawdown.textContent = formatDrawdownMeters(drawdown.maxDrawdownMeters);
+  wellADrawdown.textContent = formatDrawdownMeters(drawdown.drawdownMeters[WELL_A.row][WELL_A.column]);
+  wellBDrawdown.textContent = formatDrawdownMeters(drawdown.drawdownMeters[WELL_B.row][WELL_B.column]);
   solverMessage.textContent = "";
 }
 
@@ -223,10 +225,34 @@ function updateDrawdownLegend(drawdownMeters: readonly (readonly number[])[]): v
       maximumDrawdownMeters = Math.max(maximumDrawdownMeters, drawdown);
     }
   }
-  drawdownLegendMinimum.textContent = formatMeters(minimumDrawdownMeters);
-  drawdownLegendMaximum.textContent = formatMeters(maximumDrawdownMeters);
+  drawdownLegendMinimum.textContent = formatDrawdownMeters(minimumDrawdownMeters);
+  drawdownLegendMaximum.textContent = formatDrawdownMeters(maximumDrawdownMeters);
   drawdownLegendZero.hidden = minimumDrawdownMeters >= 0;
-  drawdownLegendZero.textContent = "0.000 m";
+  drawdownLegendZero.textContent = "0.0 m";
+  if (minimumDrawdownMeters >= 0) {
+    drawdownScale.style.background = positiveDrawdownLegendGradient(
+      minimumDrawdownMeters,
+      maximumDrawdownMeters,
+    );
+  }
+}
+
+function positiveDrawdownLegendGradient(
+  minimumDrawdownMeters: number,
+  maximumDrawdownMeters: number,
+): string {
+  const steps = 12;
+  const stops: string[] = [];
+  for (let index = 0; index <= steps; index += 1) {
+    const normalized = index / steps;
+    const color = getPositiveDrawdownColor(
+      minimumDrawdownMeters + normalized * (maximumDrawdownMeters - minimumDrawdownMeters),
+      minimumDrawdownMeters,
+      maximumDrawdownMeters,
+    );
+    stops.push(`#${color.getHexString()} ${normalized * 100}%`);
+  }
+  return `linear-gradient(90deg, ${stops.join(", ")})`;
 }
 
 function showNoConvergence(message: string): void {
@@ -249,6 +275,10 @@ function showNoConvergence(message: string): void {
 
 function formatMeters(value: number): string {
   return `${value.toFixed(3)} m`;
+}
+
+function formatDrawdownMeters(value: number): string {
+  return `${value.toFixed(1)} m`;
 }
 
 function formatMetersPerDay(value: number): string {
@@ -276,6 +306,7 @@ darcyFlowToggle.addEventListener("change", () => {
 });
 
 function updateGeologicalCut(): void {
+  cutPositionValue.value = `${cutPosition.value} %`;
   cutPosition.disabled = !geologicalCutToggle.checked;
   scene.setGeologicalCut(geologicalCutToggle.checked, Number(cutPosition.value));
 }
