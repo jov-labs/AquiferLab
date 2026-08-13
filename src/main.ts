@@ -17,6 +17,10 @@ import {
   estimateWellHeadMeters,
   type WellCorrectionParameters,
 } from "./well-correction.js";
+import {
+  evaluateConfinedModelValidity,
+  type EstimatedWellHeadsMeters,
+} from "./confined-validity.js";
 
 const REFERENCE_HEAD_METERS = 100;
 const WELL_A = { row: 20, column: 20, label: "Pozo A" };
@@ -45,6 +49,10 @@ const wellADrawdown = getElement<HTMLElement>("result-well-a-drawdown");
 const wellBDrawdown = getElement<HTMLElement>("result-well-b-drawdown");
 const estimatedWellADrawdown = getElement<HTMLElement>("result-estimated-well-a-drawdown");
 const estimatedWellBDrawdown = getElement<HTMLElement>("result-estimated-well-b-drawdown");
+const confinedValidityStatus = getElement<HTMLElement>("confined-validity-status");
+const confinedValiditySummary = getElement<HTMLElement>("confined-validity-summary");
+const confinedValidityWarnings = getElement<HTMLElement>("confined-validity-warnings");
+const confinedValidityExtrapolation = getElement<HTMLElement>("confined-validity-extrapolation");
 const drawdownLegendMinimum = getElement<HTMLElement>("drawdown-legend-minimum");
 const drawdownLegendZero = getElement<HTMLElement>("drawdown-legend-zero");
 const drawdownLegendMaximum = getElement<HTMLElement>("drawdown-legend-maximum");
@@ -61,6 +69,7 @@ const aquiferThickness = getElement<HTMLInputElement>("aquifer-thickness");
 const aquiferThicknessValue = getElement<HTMLOutputElement>("aquifer-thickness-value");
 const riverHead = getElement<HTMLInputElement>("river-head");
 const riverHeadValue = getElement<HTMLOutputElement>("river-head-value");
+const aquiferTopElevation = getElement<HTMLInputElement>("aquifer-top-elevation");
 
 const baseInput = createDefaultModelInput();
 initializeParameterControls(baseInput);
@@ -265,19 +274,89 @@ function updateEstimatedWellMetrics(): void {
     return;
   }
   const { input, result, drawdown } = lastWellMetricState;
+  const estimatedHeads = calculateEstimatedWellHeads(input, result);
   const parametersA = correctionParameters(input, 0, Number(wellARadius.value));
   const parametersB = correctionParameters(input, 1, Number(wellBRadius.value));
-  estimatedWellAHead.textContent = formatMeters(
-    estimateWellHeadMeters(result.headsMeters[WELL_A.row][WELL_A.column], parametersA),
-  );
-  estimatedWellBHead.textContent = formatMeters(
-    estimateWellHeadMeters(result.headsMeters[WELL_B.row][WELL_B.column], parametersB),
-  );
+  estimatedWellAHead.textContent = formatMeters(estimatedHeads.wellA);
+  estimatedWellBHead.textContent = formatMeters(estimatedHeads.wellB);
   estimatedWellADrawdown.textContent = formatDrawdownMeters(
     estimateWellDrawdownMeters(drawdown.drawdownMeters[WELL_A.row][WELL_A.column], parametersA),
   );
   estimatedWellBDrawdown.textContent = formatDrawdownMeters(
     estimateWellDrawdownMeters(drawdown.drawdownMeters[WELL_B.row][WELL_B.column], parametersB),
+  );
+  updateConfinedValidity(estimatedHeads);
+}
+
+function calculateEstimatedWellHeads(
+  input: GroundwaterModelInput,
+  result: GroundwaterResult,
+): Required<EstimatedWellHeadsMeters> {
+  const parametersA = correctionParameters(input, 0, Number(wellARadius.value));
+  const parametersB = correctionParameters(input, 1, Number(wellBRadius.value));
+  return {
+    wellA: estimateWellHeadMeters(result.headsMeters[WELL_A.row][WELL_A.column], parametersA),
+    wellB: estimateWellHeadMeters(result.headsMeters[WELL_B.row][WELL_B.column], parametersB),
+  };
+}
+
+function updateConfinedValidity(estimatedHeads?: Required<EstimatedWellHeadsMeters>): void {
+  if (!lastWellMetricState) {
+    return;
+  }
+  try {
+    const { input, result } = lastWellMetricState;
+    const validity = evaluateConfinedModelValidity({
+      headsMeters: result.headsMeters,
+      aquiferTopElevationMeters: aquiferTopElevation.valueAsNumber,
+      estimatedWellHeadsMeters: estimatedHeads ?? calculateEstimatedWellHeads(input, result),
+    });
+    showConfinedValidity(validity);
+  } catch (error) {
+    confinedValidityStatus.textContent = "Cota inválida";
+    confinedValidityStatus.dataset.status = "invalid";
+    confinedValiditySummary.textContent =
+      error instanceof Error ? error.message : "No se pudo evaluar la validez del modelo confinado.";
+    confinedValidityWarnings.textContent = "";
+    confinedValidityExtrapolation.hidden = true;
+  }
+}
+
+function showConfinedValidity(
+  validity: ReturnType<typeof evaluateConfinedModelValidity>,
+): void {
+  const isValid = validity.status === "VALID_CONFINED";
+  confinedValidityStatus.textContent = isValid ? "Válido" : "Fuera de rango";
+  confinedValidityStatus.dataset.status = isValid ? "valid" : "invalid";
+  confinedValidityExtrapolation.hidden = isValid;
+  if (isValid) {
+    confinedValiditySummary.textContent =
+      "Todas las cargas de malla y las estimaciones dentro de los pozos permanecen sobre el techo del acuífero.";
+    confinedValidityWarnings.textContent = "";
+    return;
+  }
+
+  confinedValiditySummary.textContent =
+    `El solver convergió, pero la carga cayó bajo el techo del acuífero. ` +
+    `${validity.cellsBelowAquiferTop} celdas afectadas (${validity.percentageCellsBelowAquiferTop.toFixed(2)} %). ` +
+    `Déficit máximo de malla: ${formatMeters(validity.maximumGridDeficitBelowAquiferTopMeters)}.`;
+  const wellWarnings = [
+    confinedWellWarning("A", validity.wellA),
+    confinedWellWarning("B", validity.wellB),
+  ].filter((warning): warning is string => warning !== null);
+  confinedValidityWarnings.textContent = wellWarnings.join(" ");
+}
+
+function confinedWellWarning(
+  label: string,
+  well: ReturnType<typeof evaluateConfinedModelValidity>["wellA"],
+): string | null {
+  if (well.status !== "OUTSIDE_CONFINED_RANGE") {
+    return null;
+  }
+  return (
+    `Pozo ${label}: carga estimada ${formatMeters(well.headMeters!)}; ` +
+    `déficit respecto al techo ${formatMeters(well.deficitBelowAquiferTopMeters!)}.`
   );
 }
 
@@ -286,6 +365,14 @@ function clearEstimatedWellMetrics(): void {
   estimatedWellBHead.textContent = "—";
   estimatedWellADrawdown.textContent = "—";
   estimatedWellBDrawdown.textContent = "—";
+}
+
+function clearConfinedValidity(): void {
+  confinedValidityStatus.textContent = "—";
+  confinedValidityStatus.dataset.status = "pending";
+  confinedValiditySummary.textContent = "";
+  confinedValidityWarnings.textContent = "";
+  confinedValidityExtrapolation.hidden = true;
 }
 
 function updateDrawdownLegend(drawdownMeters: readonly (readonly number[])[]): void {
@@ -341,6 +428,7 @@ function showNoConvergence(message: string): void {
   wellADrawdown.textContent = "—";
   wellBDrawdown.textContent = "—";
   clearEstimatedWellMetrics();
+  clearConfinedValidity();
   drawdownLegendMinimum.textContent = "—";
   drawdownLegendMaximum.textContent = "—";
   drawdownLegendZero.hidden = true;
@@ -371,6 +459,11 @@ for (const radiusControl of [wellARadius, wellBRadius]) {
     updateEstimatedWellMetrics();
   });
 }
+
+aquiferTopElevation.addEventListener("input", () => {
+  // La cota sólo reclasifica la última solución; no interviene en recalculate().
+  updateConfinedValidity();
+});
 
 for (const parameterControl of [
   hydraulicConductivityExponent,

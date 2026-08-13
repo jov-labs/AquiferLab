@@ -85,6 +85,40 @@ h2 {
   text-transform: uppercase;
 }
 
+.number-control {
+  display: grid;
+  gap: 10px;
+  color: #e8f1fb;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.number-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.number-input input {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  color: #edf7ff;
+  background: #06101d;
+  border: 1px solid #36516c;
+  border-radius: 4px;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.number-input .unit {
+  color: #62d8f2;
+  font-size: 1.25rem;
+  text-transform: none;
+}
+
 .checkbox-control {
   display: flex;
   align-items: center;
@@ -271,6 +305,35 @@ input[type="range"] {
 .drawdown-legend {
   display: grid;
   gap: 8px;
+}
+
+.confined-validity {
+  display: grid;
+  gap: 8px;
+  padding-top: 20px;
+  border-top: 1px solid #203247;
+}
+
+.confined-validity h3 {
+  margin: 0;
+  color: #91a8bd;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#confined-validity-status {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+#confined-validity-status[data-status="valid"] {
+  color: #75dfa7;
+}
+
+#confined-validity-status[data-status="invalid"] {
+  color: #ff7f88;
 }
 
 .drawdown-legend h3 {

@@ -85,7 +85,16 @@
             <input id="river-head" type="range" min="80" max="120" step="1" />
           </label>
 
+          <label class="number-control" for="aquifer-top-elevation">
+            <span>Cota del techo del acuífero</span>
+            <span class="number-input">
+              <input id="aquifer-top-elevation" type="number" step="1" value="0" />
+              <span class="unit">m</span>
+            </span>
+          </label>
+
           <p class="parameter-note">Espesor hidráulico configurable; bloque geológico esquemático sin escala vertical.</p>
+          <p class="parameter-note">La cota del techo usa el mismo datum que la carga hidráulica y sólo evalúa la validez del modelo confinado.</p>
         </section>
 
         <div class="legend" aria-label="Leyenda científica">
@@ -170,6 +179,13 @@
           </div>
         </dl>
         <p class="parameter-note">Estimación Peaceman para pozo ideal completamente penetrante, sin pérdidas de pantalla ni skin.</p>
+        <section class="confined-validity" aria-labelledby="confined-validity-title">
+          <h3 id="confined-validity-title">Validez del modelo confinado</h3>
+          <p id="confined-validity-status" data-status="pending" aria-live="polite">—</p>
+          <p id="confined-validity-summary" class="parameter-note"></p>
+          <p id="confined-validity-warnings" class="solver-message"></p>
+          <p id="confined-validity-extrapolation" class="parameter-note" hidden>Estos resultados son una extrapolación del modelo confinado con T constante; no representan desaturación ni flujo no confinado.</p>
+        </section>
         <section class="drawdown-legend" aria-label="Escala de abatimiento">
           <h3>Abatimiento</h3>
           <div id="drawdown-scale" class="drawdown-scale" aria-hidden="true"></div>

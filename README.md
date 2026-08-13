@@ -61,6 +61,25 @@ La estimación supone un pozo ideal completamente penetrante en un acuífero
 confinado, homogéneo e isotrópico. No incluye skin, pérdidas de pantalla, flujo
 turbulento, pérdidas en la columna del pozo ni penetración parcial.
 
+## Validez del modelo confinado
+
+La convergencia del solver sólo indica que la ecuación discreta se resolvió con
+el criterio numérico configurado. Para que la aproximación de acuífero
+completamente confinado sea físicamente válida, la carga debe mantenerse sobre
+la cota del techo del acuífero, usando el mismo datum que las cargas hidráulicas.
+
+La interfaz permite introducir esa cota y evalúa la solución sin modificar el
+solve. Una carga de celda menor que el techo (con una tolerancia numérica de
+`1e-9 m`) o una carga estimada dentro de A o B menor que el techo marca el
+resultado como fuera de rango. Se informan las celdas afectadas, el déficit de
+malla y las advertencias de pozo por separado: la carga de celda y la estimada
+mediante Peaceman no son la misma magnitud.
+
+Cuando `h` cae bajo el techo, `T = K × b` constante deja de representar
+correctamente el espesor saturado. AQUIFER LAB conserva las cargas numéricas y
+sólo advierte que son una extrapolación del modelo confinado; no limita cargas,
+no representa desaturación y no resuelve flujo no confinado o convertible.
+
 ## Comandos
 
 ```bash
