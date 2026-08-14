@@ -76,6 +76,12 @@ const aquiferThicknessValue = getElement<HTMLOutputElement>("aquifer-thickness-v
 const riverHead = getElement<HTMLInputElement>("river-head");
 const riverHeadValue = getElement<HTMLOutputElement>("river-head-value");
 const aquiferTopElevation = getElement<HTMLInputElement>("aquifer-top-elevation");
+const welcomeDialog = getElement<HTMLDialogElement>("welcome-dialog");
+const homeButton = getElement<HTMLButtonElement>("home-button");
+
+homeButton.addEventListener("click", () => {
+  welcomeDialog.show();
+});
 
 const baseInput = createDefaultModelInput();
 initializeParameterControls(baseInput);

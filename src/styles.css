@@ -479,3 +479,21 @@ dd {
   font-weight: 800;
   cursor: pointer;
 }
+
+.home-button {
+  margin-top: 14px;
+  padding: 8px 12px;
+  color: #c8d8e8;
+  background: transparent;
+  border: 1px solid #36516c;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.home-button:hover {
+  color: #ffffff;
+  border-color: #61d4ec;
+}
