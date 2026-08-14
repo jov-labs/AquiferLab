@@ -137,8 +137,31 @@
       <aside class="panel results-panel" aria-labelledby="results-title">
         <div>
           <p class="eyebrow">SOLUCIÓN ACTUAL</p>
-          <h2 id="results-title">Resultados</h2>
+          <h2 id="results-title">¿Qué está pasando?</h2>
         </div>
+
+        <section class="public-result" aria-labelledby="public-result-title">
+          <h3 id="public-result-title">Resultado del escenario</h3>
+          <p id="public-result-summary" aria-live="polite">Calculando...</p>
+
+          <dl class="public-well-results">
+            <div>
+              <dt>Pozo A</dt>
+              <dd id="public-well-a-drawdown">—</dd>
+            </div>
+            <div>
+              <dt>Pozo B</dt>
+              <dd id="public-well-b-drawdown">—</dd>
+            </div>
+          </dl>
+
+          <p id="public-model-warning" class="public-model-warning" aria-live="polite"></p>
+        </section>
+
+        <details class="technical-results">
+          <summary>Ver resultados técnicos</summary>
+          <div class="technical-results-content">
+
         <dl class="metrics">
           <div>
             <dt>Estado</dt>
@@ -205,8 +228,11 @@
           <p id="confined-validity-warnings" class="solver-message"></p>
           <p id="confined-validity-extrapolation" class="parameter-note" hidden>Estos resultados son una extrapolación del modelo confinado con T constante; no representan desaturación ni flujo no confinado.</p>
         </section>
-        <section class="drawdown-legend" aria-label="Escala de abatimiento">
-          <h3>Abatimiento</h3>
+          </div>
+        </details>
+
+        <section class="drawdown-legend" aria-label="Escala de descenso del nivel del agua">
+          <h3>Descenso del nivel del agua</h3>
           <div id="drawdown-scale" class="drawdown-scale" aria-hidden="true"></div>
           <div class="drawdown-labels">
             <span id="drawdown-legend-minimum">—</span>

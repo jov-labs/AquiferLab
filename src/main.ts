@@ -59,6 +59,10 @@ const confinedValidityStatus = getElement<HTMLElement>("confined-validity-status
 const confinedValiditySummary = getElement<HTMLElement>("confined-validity-summary");
 const confinedValidityWarnings = getElement<HTMLElement>("confined-validity-warnings");
 const confinedValidityExtrapolation = getElement<HTMLElement>("confined-validity-extrapolation");
+const publicResultSummary = getElement<HTMLElement>("public-result-summary");
+const publicWellADrawdown = getElement<HTMLElement>("public-well-a-drawdown");
+const publicWellBDrawdown = getElement<HTMLElement>("public-well-b-drawdown");
+const publicModelWarning = getElement<HTMLElement>("public-model-warning");
 const drawdownLegendMinimum = getElement<HTMLElement>("drawdown-legend-minimum");
 const drawdownLegendZero = getElement<HTMLElement>("drawdown-legend-zero");
 const drawdownLegendMaximum = getElement<HTMLElement>("drawdown-legend-maximum");
@@ -322,14 +326,28 @@ function updateEstimatedWellMetrics(): void {
   const estimatedHeads = calculateEstimatedWellHeads(input, result);
   const parametersA = correctionParameters(input, 0, Number(wellARadius.value));
   const parametersB = correctionParameters(input, 1, Number(wellBRadius.value));
+  const estimatedDrawdownA = estimateWellDrawdownMeters(
+    drawdown.drawdownMeters[WELL_A.row][WELL_A.column],
+    parametersA,
+  );
+  const estimatedDrawdownB = estimateWellDrawdownMeters(
+    drawdown.drawdownMeters[WELL_B.row][WELL_B.column],
+    parametersB,
+  );
+
   estimatedWellAHead.textContent = formatMeters(estimatedHeads.wellA);
   estimatedWellBHead.textContent = formatMeters(estimatedHeads.wellB);
-  estimatedWellADrawdown.textContent = formatDrawdownMeters(
-    estimateWellDrawdownMeters(drawdown.drawdownMeters[WELL_A.row][WELL_A.column], parametersA),
-  );
-  estimatedWellBDrawdown.textContent = formatDrawdownMeters(
-    estimateWellDrawdownMeters(drawdown.drawdownMeters[WELL_B.row][WELL_B.column], parametersB),
-  );
+  estimatedWellADrawdown.textContent = formatDrawdownMeters(estimatedDrawdownA);
+  estimatedWellBDrawdown.textContent = formatDrawdownMeters(estimatedDrawdownB);
+
+  publicWellADrawdown.textContent = `Descenso estimado: ${formatDrawdownMeters(estimatedDrawdownA)}`;
+  publicWellBDrawdown.textContent = `Descenso estimado: ${formatDrawdownMeters(estimatedDrawdownB)}`;
+
+  const hasPumping = input.wells.some((well) => well.rateCubicMetersPerDay > 0);
+  publicResultSummary.textContent = hasPumping
+    ? "El bombeo simulado hace descender el nivel del agua en este escenario."
+    : "No hay bombeo en este escenario, por lo que el nivel del agua no desciende por extracción.";
+
   updateConfinedValidity(estimatedHeads);
 }
 
@@ -364,6 +382,8 @@ function updateConfinedValidity(estimatedHeads?: Required<EstimatedWellHeadsMete
       error instanceof Error ? error.message : "No se pudo evaluar la validez del modelo confinado.";
     confinedValidityWarnings.textContent = "";
     confinedValidityExtrapolation.hidden = true;
+    publicModelWarning.textContent =
+      "No se pudo comprobar si este escenario está dentro de los límites del modelo simple.";
   }
 }
 
@@ -378,8 +398,12 @@ function showConfinedValidity(
     confinedValiditySummary.textContent =
       "Todas las cargas de malla y las estimaciones dentro de los pozos permanecen sobre el techo del acuífero.";
     confinedValidityWarnings.textContent = "";
+    publicModelWarning.textContent = "";
     return;
   }
+
+  publicModelWarning.textContent =
+    "⚠ Este escenario supera los límites del modelo confinado simple. Interprétalo con cautela.";
 
   confinedValiditySummary.textContent =
     `El solver convergió, pero la carga cayó bajo el techo del acuífero. ` +
@@ -410,6 +434,8 @@ function clearEstimatedWellMetrics(): void {
   estimatedWellBHead.textContent = "—";
   estimatedWellADrawdown.textContent = "—";
   estimatedWellBDrawdown.textContent = "—";
+  publicWellADrawdown.textContent = "—";
+  publicWellBDrawdown.textContent = "—";
 }
 
 function clearConfinedValidity(): void {
@@ -474,6 +500,9 @@ function showNoConvergence(message: string): void {
   wellBDrawdown.textContent = "—";
   clearEstimatedWellMetrics();
   clearConfinedValidity();
+  publicResultSummary.textContent = "No se pudo calcular este escenario.";
+  publicModelWarning.textContent =
+    "Revisa los datos del escenario antes de interpretar los resultados.";
   drawdownLegendMinimum.textContent = "—";
   drawdownLegendMaximum.textContent = "—";
   drawdownLegendZero.hidden = true;
