@@ -418,3 +418,64 @@ dd {
     min-height: 0;
   }
 }
+
+.welcome-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 32px;
+  place-content: center;
+  text-align: center;
+  color: #e8f1fb;
+  background: #06101d;
+  border: 0;
+}
+
+.welcome-dialog:not([open]) {
+  display: none;
+}
+
+.welcome-dialog > * {
+  width: min(100%, 620px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.welcome-dialog > p:first-child {
+  margin-bottom: 14px;
+  color: #61d4ec;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.welcome-dialog h1 {
+  margin-bottom: 18px;
+  font-size: clamp(2rem, 6vw, 4rem);
+  line-height: 1.05;
+}
+
+.welcome-dialog h1 + p {
+  margin-top: 0;
+  margin-bottom: 30px;
+  color: #aebfd1;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  line-height: 1.6;
+}
+
+.welcome-dialog button {
+  padding: 14px 22px;
+  color: #06101d;
+  background: #61d4ec;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}

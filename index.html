@@ -7,6 +7,18 @@
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
+    <dialog id="welcome-dialog" class="welcome-dialog" aria-labelledby="welcome-title" open>
+      <p>AQUIFER LAB</p>
+      <h1 id="welcome-title">Entiende el agua subterránea</h1>
+      <p>
+        Explora cómo los pozos y el bombeo pueden cambiar el agua bajo el terreno.
+        No necesitas conocimientos de hidrogeología para empezar.
+      </p>
+      <form method="dialog">
+        <button type="submit">Abrir AquiferLab</button>
+      </form>
+    </dialog>
+
     <div id="app">
       <aside class="panel controls-panel" aria-labelledby="controls-title">
         <div>
