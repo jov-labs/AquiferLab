@@ -34,45 +34,46 @@
           <input id="well-a-rate" type="range" min="0" max="50" step="1" value="0" />
         </label>
 
-        <label class="slider-control" for="well-a-radius">
-          <span>Radio pozo A</span>
-          <output id="well-a-radius-value" for="well-a-radius">0.10 m</output>
-          <input id="well-a-radius" type="range" min="0.05" max="0.50" step="0.01" value="0.10" />
-        </label>
-
         <label class="slider-control" for="well-b-rate">
           <span>Bombeo pozo B</span>
           <output id="well-b-value" for="well-b-rate">0 l/s</output>
           <input id="well-b-rate" type="range" min="0" max="50" step="1" value="0" />
         </label>
 
-        <label class="slider-control" for="well-b-radius">
-          <span>Radio pozo B</span>
-          <output id="well-b-radius-value" for="well-b-radius">0.10 m</output>
-          <input id="well-b-radius" type="range" min="0.05" max="0.50" step="0.01" value="0.10" />
-        </label>
-
-        <label class="checkbox-control" for="show-qualitative-streamlines">
-          <input id="show-qualitative-streamlines" type="checkbox" checked />
-          <span>Mostrar líneas de flujo cualitativas</span>
-        </label>
-
-        <label class="checkbox-control" for="enable-geological-cut">
-          <input id="enable-geological-cut" type="checkbox" />
-          <span>Activar corte geológico</span>
-        </label>
-
-        <label class="cut-position-control" for="cut-position">
-          <span>Posición del corte <output id="cut-position-value" for="cut-position">—</output></span>
-          <span class="cut-range">
-            <span>0 %</span>
-            <input id="cut-position" type="range" min="0" max="100" step="1" value="50" disabled />
-            <span>100 %</span>
-          </span>
-        </label>
-
         <details class="technical-controls">
           <summary>Ver controles técnicos</summary>
+
+          <div class="technical-controls-content">
+            <label class="slider-control" for="well-a-radius">
+              <span>Radio pozo A</span>
+              <output id="well-a-radius-value" for="well-a-radius">0.10 m</output>
+              <input id="well-a-radius" type="range" min="0.05" max="0.50" step="0.01" value="0.10" />
+            </label>
+
+            <label class="slider-control" for="well-b-radius">
+              <span>Radio pozo B</span>
+              <output id="well-b-radius-value" for="well-b-radius">0.10 m</output>
+              <input id="well-b-radius" type="range" min="0.05" max="0.50" step="0.01" value="0.10" />
+            </label>
+
+            <label class="checkbox-control" for="show-qualitative-streamlines">
+              <input id="show-qualitative-streamlines" type="checkbox" checked />
+              <span>Mostrar líneas de flujo cualitativas</span>
+            </label>
+
+            <label class="checkbox-control" for="enable-geological-cut">
+              <input id="enable-geological-cut" type="checkbox" />
+              <span>Activar corte geológico</span>
+            </label>
+
+            <label class="cut-position-control" for="cut-position">
+              <span>Posición del corte <output id="cut-position-value" for="cut-position">—</output></span>
+              <span class="cut-range">
+                <span>0 %</span>
+                <input id="cut-position" type="range" min="0" max="100" step="1" value="50" disabled />
+                <span>100 %</span>
+              </span>
+            </label>
 
         <section class="parameter-section" aria-labelledby="parameter-title">
           <h2 id="parameter-title">Parámetros del acuífero</h2>
@@ -124,6 +125,7 @@
           <p>Representan la dirección del flujo de Darcy; no representan velocidad intersticial ni tiempo de viaje.</p>
           <p>Corte geológico: visualización; no modifica el modelo hidráulico.</p>
         </div>
+          </div>
         </details>
       </aside>
 

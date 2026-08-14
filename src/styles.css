@@ -497,3 +497,21 @@ dd {
   color: #ffffff;
   border-color: #61d4ec;
 }
+
+.technical-controls {
+  border-top: 1px solid #203247;
+  padding-top: 18px;
+}
+
+.technical-controls summary {
+  color: #61d4ec;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.technical-controls-content {
+  display: grid;
+  gap: 20px;
+  margin-top: 20px;
+}
