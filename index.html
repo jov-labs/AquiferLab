@@ -39,9 +39,9 @@
           <input id="well-b-radius" type="range" min="0.05" max="0.50" step="0.01" value="0.10" />
         </label>
 
-        <label class="checkbox-control" for="show-darcy-flow">
-          <input id="show-darcy-flow" type="checkbox" checked />
-          <span>Mostrar flujo de Darcy</span>
+        <label class="checkbox-control" for="show-qualitative-streamlines">
+          <input id="show-qualitative-streamlines" type="checkbox" checked />
+          <span>Mostrar líneas de flujo cualitativas</span>
         </label>
 
         <label class="checkbox-control" for="enable-geological-cut">
@@ -100,12 +100,12 @@
         <div class="legend" aria-label="Leyenda científica">
           <p><span class="legend-swatch river"></span>Río: carga fija h = 100 m</p>
           <p><span class="legend-swatch surface"></span>Superficie piezométrica</p>
-          <p><span class="legend-swatch flow"></span>Descarga específica de Darcy</p>
+          <p><span class="legend-swatch flow"></span>Líneas de flujo cualitativas</p>
           <p><span class="legend-swatch aquifer"></span>Acuífero confinado modelado</p>
           <p>Las unidades superior y basal son sólo contexto visual; no participan en el cálculo.</p>
           <p>Superficie piezométrica mostrada respecto a h = 100 m.</p>
           <p>Longitud de flechas con escala visual √normalizada; la dirección y el orden relativo de magnitudes se conservan.</p>
-          <p>Las flechas son un campo vectorial superpuesto, no trayectorias físicas de partículas.</p>
+          <p>Representan la dirección del flujo de Darcy; no representan velocidad intersticial ni tiempo de viaje.</p>
           <p>Corte geológico: visualización; no modifica el modelo hidráulico.</p>
         </div>
       </aside>

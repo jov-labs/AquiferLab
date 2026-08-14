@@ -13,6 +13,12 @@ import { calculateDrawdown, type DrawdownResult } from "./drawdown.js";
 import { calculateDarcyFlow } from "./flow.js";
 import { createAquiferScene, getPositiveDrawdownColor } from "./scene.js";
 import {
+  calculateQualitativeStreamlines,
+  createStreamlineSeeds,
+  DEFAULT_STREAMLINE_OPTIONS,
+  type StreamlineTarget,
+} from "./streamlines.js";
+import {
   estimateWellDrawdownMeters,
   estimateWellHeadMeters,
   type WellCorrectionParameters,
@@ -57,7 +63,7 @@ const drawdownLegendMinimum = getElement<HTMLElement>("drawdown-legend-minimum")
 const drawdownLegendZero = getElement<HTMLElement>("drawdown-legend-zero");
 const drawdownLegendMaximum = getElement<HTMLElement>("drawdown-legend-maximum");
 const drawdownScale = getElement<HTMLElement>("drawdown-scale");
-const darcyFlowToggle = getElement<HTMLInputElement>("show-darcy-flow");
+const qualitativeStreamlinesToggle = getElement<HTMLInputElement>("show-qualitative-streamlines");
 const geologicalCutToggle = getElement<HTMLInputElement>("enable-geological-cut");
 const cutPosition = getElement<HTMLInputElement>("cut-position");
 const cutPositionValue = getElement<HTMLOutputElement>("cut-position-value");
@@ -218,6 +224,19 @@ function recalculate(): void {
   }
 
   const darcyFlow = calculateDarcyFlow(actualInput, actualResult.headsMeters);
+  const streamlineDomain = {
+    widthMeters: actualInput.widthMeters,
+    heightMeters: actualInput.heightMeters,
+    rows: actualInput.rows,
+    columns: actualInput.columns,
+  };
+  const qualitativeStreamlines = calculateQualitativeStreamlines({
+    domain: streamlineDomain,
+    field: darcyFlow,
+    seeds: createStreamlineSeeds(streamlineDomain, 7, 7),
+    targets: streamlineTargets(actualInput),
+    options: DEFAULT_STREAMLINE_OPTIONS,
+  });
   scene.updatePiezometricSurface({
     headsMeters: actualResult.headsMeters,
     drawdownMeters: drawdown.drawdownMeters,
@@ -228,8 +247,28 @@ function recalculate(): void {
     headsMeters: actualResult.headsMeters,
     referenceHeadMeters: REFERENCE_HEAD_METERS,
   });
+  scene.updateQualitativeStreamlines({
+    lines: qualitativeStreamlines,
+    headsMeters: actualResult.headsMeters,
+    referenceHeadMeters: REFERENCE_HEAD_METERS,
+  });
   showResult(actualInput, actualResult, darcyFlow.maxMagnitudeMetersPerDay, drawdown);
   updateDrawdownLegend(drawdown.drawdownMeters);
+}
+
+function streamlineTargets(input: GroundwaterModelInput): StreamlineTarget[] {
+  const dx = input.widthMeters / input.columns;
+  const dz = input.heightMeters / input.rows;
+  const toPoint = (row: number, column: number) => ({
+    xMeters: (column + 0.5) * dx,
+    zMeters: (row + 0.5) * dz,
+  });
+  return [
+    ...input.fixedHeadCells.map((cell) => ({ ...toPoint(cell.row, cell.column), kind: "river" as const })),
+    ...input.wells
+      .filter((well) => well.rateCubicMetersPerDay > 0)
+      .map((well) => ({ ...toPoint(well.row, well.column), kind: "well" as const })),
+  ];
 }
 
 function showResult(
@@ -475,8 +514,8 @@ for (const parameterControl of [
   parameterControl.addEventListener("change", recalculate);
 }
 
-darcyFlowToggle.addEventListener("change", () => {
-  scene.setDarcyFlowVisible(darcyFlowToggle.checked);
+qualitativeStreamlinesToggle.addEventListener("change", () => {
+  scene.setQualitativeStreamlinesVisible(qualitativeStreamlinesToggle.checked);
 });
 
 function updateGeologicalCut(): void {
@@ -490,6 +529,6 @@ cutPosition.addEventListener("input", updateGeologicalCut);
 
 updateSliderLabels();
 updateWellRadiusLabels();
-scene.setDarcyFlowVisible(darcyFlowToggle.checked);
+scene.setQualitativeStreamlinesVisible(qualitativeStreamlinesToggle.checked);
 updateGeologicalCut();
 recalculate();

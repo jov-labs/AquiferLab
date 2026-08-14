@@ -4,6 +4,7 @@ import { LineMaterial } from "three/addons/lines/LineMaterial.js";
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 import type { DarcyFlowField } from "./flow.js";
+import type { QualitativeStreamline } from "./streamlines.js";
 
 const SURFACE_GRID_INTERVAL = 3;
 const OVERLAY_SURFACE_MARGIN_METERS = 8;
@@ -13,6 +14,7 @@ const DARCY_VISUAL_SAMPLE_INTERVAL = 7;
 const DARCY_MAX_ARROW_LENGTH = 480;
 const DARCY_DOMAIN_MARGIN = 32;
 const MIN_DARCY_ARROW_LENGTH = 24;
+const STREAMLINE_OVERLAY_OFFSET_METERS = 20;
 const CUT_LABEL_PLANE_TOLERANCE_METERS = 1e-6;
 
 /** Escala visual pura del abatimiento no negativo usando el rango real visible. */
@@ -71,10 +73,18 @@ export interface DarcyOverlayData {
   referenceHeadMeters: number;
 }
 
+export interface QualitativeStreamlineOverlayData {
+  lines: readonly QualitativeStreamline[];
+  headsMeters: readonly (readonly number[])[];
+  referenceHeadMeters: number;
+}
+
 export interface AquiferScene {
   updatePiezometricSurface(data: PiezometricSurfaceData): void;
   updateDarcyFlow(data: DarcyOverlayData): void;
+  updateQualitativeStreamlines(data: QualitativeStreamlineOverlayData): void;
   setDarcyFlowVisible(visible: boolean): void;
+  setQualitativeStreamlinesVisible(visible: boolean): void;
   setGeologicalCut(enabled: boolean, positionPercent: number): void;
 }
 
@@ -156,6 +166,11 @@ export function createAquiferScene(
   darcyGroup.renderOrder = 4;
   scene.add(darcyGroup);
   const darcyArrows: THREE.Group[] = [];
+  const streamlineGroup = new THREE.Group();
+  streamlineGroup.name = "Líneas de flujo cualitativas";
+  streamlineGroup.renderOrder = 5;
+  scene.add(streamlineGroup);
+  const streamlines: THREE.Line[] = [];
   let overlayY = 0;
   let cutEnabled = false;
   let cutX = domain.widthMeters / 2;
@@ -214,8 +229,14 @@ export function createAquiferScene(
     updateDarcyFlow(data: DarcyOverlayData): void {
       updateDarcyArrows(darcyGroup, darcyArrows, domain, data, overlayY, cutEnabled, cutX);
     },
+    updateQualitativeStreamlines(data: QualitativeStreamlineOverlayData): void {
+      updateStreamlineLines(streamlineGroup, streamlines, domain, data);
+    },
     setDarcyFlowVisible(visible: boolean): void {
       darcyGroup.visible = visible;
+    },
+    setQualitativeStreamlinesVisible(visible: boolean): void {
+      streamlineGroup.visible = visible;
     },
     setGeologicalCut(enabled: boolean, positionPercent: number): void {
       const clampedPercent = THREE.MathUtils.clamp(positionPercent, 0, 100);
@@ -514,6 +535,111 @@ function setDrawdownColor(
     return;
   }
   target.copy(getPositiveDrawdownColor(drawdown, minimumDrawdownMeters, maximumDrawdownMeters));
+}
+
+/**
+ * Capa de presentación: transforma polilíneas ya integradas a geometría Three.js.
+ * No interpreta q ni integra trayectorias.
+ */
+function updateStreamlineLines(
+  group: THREE.Group,
+  lineObjects: THREE.Line[],
+  domain: SceneDomain,
+  data: QualitativeStreamlineOverlayData,
+): void {
+  for (const line of lineObjects) {
+    group.remove(line);
+    line.geometry.dispose();
+    disposeMaterial(line.material);
+  }
+  lineObjects.length = 0;
+
+  for (const streamline of data.lines) {
+    if (streamline.points.length < 2) {
+      continue;
+    }
+    const positions: number[] = [];
+    for (const point of streamline.points) {
+      const surfacePosition = surfacePositionAtPhysicalPoint(
+        domain,
+        point.xMeters,
+        point.zMeters,
+      );
+      positions.push(
+        surfacePosition.x,
+        interpolateSurfaceElevation(domain, data, point.xMeters, point.zMeters) + STREAMLINE_OVERLAY_OFFSET_METERS,
+        surfacePosition.z,
+      );
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.computeBoundingSphere();
+    const material = new THREE.LineBasicMaterial({
+      color: 0xffd166,
+      transparent: true,
+      opacity: 0.9,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const line = new THREE.Line(geometry, material);
+    line.name = "Línea de flujo cualitativa";
+    line.renderOrder = 5;
+    line.frustumCulled = false;
+    lineObjects.push(line);
+    group.add(line);
+  }
+}
+
+function interpolateSurfaceElevation(
+  domain: SceneDomain,
+  data: Pick<QualitativeStreamlineOverlayData, "headsMeters" | "referenceHeadMeters">,
+  xMeters: number,
+  zMeters: number,
+): number {
+  const coordinates = surfaceCoordinatesAtPhysicalPoint(domain, xMeters, zMeters);
+  const lowerColumn = Math.floor(coordinates.gridColumn);
+  const upperColumn = Math.ceil(coordinates.gridColumn);
+  const lowerRow = Math.floor(coordinates.gridRow);
+  const upperRow = Math.ceil(coordinates.gridRow);
+  const tx = coordinates.gridColumn - lowerColumn;
+  const tz = coordinates.gridRow - lowerRow;
+  const a = data.headsMeters[lowerRow][lowerColumn];
+  const b = data.headsMeters[lowerRow][upperColumn];
+  const c = data.headsMeters[upperRow][lowerColumn];
+  const d = data.headsMeters[upperRow][upperColumn];
+  const elevation = (a * (1 - tx) + b * tx) * (1 - tz) + (c * (1 - tx) + d * tx) * tz;
+  return elevation - data.referenceHeadMeters;
+}
+
+/**
+ * La superficie está definida en centros de celda, no en los extremos físicos
+ * de la caja. Esta es la única conversión físico → Three.js para sus overlays.
+ */
+function surfacePositionAtPhysicalPoint(
+  domain: SceneDomain,
+  xMeters: number,
+  zMeters: number,
+): { x: number; z: number } {
+  const coordinates = surfaceCoordinatesAtPhysicalPoint(domain, xMeters, zMeters);
+  const dx = domain.widthMeters / domain.columns;
+  const dz = domain.heightMeters / domain.rows;
+  return {
+    x: (coordinates.gridColumn + 0.5) * dx - domain.widthMeters / 2,
+    z: (coordinates.gridRow + 0.5) * dz - domain.heightMeters / 2,
+  };
+}
+
+function surfaceCoordinatesAtPhysicalPoint(
+  domain: SceneDomain,
+  xMeters: number,
+  zMeters: number,
+): { gridColumn: number; gridRow: number } {
+  const dx = domain.widthMeters / domain.columns;
+  const dz = domain.heightMeters / domain.rows;
+  return {
+    gridColumn: THREE.MathUtils.clamp(xMeters / dx - 0.5, 0, domain.columns - 1),
+    gridRow: THREE.MathUtils.clamp(zMeters / dz - 0.5, 0, domain.rows - 1),
+  };
 }
 
 function updateDarcyArrows(
