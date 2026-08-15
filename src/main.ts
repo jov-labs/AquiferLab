@@ -345,7 +345,7 @@ function updateEstimatedWellMetrics(): void {
 
   const hasPumping = input.wells.some((well) => well.rateCubicMetersPerDay > 0);
   publicResultSummary.textContent = hasPumping
-    ? "El bombeo simulado hace descender el nivel del agua en este escenario."
+    ? "El bombeo simulado hace descender el nivel del agua."
     : "No hay bombeo en este escenario, por lo que el nivel del agua no desciende por extracción.";
 
   updateConfinedValidity(estimatedHeads);
@@ -402,8 +402,22 @@ function showConfinedValidity(
     return;
   }
 
-  publicModelWarning.textContent =
-    "⚠ Este escenario supera los límites del modelo confinado simple. Interprétalo con cautela.";
+  if (validity.cellsBelowAquiferTop > 0) {
+    publicModelWarning.textContent =
+      "⚠ Parte del acuífero modelado salió del rango que este modelo simple puede representar correctamente.";
+  } else {
+    const affectedWells = [
+      validity.wellA.status === "OUTSIDE_CONFINED_RANGE" ? "A" : null,
+      validity.wellB.status === "OUTSIDE_CONFINED_RANGE" ? "B" : null,
+    ].filter((label): label is string => label !== null);
+
+    publicModelWarning.textContent =
+      affectedWells.length > 0
+        ? `⚠ La estimación dentro del pozo ${affectedWells.join(
+            " y ",
+          )} queda fuera del rango que este modelo simple puede representar con fiabilidad. El acuífero mostrado alrededor todavía permanece dentro del rango confinado.`
+        : "";
+  }
 
   confinedValiditySummary.textContent =
     `El solver convergió, pero la carga cayó bajo el techo del acuífero. ` +
