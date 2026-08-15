@@ -347,7 +347,7 @@ input[type="range"] {
 .drawdown-scale {
   height: 10px;
   border-radius: 999px;
-  background: linear-gradient(90deg, #ffffff 0%, #1f7a3a 50%, #8b0000 100%);
+  background: linear-gradient(90deg, #ffffff 0%, #1f7a3a 50%, #ff0000 100%);
 }
 
 .drawdown-labels {

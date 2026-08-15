@@ -7,23 +7,21 @@
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
-    <dialog id="welcome-dialog" class="welcome-dialog" aria-labelledby="welcome-title" open>
+    <dialog id="welcome-dialog" class="welcome-dialog" aria-label="AquiferLab" open>
       <p>AQUIFER LAB</p>
-      <h1 id="welcome-title">Entiende el agua subterránea</h1>
       <p>
-        Explora cómo los pozos y el bombeo pueden cambiar el agua bajo el terreno.
+        Descubre qué ocurre con el agua subterránea cuando uno o más pozos extraen agua.
         No necesitas conocimientos de hidrogeología para empezar.
       </p>
       <form method="dialog">
-        <button type="submit">Abrir AquiferLab</button>
+        <button type="submit">Empecemos</button>
       </form>
     </dialog>
 
     <div id="app">
-      <aside class="panel controls-panel" aria-labelledby="controls-title">
+      <aside class="panel controls-panel" aria-label="Controles del escenario">
         <div>
           <p class="eyebrow">AQUIFER LAB</p>
-          <h1 id="controls-title">Prueba un escenario</h1>
           <button id="home-button" class="home-button" type="button">Inicio</button>
           <p class="panel-copy">Cambia cuánta agua extrae cada pozo y observa qué ocurre.</p>
         </div>
@@ -39,6 +37,16 @@
           <output id="well-b-value" for="well-b-rate">0 l/s</output>
           <input id="well-b-rate" type="range" min="0" max="50" step="1" value="0" />
         </label>
+
+        <section class="drawdown-legend" aria-label="Escala de descenso mostrado en el acuífero">
+          <h3>Descenso mostrado en el acuífero</h3>
+          <div id="drawdown-scale" class="drawdown-scale" aria-hidden="true"></div>
+          <div class="drawdown-labels">
+            <span id="drawdown-legend-minimum">—</span>
+            <span id="drawdown-legend-zero" hidden>0.000 m</span>
+            <span id="drawdown-legend-maximum">—</span>
+          </div>
+        </section>
 
         <details class="technical-controls">
           <summary>Ver controles técnicos</summary>
@@ -235,15 +243,6 @@
           </div>
         </details>
 
-        <section class="drawdown-legend" aria-label="Escala de descenso mostrado en el acuífero">
-          <h3>Descenso mostrado en el acuífero</h3>
-          <div id="drawdown-scale" class="drawdown-scale" aria-hidden="true"></div>
-          <div class="drawdown-labels">
-            <span id="drawdown-legend-minimum">—</span>
-            <span id="drawdown-legend-zero" hidden>0.000 m</span>
-            <span id="drawdown-legend-maximum">—</span>
-          </div>
-        </section>
         <p id="solver-message" class="solver-message" aria-live="polite"></p>
       </aside>
     </div>

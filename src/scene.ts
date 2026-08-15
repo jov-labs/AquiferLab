@@ -36,7 +36,7 @@ export function getPositiveDrawdownColor(
   const visualT = Math.pow(normalized, 0.70);
   const [start, end, segmentT] = visualT <= 0.5
     ? [[255, 255, 255], [31, 122, 58], visualT / 0.5]
-    : [[31, 122, 58], [139, 0, 0], (visualT - 0.5) / 0.5];
+    : [[31, 122, 58], [255, 0, 0], Math.min(1, (visualT - 0.5) / 0.3)];
   const red = THREE.MathUtils.lerp(start[0], end[0], segmentT);
   const green = THREE.MathUtils.lerp(start[1], end[1], segmentT);
   const blue = THREE.MathUtils.lerp(start[2], end[2], segmentT);
