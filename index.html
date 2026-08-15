@@ -27,23 +27,23 @@
         <div>
           <p class="eyebrow">AQUIFER LAB</p>
           <button id="home-button" class="home-button" type="button">Inicio</button>
-          <p class="panel-copy">Cambia cuánta agua extrae cada pozo y observa qué ocurre.</p>
+          <p id="public-controls-copy" class="panel-copy">Cambia cuánta agua extrae cada pozo y observa qué ocurre.</p>
         </div>
 
         <label class="slider-control" for="well-a-rate">
-          <span>¿Cuánta agua extrae el pozo A?</span>
+          <span id="public-pumping-a">¿Cuánta agua extrae el pozo A?</span>
           <output id="well-a-value" for="well-a-rate">0 l/s</output>
           <input id="well-a-rate" type="range" min="0" max="50" step="1" value="0" />
         </label>
 
         <label class="slider-control" for="well-b-rate">
-          <span>¿Cuánta agua extrae el pozo B?</span>
+          <span id="public-pumping-b">¿Cuánta agua extrae el pozo B?</span>
           <output id="well-b-value" for="well-b-rate">0 l/s</output>
           <input id="well-b-rate" type="range" min="0" max="50" step="1" value="0" />
         </label>
 
         <section class="drawdown-legend" aria-label="Escala de descenso mostrado en el acuífero">
-          <h3>Descenso mostrado en el acuífero</h3>
+          <h3 id="public-drawdown-title">Descenso mostrado en el acuífero</h3>
           <div id="drawdown-scale" class="drawdown-scale" aria-hidden="true"></div>
           <div class="drawdown-labels">
             <span id="drawdown-legend-minimum">—</span>
@@ -53,7 +53,7 @@
         </section>
 
         <details class="technical-controls">
-          <summary>Ver controles técnicos</summary>
+          <summary id="technical-controls-summary">Ver controles técnicos</summary>
 
           <div class="technical-controls-content">
             <label class="slider-control" for="well-a-radius">
@@ -143,12 +143,12 @@
 
       <main class="scene-panel" aria-label="Visualización Three.js del acuífero">
         <div id="scene-container"></div>
-        <p class="scene-hint">Arrastra para rotar · rueda para zoom · botón derecho para desplazar</p>
+        <p id="scene-hint" class="scene-hint">Arrastra para rotar · rueda para zoom · botón derecho para desplazar</p>
       </main>
 
       <aside class="panel results-panel" aria-labelledby="results-title">
         <div>
-          <p class="eyebrow">SOLUCIÓN ACTUAL</p>
+          <p id="current-solution-label" class="eyebrow">SOLUCIÓN ACTUAL</p>
           <h2 id="results-title">¿Qué está pasando?</h2>
         </div>
 
@@ -158,11 +158,11 @@
 
           <dl class="public-well-results">
             <div>
-              <dt>Pozo A</dt>
+              <dt id="public-well-a-label">Pozo A</dt>
               <dd id="public-well-a-drawdown">—</dd>
             </div>
             <div>
-              <dt>Pozo B</dt>
+              <dt id="public-well-b-label">Pozo B</dt>
               <dd id="public-well-b-drawdown">—</dd>
             </div>
           </dl>

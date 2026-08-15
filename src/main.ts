@@ -87,6 +87,18 @@ const welcomeCopy = getElement<HTMLElement>("welcome-copy");
 const welcomeStart = getElement<HTMLButtonElement>("welcome-start");
 const welcomeDialog = getElement<HTMLDialogElement>("welcome-dialog");
 const homeButton = getElement<HTMLButtonElement>("home-button");
+const publicControlsCopy = getElement<HTMLElement>("public-controls-copy");
+const publicPumpingA = getElement<HTMLElement>("public-pumping-a");
+const publicPumpingB = getElement<HTMLElement>("public-pumping-b");
+const publicDrawdownTitle = getElement<HTMLElement>("public-drawdown-title");
+const technicalControlsSummary = getElement<HTMLElement>("technical-controls-summary");
+const sceneHint = getElement<HTMLElement>("scene-hint");
+const currentSolutionLabel = getElement<HTMLElement>("current-solution-label");
+const resultsTitle = getElement<HTMLElement>("results-title");
+const publicResultTitle = getElement<HTMLElement>("public-result-title");
+const publicWellALabel = getElement<HTMLElement>("public-well-a-label");
+const publicWellBLabel = getElement<HTMLElement>("public-well-b-label");
+const publicWellNote = getElement<HTMLElement>("public-well-note");
 
 homeButton.addEventListener("click", () => {
   welcomeDialog.show();
@@ -99,6 +111,19 @@ function updateLanguageToggle(): void {
   languageEn.dataset.active = language === "en" ? "true" : "false";
   welcomeCopy.textContent = `${t("intro")} ${t("noKnowledge")}`;
   welcomeStart.textContent = t("start");
+  homeButton.textContent = t("home");
+  publicControlsCopy.textContent = t("controlsIntro");
+  publicPumpingA.textContent = t("pumpingA");
+  publicPumpingB.textContent = t("pumpingB");
+  publicDrawdownTitle.textContent = t("drawdownAquifer");
+  technicalControlsSummary.textContent = t("technicalControls");
+  sceneHint.textContent = t("sceneHint");
+  currentSolutionLabel.textContent = t("currentSolution");
+  resultsTitle.textContent = t("whatHappens");
+  publicResultTitle.textContent = t("scenarioResult");
+  publicWellALabel.textContent = t("wellA");
+  publicWellBLabel.textContent = t("wellB");
+  publicWellNote.textContent = t("insideWellNote");
 }
 
 languageEs.addEventListener("click", () => {

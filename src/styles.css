@@ -171,8 +171,12 @@ h2 {
 }
 
 .parameter-section h2 {
-  font-size: 0.9rem;
-  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+  padding-bottom: 10px;
+  color: #61d4ec;
+  border-bottom: 1px solid #36516c;
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 

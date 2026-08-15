@@ -6,6 +6,7 @@ const translations = {
   es: {
     start: "Empecemos",
     home: "Inicio",
+    controlsIntro: "Cambia cuánta agua extrae cada pozo y observa qué ocurre.",
     intro: "Descubre qué ocurre con el agua subterránea cuando uno o más pozos extraen agua.",
     noKnowledge: "No necesitas conocimientos avanzados para empezar.",
     pumpingA: "¿Cuánta agua extrae el pozo A?",
@@ -45,6 +46,7 @@ const translations = {
   en: {
     start: "Let's begin",
     home: "Home",
+    controlsIntro: "Change how much water each well extracts and see what happens.",
     intro: "Discover what happens to groundwater when one or more wells extract water.",
     noKnowledge: "You don't need advanced knowledge to get started.",
     pumpingA: "How much water does well A extract?",
