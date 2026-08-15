@@ -544,3 +544,60 @@ dd {
   display: grid;
   gap: 4px;
 }
+
+@media (max-width: 600px) {
+  #app {
+    grid-template-rows: auto clamp(360px, 55vh, 520px) auto;
+  }
+
+  .panel {
+    gap: 18px;
+    padding: 20px 16px;
+  }
+
+  .scene-panel {
+    height: clamp(360px, 55vh, 520px);
+  }
+
+  .scene-hint {
+    bottom: 10px;
+    width: max-content;
+    max-width: calc(100% - 24px);
+    padding: 7px 10px;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.35;
+  }
+
+  .welcome-dialog {
+    padding: 20px;
+  }
+
+  .welcome-dialog > p:first-child {
+    margin-bottom: 10px;
+  }
+
+  .welcome-dialog h1 + p {
+    margin-bottom: 24px;
+    font-size: 1rem;
+  }
+
+  .welcome-dialog button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .home-button {
+    min-height: 44px;
+  }
+
+  .public-well-results {
+    gap: 16px;
+    margin: 18px 0;
+  }
+
+  .technical-controls summary,
+  .technical-results summary {
+    padding: 6px 0;
+  }
+}
