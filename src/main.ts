@@ -27,6 +27,7 @@ import {
   evaluateConfinedModelValidity,
   type EstimatedWellHeadsMeters,
 } from "./confined-validity.js";
+import { getLanguage, setLanguage, t } from "./i18n.js";
 
 const REFERENCE_HEAD_METERS = 100;
 const WELL_A = { row: 20, column: 20, label: "Pozo A" };
@@ -80,12 +81,37 @@ const aquiferThicknessValue = getElement<HTMLOutputElement>("aquifer-thickness-v
 const riverHead = getElement<HTMLInputElement>("river-head");
 const riverHeadValue = getElement<HTMLOutputElement>("river-head-value");
 const aquiferTopElevation = getElement<HTMLInputElement>("aquifer-top-elevation");
+const languageEs = getElement<HTMLButtonElement>("language-es");
+const languageEn = getElement<HTMLButtonElement>("language-en");
+const welcomeCopy = getElement<HTMLElement>("welcome-copy");
+const welcomeStart = getElement<HTMLButtonElement>("welcome-start");
 const welcomeDialog = getElement<HTMLDialogElement>("welcome-dialog");
 const homeButton = getElement<HTMLButtonElement>("home-button");
 
 homeButton.addEventListener("click", () => {
   welcomeDialog.show();
 });
+
+function updateLanguageToggle(): void {
+  const language = getLanguage();
+  setLanguage(language);
+  languageEs.dataset.active = language === "es" ? "true" : "false";
+  languageEn.dataset.active = language === "en" ? "true" : "false";
+  welcomeCopy.textContent = `${t("intro")} ${t("noKnowledge")}`;
+  welcomeStart.textContent = t("start");
+}
+
+languageEs.addEventListener("click", () => {
+  setLanguage("es");
+  updateLanguageToggle();
+});
+
+languageEn.addEventListener("click", () => {
+  setLanguage("en");
+  updateLanguageToggle();
+});
+
+updateLanguageToggle();
 
 const baseInput = createDefaultModelInput();
 initializeParameterControls(baseInput);

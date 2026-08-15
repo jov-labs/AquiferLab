@@ -447,11 +447,11 @@ dd {
   margin-right: auto;
 }
 
-.welcome-dialog > p:first-child {
+.welcome-dialog > p:first-of-type {
   margin-bottom: 14px;
   color: #61d4ec;
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: 1.6rem;
+  font-weight: 800;
   letter-spacing: 0.18em;
 }
 
@@ -616,4 +616,41 @@ dd {
   font-weight: 800;
   pointer-events: none;
   white-space: nowrap;
+}
+
+.language-switcher {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  width: auto;
+  margin: 0;
+}
+
+.language-switcher button {
+  min-width: 44px;
+  padding: 8px 10px;
+  color: #aebfd1;
+  background: transparent;
+  border: 1px solid #36516c;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.language-switcher button[data-active="true"] {
+  color: #06101d;
+  background: #61d4ec;
+  border-color: #61d4ec;
+}
+
+@media (max-width: 600px) {
+  .language-switcher {
+    top: 16px;
+    right: 16px;
+  }
 }

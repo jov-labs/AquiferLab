@@ -8,13 +8,17 @@
   </head>
   <body>
     <dialog id="welcome-dialog" class="welcome-dialog" aria-label="AquiferLab" open>
+      <div class="language-switcher" aria-label="Idioma / Language">
+        <button id="language-es" type="button">ES</button>
+        <button id="language-en" type="button">EN</button>
+      </div>
       <p>AQUIFER LAB</p>
-      <p>
+      <p id="welcome-copy">
         Descubre qué ocurre con el agua subterránea cuando uno o más pozos extraen agua.
-        No necesitas conocimientos de hidrogeología para empezar.
+        No necesitas conocimientos avanzados para empezar.
       </p>
       <form method="dialog">
-        <button type="submit">Empecemos</button>
+        <button id="welcome-start" type="submit">Empecemos</button>
       </form>
     </dialog>
 
