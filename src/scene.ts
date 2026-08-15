@@ -121,7 +121,7 @@ export function createAquiferScene(
   const clippingMaterials: THREE.Material[] = [];
 
   addGeologicalContext(scene, domain, clippingMaterials);
-  addRiver(scene, domain, clippingMaterials);
+  const riverLabel = addRiver(scene, container, domain, clippingMaterials);
   const wellLabels = wells.map((well) =>
     addWellMarker(scene, container, domain, well, clippingMaterials),
   );
@@ -179,6 +179,7 @@ export function createAquiferScene(
   let resizeFrame = 0;
   const wellWorldPosition = new THREE.Vector3();
   const wellLabelWorldPosition = new THREE.Vector3();
+  const riverLabelWorldPosition = new THREE.Vector3();
 
   const resize = () => {
     resizeFrame = 0;
@@ -213,6 +214,12 @@ export function createAquiferScene(
       cutPlane,
       wellWorldPosition,
       wellLabelWorldPosition,
+    );
+    updateRiverLabelPosition(
+      camera,
+      container,
+      riverLabel,
+      riverLabelWorldPosition,
     );
     renderer.render(scene, camera);
     window.requestAnimationFrame(render);
@@ -298,9 +305,10 @@ function createGeologicalContextGeometry(domain: SceneDomain): THREE.BoxGeometry
 
 function addRiver(
   scene: THREE.Scene,
+  container: HTMLElement,
   domain: SceneDomain,
   clippingMaterials: THREE.Material[],
-): void {
+): { marker: THREE.Mesh; label: HTMLDivElement } {
   const geometry = new THREE.BoxGeometry(24, 5, domain.heightMeters);
   const material = new THREE.MeshStandardMaterial({
     color: 0x287fd1,
@@ -313,6 +321,13 @@ function addRiver(
   river.position.set(-domain.widthMeters / 2, 1, 0);
   river.name = "Río: frontera de carga fija h = 100 m";
   scene.add(river);
+
+  const label = document.createElement("div");
+  label.className = "river-label";
+  label.textContent = "Río";
+  container.append(label);
+
+  return { marker: river, label };
 }
 
 function addWellMarker(
@@ -809,6 +824,32 @@ function updateWellLabelPositions(
       label.style.left = `${(projected.x * 0.5 + 0.5) * width}px`;
       label.style.top = `${(-projected.y * 0.5 + 0.5) * height}px`;
     }
+  }
+}
+
+function updateRiverLabelPosition(
+  camera: THREE.Camera,
+  container: HTMLElement,
+  riverLabel: { marker: THREE.Mesh; label: HTMLDivElement },
+  riverLabelWorldPosition: THREE.Vector3,
+): void {
+  riverLabel.marker.getWorldPosition(riverLabelWorldPosition);
+  const projected = riverLabelWorldPosition
+    .setY(riverLabelWorldPosition.y + 20)
+    .project(camera);
+
+  const isVisible =
+    projected.x >= -1 &&
+    projected.x <= 1 &&
+    projected.y >= -1 &&
+    projected.y <= 1 &&
+    projected.z >= -1 &&
+    projected.z <= 1;
+
+  riverLabel.label.style.display = isVisible ? "" : "none";
+  if (isVisible) {
+    riverLabel.label.style.left = `${(projected.x * 0.5 + 0.5) * container.clientWidth}px`;
+    riverLabel.label.style.top = `${(-projected.y * 0.5 + 0.5) * container.clientHeight}px`;
   }
 }
 
