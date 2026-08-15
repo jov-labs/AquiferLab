@@ -82,7 +82,7 @@ h2 {
   font-size: 0.88rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .number-control {
@@ -92,7 +92,7 @@ h2 {
   font-size: 0.88rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .number-input {
@@ -345,7 +345,7 @@ input[type="range"] {
   color: #91a8bd;
   font-size: 0.72rem;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .drawdown-scale {
@@ -367,8 +367,8 @@ dt {
   color: #91a8bd;
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-transform: none;
 }
 
 dd {
@@ -657,4 +657,183 @@ dd {
     top: 16px;
     right: 16px;
   }
+}
+
+#public-pumping-a,
+#public-pumping-b {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.public-model-warning:not(:empty) {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  color: #ffd166;
+  background: rgb(255 209 102 / 9%);
+  border-left: 4px solid #ffd166;
+  border-radius: 6px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+#public-pumping-a,
+#public-pumping-b {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.public-model-warning:not(:empty) {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  color: #ffd166;
+  background: rgb(255 209 102 / 9%);
+  border-left: 4px solid #ffd166;
+  border-radius: 6px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.technical-results dt,
+.technical-results dd {
+  font-size: 0.88rem;
+}
+
+.cut-position-control > span:first-child {
+  color: #61d4ec;
+}
+
+/* Ajustes finales de interfaz */
+
+/* Jerarquía tipográfica */
+.results-panel > div > h2 {
+  font-size: 1.2rem;
+  line-height: 1.3;
+}
+
+.public-result h3,
+.drawdown-legend h3,
+.confined-validity h3 {
+  color: #f0f5fa;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.parameter-section h2 {
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  color: #61d4ec;
+  border-bottom: 1px solid rgb(97 212 236 / 35%);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+/* Texto general */
+.panel-copy,
+.slider-control,
+.number-control,
+.checkbox-control,
+.cut-position-control,
+.parameter-note,
+.legend p,
+.solver-message,
+#confined-validity-status {
+  color: #e2ebf3;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+/* Etiquetas de variables */
+.slider-control > span:first-child,
+.number-control > span:first-child,
+.public-well-results dt,
+.metrics dt {
+  color: #e2ebf3;
+  font-size: 0.90rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+
+/* Valores */
+.slider-control output,
+.number-control output,
+.public-well-results dd,
+.metrics dd {
+  color: #61d4ec;
+  font-size: 0.90rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+
+output {
+  font-size: 0.88rem;
+}
+
+/* Posición del corte */
+.cut-position-control > span:first-child {
+  color: #61d4ec;
+}
+
+/* Bloques desplegables */
+.technical-controls summary,
+.technical-results summary {
+  color: #61d4ec;
+  background: rgb(97 212 236 / 8%);
+  border: 1px solid rgb(97 212 236 / 35%);
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.technical-controls summary:hover,
+.technical-results summary:hover {
+  background: rgb(97 212 236 / 14%);
+  border-color: #61d4ec;
+}
+
+/* Campo compacto de cota del techo */
+.number-input:has(#aquifer-top-elevation) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+}
+
+#aquifer-top-elevation {
+  width: 70px;
+  flex: 0 0 70px;
+}
+
+.number-input:has(#aquifer-top-elevation) .unit {
+  margin: 0;
+}
+
+/* Separadores */
+.slider-control,
+.number-control,
+.checkbox-control,
+.cut-position-control {
+  padding-bottom: 14px;
+  border-bottom: 3px solid rgb(97 212 236 / 28%);
+}
+
+.public-well-results > div,
+.metrics > div {
+  padding-bottom: 12px;
+  border-bottom: 3px solid rgb(97 212 236 / 28%);
+}
+
+/* Mantener expresiones técnicas completas */
+.nowrap {
+  white-space: nowrap;
 }

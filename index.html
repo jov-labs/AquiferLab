@@ -57,29 +57,29 @@
 
           <div class="technical-controls-content">
             <label class="slider-control" for="well-a-radius">
-              <span>Radio pozo A</span>
+              <span id="well-radius-a-label">Radio pozo A</span>
               <output id="well-a-radius-value" for="well-a-radius">0.10 m</output>
               <input id="well-a-radius" type="range" min="0.05" max="0.50" step="0.01" value="0.10" />
             </label>
 
             <label class="slider-control" for="well-b-radius">
-              <span>Radio pozo B</span>
+              <span id="well-radius-b-label">Radio pozo B</span>
               <output id="well-b-radius-value" for="well-b-radius">0.10 m</output>
               <input id="well-b-radius" type="range" min="0.05" max="0.50" step="0.01" value="0.10" />
             </label>
 
             <label class="checkbox-control" for="show-qualitative-streamlines">
               <input id="show-qualitative-streamlines" type="checkbox" checked />
-              <span>Mostrar líneas de flujo cualitativas</span>
+              <span id="qualitative-flow-label">Mostrar líneas de flujo cualitativas</span>
             </label>
 
             <label class="checkbox-control" for="enable-geological-cut">
               <input id="enable-geological-cut" type="checkbox" />
-              <span>Activar corte geológico</span>
+              <span id="geological-cut-label">Activar corte geológico</span>
             </label>
 
             <label class="cut-position-control" for="cut-position">
-              <span>Posición del corte <output id="cut-position-value" for="cut-position">—</output></span>
+              <span><span id="cut-position-label">Posición del corte</span> <output id="cut-position-value" for="cut-position">—</output></span>
               <span class="cut-range">
                 <span>0 %</span>
                 <input id="cut-position" type="range" min="0" max="100" step="1" value="50" disabled />
@@ -91,51 +91,51 @@
           <h2 id="parameter-title">Parámetros del acuífero</h2>
 
           <label class="slider-control" for="hydraulic-conductivity-exponent">
-            <span>Conductividad hidráulica K</span>
+            <span id="hydraulic-conductivity-label">Conductividad hidráulica K</span>
             <output id="hydraulic-conductivity-value" for="hydraulic-conductivity-exponent">—</output>
             <input id="hydraulic-conductivity-exponent" type="range" min="-6" max="-4" step="0.1" />
           </label>
 
           <label class="slider-control" for="recharge">
-            <span>Recarga</span>
+            <span id="recharge-label">Recarga</span>
             <output id="recharge-value" for="recharge">—</output>
             <input id="recharge" type="range" min="0" max="500" step="10" />
           </label>
 
           <label class="slider-control" for="aquifer-thickness">
-            <span>Espesor del acuífero</span>
+            <span id="aquifer-thickness-label">Espesor del acuífero</span>
             <output id="aquifer-thickness-value" for="aquifer-thickness">—</output>
             <input id="aquifer-thickness" type="range" min="10" max="100" step="5" />
           </label>
 
           <label class="slider-control" for="river-head">
-            <span>Carga del río</span>
+            <span id="river-head-label">Carga del río</span>
             <output id="river-head-value" for="river-head">—</output>
             <input id="river-head" type="range" min="80" max="120" step="1" />
           </label>
 
           <label class="number-control" for="aquifer-top-elevation">
-            <span>Cota del techo del acuífero</span>
+            <span id="aquifer-top-elevation-label">Cota del techo del acuífero</span>
             <span class="number-input">
               <input id="aquifer-top-elevation" type="number" step="1" value="0" />
               <span class="unit">m</span>
             </span>
           </label>
 
-          <p class="parameter-note">Espesor hidráulico configurable; bloque geológico esquemático sin escala vertical.</p>
-          <p class="parameter-note">La cota del techo usa el mismo datum que la carga hidráulica y sólo evalúa la validez del modelo confinado.</p>
+          <p id="hydraulic-block-note" class="parameter-note">Espesor hidráulico configurable; bloque geológico esquemático sin escala vertical.</p>
+          <p id="aquifer-top-note" class="parameter-note">La cota del techo usa el mismo datum que la carga hidráulica y sólo evalúa la validez del modelo confinado.</p>
         </section>
 
         <div class="legend" aria-label="Leyenda científica">
-          <p><span class="legend-swatch river"></span>Río: carga fija h = 100 m</p>
-          <p><span class="legend-swatch surface"></span>Superficie piezométrica</p>
-          <p><span class="legend-swatch flow"></span>Líneas de flujo cualitativas</p>
-          <p><span class="legend-swatch aquifer"></span>Acuífero confinado modelado</p>
-          <p>Las unidades superior y basal son sólo contexto visual; no participan en el cálculo.</p>
-          <p>Superficie piezométrica mostrada respecto a h = 100 m.</p>
-          <p>Longitud de flechas con escala visual √normalizada; la dirección y el orden relativo de magnitudes se conservan.</p>
-          <p>Representan la dirección del flujo de Darcy; no representan velocidad intersticial ni tiempo de viaje.</p>
-          <p>Corte geológico: visualización; no modifica el modelo hidráulico.</p>
+          <p><span class="legend-swatch river"></span><span id="river-level-legend">Nivel del agua del río: 100 m</span></p>
+          <p><span class="legend-swatch surface"></span><span id="piezometric-surface-label">Superficie piezométrica</span></p>
+          <p><span class="legend-swatch flow"></span><span id="qualitative-flow-legend">Líneas de flujo cualitativas</span></p>
+          <p><span class="legend-swatch aquifer"></span><span id="confined-aquifer-legend">Acuífero confinado modelado</span></p>
+          <p id="visual-context-note">Las unidades superior y basal son sólo contexto visual; no participan en el cálculo.</p>
+          <p><span id="piezometric-reference">Superficie piezométrica mostrada respecto a h = 100 m.</span></p>
+          <p id="arrow-scale-note">Longitud de flechas con escala visual √normalizada; la dirección y el orden relativo de magnitudes se conservan.</p>
+          <p id="darcy-direction-note">Representan la dirección del flujo de Darcy; no representan velocidad intersticial ni tiempo de viaje.</p>
+          <p id="geological-cut-note">Corte geológico: visualización; no modifica el modelo hidráulico.</p>
         </div>
           </div>
         </details>
@@ -175,68 +175,68 @@
         </section>
 
         <details class="technical-results">
-          <summary>Ver resultados técnicos</summary>
+          <summary id="technical-results-summary">Ver resultados técnicos</summary>
           <div class="technical-results-content">
 
         <dl class="metrics">
           <div>
-            <dt>Estado</dt>
+            <dt id="metric-status-label">Estado</dt>
             <dd id="result-status" data-status="pending">Calculando</dd>
           </div>
           <div>
-            <dt>Iteraciones</dt>
+            <dt id="metric-iterations-label">Iteraciones</dt>
             <dd id="result-iterations">—</dd>
           </div>
           <div>
-            <dt>Carga mínima de malla</dt>
+            <dt id="metric-min-head-label">Carga mínima de malla</dt>
             <dd id="result-min-head">—</dd>
           </div>
           <div>
-            <dt>Carga máxima</dt>
+            <dt id="metric-max-head-label">Carga máxima</dt>
             <dd id="result-max-head">—</dd>
           </div>
           <div>
-            <dt>Carga en celda A</dt>
+            <dt id="metric-head-a-label">Carga en celda A</dt>
             <dd id="result-well-a-head">—</dd>
           </div>
           <div>
-            <dt>Carga en celda B</dt>
+            <dt id="metric-head-b-label">Carga en celda B</dt>
             <dd id="result-well-b-head">—</dd>
           </div>
           <div>
-            <dt>Carga estimada pozo A</dt>
+            <dt id="metric-estimated-head-a-label">Carga estimada pozo A</dt>
             <dd id="result-estimated-well-a-head">—</dd>
           </div>
           <div>
-            <dt>Carga estimada pozo B</dt>
+            <dt id="metric-estimated-head-b-label">Carga estimada pozo B</dt>
             <dd id="result-estimated-well-b-head">—</dd>
           </div>
           <div>
-            <dt>Q Darcy máx.</dt>
+            <dt id="metric-darcy-label">Q Darcy máx.</dt>
             <dd id="result-darcy-max">—</dd>
           </div>
           <div>
-            <dt>Abatimiento máx. de malla</dt>
+            <dt id="metric-max-drawdown-label">Abatimiento máx. de malla</dt>
             <dd id="result-max-drawdown">—</dd>
           </div>
           <div>
-            <dt>Abatimiento en celda A</dt>
+            <dt id="metric-drawdown-a-label">Abatimiento en celda A</dt>
             <dd id="result-well-a-drawdown">—</dd>
           </div>
           <div>
-            <dt>Abatimiento en celda B</dt>
+            <dt id="metric-drawdown-b-label">Abatimiento en celda B</dt>
             <dd id="result-well-b-drawdown">—</dd>
           </div>
           <div>
-            <dt>Abatimiento estimado pozo A</dt>
+            <dt id="metric-estimated-drawdown-a-label">Abatimiento estimado pozo A</dt>
             <dd id="result-estimated-well-a-drawdown">—</dd>
           </div>
           <div>
-            <dt>Abatimiento estimado pozo B</dt>
+            <dt id="metric-estimated-drawdown-b-label">Abatimiento estimado pozo B</dt>
             <dd id="result-estimated-well-b-drawdown">—</dd>
           </div>
         </dl>
-        <p class="parameter-note">Estimación Peaceman para pozo ideal completamente penetrante, sin pérdidas de pantalla ni skin.</p>
+        <p id="peaceman-note" class="parameter-note">Estimación Peaceman para pozo ideal completamente penetrante, sin pérdidas de pantalla ni skin.</p>
         <section class="confined-validity" aria-labelledby="confined-validity-title">
           <h3 id="confined-validity-title">Validez del modelo confinado</h3>
           <p id="confined-validity-status" data-status="pending" aria-live="polite">—</p>

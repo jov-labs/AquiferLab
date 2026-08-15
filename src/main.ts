@@ -80,6 +80,7 @@ const aquiferThickness = getElement<HTMLInputElement>("aquifer-thickness");
 const aquiferThicknessValue = getElement<HTMLOutputElement>("aquifer-thickness-value");
 const riverHead = getElement<HTMLInputElement>("river-head");
 const riverHeadValue = getElement<HTMLOutputElement>("river-head-value");
+const riverLevelLegend = getElement<HTMLElement>("river-level-legend");
 const aquiferTopElevation = getElement<HTMLInputElement>("aquifer-top-elevation");
 const languageEs = getElement<HTMLButtonElement>("language-es");
 const languageEn = getElement<HTMLButtonElement>("language-en");
@@ -104,6 +105,46 @@ homeButton.addEventListener("click", () => {
   welcomeDialog.show();
 });
 
+const qualitativeFlowLabel = getElement<HTMLElement>("qualitative-flow-label");
+const geologicalCutLabel = getElement<HTMLElement>("geological-cut-label");
+const cutPositionLabel = getElement<HTMLElement>("cut-position-label");
+const parameterTitle = getElement<HTMLElement>("parameter-title");
+const hydraulicConductivityLabel = getElement<HTMLElement>("hydraulic-conductivity-label");
+const rechargeLabel = getElement<HTMLElement>("recharge-label");
+const aquiferThicknessLabel = getElement<HTMLElement>("aquifer-thickness-label");
+const riverHeadLabel = getElement<HTMLElement>("river-head-label");
+const aquiferTopElevationLabel = getElement<HTMLElement>("aquifer-top-elevation-label");
+
+const hydraulicBlockNote = getElement<HTMLElement>("hydraulic-block-note");
+const aquiferTopNote = getElement<HTMLElement>("aquifer-top-note");
+const piezometricSurfaceLabel = getElement<HTMLElement>("piezometric-surface-label");
+const qualitativeFlowLegend = getElement<HTMLElement>("qualitative-flow-legend");
+const confinedAquiferLegend = getElement<HTMLElement>("confined-aquifer-legend");
+const visualContextNote = getElement<HTMLElement>("visual-context-note");
+const piezometricReference = getElement<HTMLElement>("piezometric-reference");
+const arrowScaleNote = getElement<HTMLElement>("arrow-scale-note");
+const darcyDirectionNote = getElement<HTMLElement>("darcy-direction-note");
+const geologicalCutNote = getElement<HTMLElement>("geological-cut-note");
+
+const wellRadiusALabel = getElement<HTMLElement>("well-radius-a-label");
+const wellRadiusBLabel = getElement<HTMLElement>("well-radius-b-label");
+const technicalResultsSummary = getElement<HTMLElement>("technical-results-summary");
+const metricStatusLabel = getElement<HTMLElement>("metric-status-label");
+const metricIterationsLabel = getElement<HTMLElement>("metric-iterations-label");
+const metricMinHeadLabel = getElement<HTMLElement>("metric-min-head-label");
+const metricMaxHeadLabel = getElement<HTMLElement>("metric-max-head-label");
+const metricHeadALabel = getElement<HTMLElement>("metric-head-a-label");
+const metricHeadBLabel = getElement<HTMLElement>("metric-head-b-label");
+const metricEstimatedHeadALabel = getElement<HTMLElement>("metric-estimated-head-a-label");
+const metricEstimatedHeadBLabel = getElement<HTMLElement>("metric-estimated-head-b-label");
+const metricDarcyLabel = getElement<HTMLElement>("metric-darcy-label");
+const metricMaxDrawdownLabel = getElement<HTMLElement>("metric-max-drawdown-label");
+const metricDrawdownALabel = getElement<HTMLElement>("metric-drawdown-a-label");
+const metricDrawdownBLabel = getElement<HTMLElement>("metric-drawdown-b-label");
+const metricEstimatedDrawdownALabel = getElement<HTMLElement>("metric-estimated-drawdown-a-label");
+const metricEstimatedDrawdownBLabel = getElement<HTMLElement>("metric-estimated-drawdown-b-label");
+const peacemanNote = getElement<HTMLElement>("peaceman-note");
+
 function updateLanguageToggle(): void {
   const language = getLanguage();
   setLanguage(language);
@@ -124,16 +165,67 @@ function updateLanguageToggle(): void {
   publicWellALabel.textContent = t("wellA");
   publicWellBLabel.textContent = t("wellB");
   publicWellNote.textContent = t("insideWellNote");
+
+  qualitativeFlowLabel.textContent = t("qualitativeFlow");
+  geologicalCutLabel.textContent = t("geologicalCut");
+  cutPositionLabel.textContent = t("cutPosition");
+  parameterTitle.textContent = t("aquiferParameters");
+  hydraulicConductivityLabel.textContent = t("hydraulicConductivity");
+  rechargeLabel.textContent = t("recharge");
+  aquiferThicknessLabel.textContent = t("aquiferThickness");
+  riverHeadLabel.textContent = t("riverHead");
+  aquiferTopElevationLabel.textContent = t("aquiferTopElevation");
+  hydraulicBlockNote.textContent = t("hydraulicBlockNote");
+  aquiferTopNote.textContent = t("aquiferTopNote");
+  riverLevelLegend.textContent = t("riverLevel")(riverHead.value);
+  piezometricSurfaceLabel.textContent = t("piezometricSurface");
+  qualitativeFlowLegend.textContent = t("qualitativeFlowLegend");
+  confinedAquiferLegend.textContent = t("confinedAquiferLegend");
+  visualContextNote.textContent = t("visualContextNote");
+  piezometricReference.textContent = t("piezometricReference");
+  arrowScaleNote.textContent = t("arrowScaleNote");
+  darcyDirectionNote.textContent = t("darcyDirectionNote");
+  geologicalCutNote.textContent = t("geologicalCutNote");
+
+  wellRadiusALabel.textContent = t("wellRadiusA");
+  wellRadiusBLabel.textContent = t("wellRadiusB");
+  technicalResultsSummary.textContent = t("technicalResults");
+  metricStatusLabel.textContent = t("status");
+  metricIterationsLabel.textContent = t("iterations");
+  metricMinHeadLabel.textContent = t("minimumGridHead");
+  metricMaxHeadLabel.textContent = t("maximumHead");
+  metricHeadALabel.textContent = t("headCellA");
+  metricHeadBLabel.textContent = t("headCellB");
+  metricEstimatedHeadALabel.textContent = t("estimatedHeadA");
+  metricEstimatedHeadBLabel.textContent = t("estimatedHeadB");
+  metricDarcyLabel.textContent = t("maxDarcy");
+  metricMaxDrawdownLabel.textContent = t("maximumGridDrawdown");
+  metricDrawdownALabel.textContent = t("drawdownCellA");
+  metricDrawdownBLabel.textContent = t("drawdownCellB");
+  metricEstimatedDrawdownALabel.textContent = t("estimatedDrawdownA");
+  metricEstimatedDrawdownBLabel.textContent = t("estimatedDrawdownB");
+  peacemanNote.textContent = t("peacemanNote");
+
+  rechargeValue.value = `${recharge.value} ${t("rechargeUnit")}`;
+
+  getElement<HTMLElement>("confined-validity-title").textContent =
+    t("confinedValidityTitle");
+  getElement<HTMLElement>("confined-validity-extrapolation").textContent =
+    t("confinedExtrapolation");
+
+  document.querySelector<HTMLElement>(".river-label")?.replaceChildren(t("river"));
 }
 
 languageEs.addEventListener("click", () => {
   setLanguage("es");
   updateLanguageToggle();
+  updateEstimatedWellMetrics();
 });
 
 languageEn.addEventListener("click", () => {
   setLanguage("en");
   updateLanguageToggle();
+  updateEstimatedWellMetrics();
 });
 
 updateLanguageToggle();
@@ -229,9 +321,10 @@ function initializeParameterControls(defaultInput: GroundwaterModelInput): void 
 function updateParameterLabels(): void {
   const exponent = Number(hydraulicConductivityExponent.value);
   hydraulicConductivityValue.value = `K = ${formatScientific(10 ** exponent)} m/s`;
-  rechargeValue.value = `${recharge.value} mm/año`;
+  rechargeValue.value = `${recharge.value} ${t("rechargeUnit")}`;
   aquiferThicknessValue.value = `${aquiferThickness.value} m`;
   riverHeadValue.value = `${riverHead.value} m`;
+  riverLevelLegend.textContent = t("riverLevel")(riverHead.value);
 }
 
 function formatScientific(value: number): string {
@@ -338,7 +431,7 @@ function showResult(
   maxDarcyMetersPerDay: number,
   drawdown: DrawdownResult,
 ): void {
-  status.textContent = "Convergió";
+  status.textContent = t("converged");
   status.dataset.status = "valid";
   iterations.textContent = String(result.iterations);
   minHead.textContent = formatMeters(result.minHeadMeters);
@@ -391,13 +484,15 @@ function updateEstimatedWellMetrics(): void {
   estimatedWellADrawdown.textContent = formatDrawdownMeters(estimatedDrawdownA);
   estimatedWellBDrawdown.textContent = formatDrawdownMeters(estimatedDrawdownB);
 
-  publicWellADrawdown.textContent = `Descenso estimado: ${formatDrawdownMeters(estimatedDrawdownA)}`;
-  publicWellBDrawdown.textContent = `Descenso estimado: ${formatDrawdownMeters(estimatedDrawdownB)}`;
+  publicWellADrawdown.textContent =
+    `${t("estimatedDecline")}: ${formatDrawdownMeters(estimatedDrawdownA)}`;
+  publicWellBDrawdown.textContent =
+    `${t("estimatedDecline")}: ${formatDrawdownMeters(estimatedDrawdownB)}`;
 
   const hasPumping = input.wells.some((well) => well.rateCubicMetersPerDay > 0);
   publicResultSummary.textContent = hasPumping
-    ? "El bombeo simulado hace descender el nivel del agua."
-    : "No hay bombeo en este escenario, por lo que el nivel del agua no desciende por extracción.";
+    ? t("pumpingDecline")
+    : t("noPumping");
 
   updateConfinedValidity(estimatedHeads);
 }
@@ -427,14 +522,12 @@ function updateConfinedValidity(estimatedHeads?: Required<EstimatedWellHeadsMete
     });
     showConfinedValidity(validity);
   } catch (error) {
-    confinedValidityStatus.textContent = "Cota inválida";
+    confinedValidityStatus.textContent = t("invalidElevation");
     confinedValidityStatus.dataset.status = "invalid";
-    confinedValiditySummary.textContent =
-      error instanceof Error ? error.message : "No se pudo evaluar la validez del modelo confinado.";
+    confinedValiditySummary.textContent = t("confinedValidityEvaluationFailed");
     confinedValidityWarnings.textContent = "";
     confinedValidityExtrapolation.hidden = true;
-    publicModelWarning.textContent =
-      "No se pudo comprobar si este escenario está dentro de los límites del modelo simple.";
+    publicModelWarning.textContent = t("validityCheckFailed");
   }
 }
 
@@ -442,20 +535,20 @@ function showConfinedValidity(
   validity: ReturnType<typeof evaluateConfinedModelValidity>,
 ): void {
   const isValid = validity.status === "VALID_CONFINED";
-  confinedValidityStatus.textContent = isValid ? "Válido" : "Fuera de rango";
+  confinedValidityStatus.textContent =
+    isValid ? t("valid") : t("outsideRange");
   confinedValidityStatus.dataset.status = isValid ? "valid" : "invalid";
   confinedValidityExtrapolation.hidden = isValid;
   if (isValid) {
     confinedValiditySummary.textContent =
-      "Todas las cargas de malla y las estimaciones dentro de los pozos permanecen sobre el techo del acuífero.";
+      t("confinedValidityValidSummary");
     confinedValidityWarnings.textContent = "";
     publicModelWarning.textContent = "";
     return;
   }
 
   if (validity.cellsBelowAquiferTop > 0) {
-    publicModelWarning.textContent =
-      "⚠ Parte del acuífero modelado salió del rango que este modelo simple puede representar correctamente.";
+    publicModelWarning.textContent = t("publicGridWarning");
   } else {
     const affectedWells = [
       validity.wellA.status === "OUTSIDE_CONFINED_RANGE" ? "A" : null,
@@ -464,16 +557,16 @@ function showConfinedValidity(
 
     publicModelWarning.textContent =
       affectedWells.length > 0
-        ? `⚠ La estimación dentro del pozo ${affectedWells.join(
-            " y ",
-          )} queda fuera del rango que este modelo simple puede representar con fiabilidad. El acuífero mostrado alrededor todavía permanece dentro del rango confinado.`
+        ? t("wellRangeWarning")(affectedWells.join(t("and")))
         : "";
   }
 
   confinedValiditySummary.textContent =
-    `El solver convergió, pero la carga cayó bajo el techo del acuífero. ` +
-    `${validity.cellsBelowAquiferTop} celdas afectadas (${validity.percentageCellsBelowAquiferTop.toFixed(2)} %). ` +
-    `Déficit máximo de malla: ${formatMeters(validity.maximumGridDeficitBelowAquiferTopMeters)}.`;
+    t("confinedValidityInvalidSummary")(
+      validity.cellsBelowAquiferTop,
+      validity.percentageCellsBelowAquiferTop.toFixed(2),
+      formatMeters(validity.maximumGridDeficitBelowAquiferTopMeters),
+    );
   const wellWarnings = [
     confinedWellWarning("A", validity.wellA),
     confinedWellWarning("B", validity.wellB),
@@ -488,9 +581,10 @@ function confinedWellWarning(
   if (well.status !== "OUTSIDE_CONFINED_RANGE") {
     return null;
   }
-  return (
-    `Pozo ${label}: carga estimada ${formatMeters(well.headMeters!)}; ` +
-    `déficit respecto al techo ${formatMeters(well.deficitBelowAquiferTopMeters!)}.`
+  return t("confinedWellWarning")(
+    label,
+    formatMeters(well.headMeters!),
+    formatMeters(well.deficitBelowAquiferTopMeters!),
   );
 }
 
@@ -565,9 +659,8 @@ function showNoConvergence(message: string): void {
   wellBDrawdown.textContent = "—";
   clearEstimatedWellMetrics();
   clearConfinedValidity();
-  publicResultSummary.textContent = "No se pudo calcular este escenario.";
-  publicModelWarning.textContent =
-    "Revisa los datos del escenario antes de interpretar los resultados.";
+  publicResultSummary.textContent = t("calculationFailed");
+  publicModelWarning.textContent = t("checkScenario");
   drawdownLegendMinimum.textContent = "—";
   drawdownLegendMaximum.textContent = "—";
   drawdownLegendZero.hidden = true;
@@ -575,15 +668,15 @@ function showNoConvergence(message: string): void {
 }
 
 function formatMeters(value: number): string {
-  return `${value.toFixed(3)} m`;
+  return `${value.toFixed(1)}\u00A0m`;
 }
 
 function formatDrawdownMeters(value: number): string {
-  return `${value.toFixed(1)} m`;
+  return `${value.toFixed(1)}\u00A0m`;
 }
 
 function formatMetersPerDay(value: number): string {
-  return `${value.toFixed(4)} m/día`;
+  return `${value.toFixed(2)}\u00A0${t("metersPerDayUnit")}`;
 }
 
 for (const slider of [wellARate, wellBRate]) {

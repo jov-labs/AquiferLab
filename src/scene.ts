@@ -319,12 +319,13 @@ function addRiver(
   const river = new THREE.Mesh(geometry, material);
   // column = 0 está en el borde occidental del dominio visual.
   river.position.set(-domain.widthMeters / 2, 1, 0);
-  river.name = "Río: frontera de carga fija h = 100 m";
+  river.name = "Nivel del agua del río: 100 m";
   scene.add(river);
 
   const label = document.createElement("div");
   label.className = "river-label";
-  label.textContent = "Río";
+  label.textContent =
+    document.documentElement.lang === "en" ? "River" : "Río";
   container.append(label);
 
   return { marker: river, label };
