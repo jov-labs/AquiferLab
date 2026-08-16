@@ -28,6 +28,7 @@ import {
   type EstimatedWellHeadsMeters,
 } from "./confined-validity.js";
 import { getConfinedPresentationState } from "./confined-presentation.js";
+import { createHelpInterface } from "./help-ui.js";
 import { getLanguage, setLanguage, t } from "./i18n.js";
 
 const REFERENCE_HEAD_METERS = 100;
@@ -94,8 +95,6 @@ const welcomeStart = getElement<HTMLButtonElement>("welcome-start");
 const welcomeDialog = getElement<HTMLDialogElement>("welcome-dialog");
 const homeButton = getElement<HTMLButtonElement>("home-button");
 const publicControlsCopy = getElement<HTMLElement>("public-controls-copy");
-const scenarioNoteTitle = getElement<HTMLElement>("scenario-note-title");
-const scenarioNoteCopy = getElement<HTMLElement>("scenario-note-copy");
 const publicPumpingA = getElement<HTMLElement>("public-pumping-a");
 const publicPumpingB = getElement<HTMLElement>("public-pumping-b");
 const publicDrawdownTitle = getElement<HTMLElement>("public-drawdown-title");
@@ -121,6 +120,9 @@ const rechargeLabel = getElement<HTMLElement>("recharge-label");
 const aquiferThicknessLabel = getElement<HTMLElement>("aquifer-thickness-label");
 const riverHeadLabel = getElement<HTMLElement>("river-head-label");
 const aquiferTopElevationLabel = getElement<HTMLElement>("aquifer-top-elevation-label");
+const meshResolutionLabel = getElement<HTMLElement>("mesh-resolution-label");
+const maximumIterationsLabel = getElement<HTMLElement>("maximum-iterations-label");
+const solverToleranceLabel = getElement<HTMLElement>("solver-tolerance-label");
 
 const hydraulicBlockNote = getElement<HTMLElement>("hydraulic-block-note");
 const aquiferTopNote = getElement<HTMLElement>("aquifer-top-note");
@@ -131,6 +133,7 @@ const visualContextNote = getElement<HTMLElement>("visual-context-note");
 const piezometricReference = getElement<HTMLElement>("piezometric-reference");
 const arrowScaleNote = getElement<HTMLElement>("arrow-scale-note");
 const darcyDirectionNote = getElement<HTMLElement>("darcy-direction-note");
+const darcyArrowsLabel = getElement<HTMLElement>("darcy-arrows-label");
 const geologicalCutNote = getElement<HTMLElement>("geological-cut-note");
 
 const wellRadiusALabel = getElement<HTMLElement>("well-radius-a-label");
@@ -151,6 +154,7 @@ const metricDrawdownBLabel = getElement<HTMLElement>("metric-drawdown-b-label");
 const metricEstimatedDrawdownALabel = getElement<HTMLElement>("metric-estimated-drawdown-a-label");
 const metricEstimatedDrawdownBLabel = getElement<HTMLElement>("metric-estimated-drawdown-b-label");
 const peacemanNote = getElement<HTMLElement>("peaceman-note");
+const helpInterface = createHelpInterface();
 
 function updateLanguageToggle(): void {
   const language = getLanguage();
@@ -161,8 +165,6 @@ function updateLanguageToggle(): void {
   welcomeStart.textContent = t("start");
   homeButton.textContent = t("home");
   publicControlsCopy.textContent = t("controlsIntro");
-  scenarioNoteTitle.textContent = t("exampleAquiferTitle");
-  scenarioNoteCopy.textContent = t("exampleAquiferCopy");
   publicPumpingA.textContent = t("pumpingA");
   publicPumpingB.textContent = t("pumpingB");
   publicDrawdownTitle.textContent = t("drawdownAquifer");
@@ -184,16 +186,28 @@ function updateLanguageToggle(): void {
   aquiferThicknessLabel.textContent = t("aquiferThickness");
   riverHeadLabel.textContent = t("riverHead");
   aquiferTopElevationLabel.textContent = t("aquiferTopElevation");
+  meshResolutionLabel.textContent = t("meshResolution");
+  maximumIterationsLabel.textContent = t("maximumIterations");
+  solverToleranceLabel.textContent = t("solverTolerance");
   hydraulicBlockNote.textContent = t("hydraulicBlockNote");
   aquiferTopNote.textContent = t("aquiferTopNote");
-  riverLevelLegend.textContent = t("riverLevel")(riverHead.value);
+  setTextWithAtomicSuffix(
+    riverLevelLegend,
+    t("riverLevel")(riverHead.value),
+    `${riverHead.value} m`,
+  );
   piezometricSurfaceLabel.textContent = t("piezometricSurface");
   qualitativeFlowLegend.textContent = t("qualitativeFlowLegend");
   confinedAquiferLegend.textContent = t("confinedAquiferLegend");
   visualContextNote.textContent = t("visualContextNote");
-  piezometricReference.textContent = t("piezometricReference");
+  setTextWithAtomicSuffix(
+    piezometricReference,
+    t("piezometricReference"),
+    "h = 100 m",
+  );
   arrowScaleNote.textContent = t("arrowScaleNote");
   darcyDirectionNote.textContent = t("darcyDirectionNote");
+  darcyArrowsLabel.textContent = t("darcyArrows");
   geologicalCutNote.textContent = t("geologicalCutNote");
 
   wellRadiusALabel.textContent = t("wellRadiusA");
@@ -224,6 +238,7 @@ function updateLanguageToggle(): void {
   meshInvalidCardTitle.textContent = t("meshInvalidCardTitle");
   meshInvalidCardDescription.textContent = t("meshInvalidCardDescription");
   meshInvalidCardAction.textContent = t("meshInvalidCardAction");
+  helpInterface.refreshLanguage();
 
   document.querySelector<HTMLElement>(".river-label")?.replaceChildren(t("river"));
 }
@@ -341,7 +356,32 @@ function updateParameterLabels(): void {
   rechargeValue.value = `${recharge.value} ${t("rechargeUnit")}`;
   aquiferThicknessValue.value = `${aquiferThickness.value} m`;
   riverHeadValue.value = `${riverHead.value} m`;
-  riverLevelLegend.textContent = t("riverLevel")(riverHead.value);
+  setTextWithAtomicSuffix(
+    riverLevelLegend,
+    t("riverLevel")(riverHead.value),
+    `${riverHead.value} m`,
+  );
+}
+
+function setTextWithAtomicSuffix(
+  element: HTMLElement,
+  text: string,
+  suffix: string,
+): void {
+  const suffixIndex = text.lastIndexOf(suffix);
+  if (suffixIndex === -1) {
+    element.textContent = text;
+    return;
+  }
+
+  const atomicSuffix = document.createElement("span");
+  atomicSuffix.className = "atomic-expression";
+  atomicSuffix.textContent = suffix;
+  element.replaceChildren(
+    text.slice(0, suffixIndex),
+    atomicSuffix,
+    text.slice(suffixIndex + suffix.length),
+  );
 }
 
 function formatScientific(value: number): string {

@@ -7,9 +7,14 @@ const translations = {
     start: "Empecemos",
     home: "Inicio",
     controlsIntro: "Cambia cuánta agua extrae cada pozo y observa qué ocurre.",
-    exampleAquiferTitle: "Acuífero transmisivo de ejemplo",
-    exampleAquiferCopy:
-      "Este escenario educativo no representa un lugar real ni determina caudales seguros.",
+    quickGuide: "Guía rápida",
+    closeHelp: "Cerrar ayuda",
+    learningDialogLabel: "Ayuda de AquiferLab",
+    helpButtonAria: (term: string) => `Ayuda sobre ${term}`,
+    meshResolution: "Resolución de malla",
+    maximumIterations: "Iteraciones máximas",
+    solverTolerance: "Tolerancia",
+    darcyArrows: "Flechas de Darcy",
     intro: "Descubre qué ocurre con el agua subterránea cuando uno o más pozos extraen agua.",
     noKnowledge: "No necesitas conocimientos avanzados para empezar.",
     pumpingA: "¿Cuánta agua extrae el pozo A?",
@@ -38,7 +43,7 @@ const translations = {
     piezometricReference:
       "Superficie piezométrica mostrada respecto a h = 100 m.",
     arrowScaleNote:
-      "Longitud de flechas con escala visual √normalizada; la dirección y el orden relativo de magnitudes se conservan.",
+      "Longitud de flechas con escala visual de raíz cuadrada normalizada; la dirección y el orden relativo de magnitudes se conservan.",
     darcyDirectionNote:
       "Representan la dirección del flujo de Darcy; no representan velocidad intersticial ni tiempo de viaje.",
     geologicalCutNote:
@@ -61,7 +66,7 @@ const translations = {
     headCellB: "Carga en celda B",
     estimatedHeadA: "Carga estimada pozo A",
     estimatedHeadB: "Carga estimada pozo B",
-    maxDarcy: "Q Darcy máx.",
+    maxDarcy: "Flujo específico de Darcy máximo",
     maximumGridDrawdown: "Abatimiento máx. de malla",
     drawdownCellA: "Abatimiento en celda A",
     drawdownCellB: "Abatimiento en celda B",
@@ -138,9 +143,14 @@ const translations = {
     start: "Let's begin",
     home: "Home",
     controlsIntro: "Change how much water each well extracts and see what happens.",
-    exampleAquiferTitle: "Example high-transmissivity aquifer",
-    exampleAquiferCopy:
-      "This educational scenario does not represent a real location or determine safe pumping rates.",
+    quickGuide: "Quick guide",
+    closeHelp: "Close help",
+    learningDialogLabel: "AquiferLab help",
+    helpButtonAria: (term: string) => `Help about ${term}`,
+    meshResolution: "Mesh resolution",
+    maximumIterations: "Maximum iterations",
+    solverTolerance: "Tolerance",
+    darcyArrows: "Darcy arrows",
     intro: "Discover what happens to groundwater when one or more wells extract water.",
     noKnowledge: "You don't need advanced knowledge to get started.",
     pumpingA: "How much water does well A extract?",
@@ -169,7 +179,7 @@ const translations = {
     piezometricReference:
       "Piezometric surface shown relative to h = 100 m.",
     arrowScaleNote:
-      "Arrow length uses a normalized √ visual scale; direction and relative magnitude ordering are preserved.",
+      "Arrow length with normalized square-root visual scaling; direction and relative magnitude ordering are preserved.",
     darcyDirectionNote:
       "They represent Darcy-flow direction; they do not represent interstitial velocity or travel time.",
     geologicalCutNote:
@@ -192,7 +202,7 @@ const translations = {
     headCellB: "Head in cell B",
     estimatedHeadA: "Estimated well A head",
     estimatedHeadB: "Estimated well B head",
-    maxDarcy: "Max. Darcy flow",
+    maxDarcy: "Maximum Darcy flux",
     maximumGridDrawdown: "Maximum grid drawdown",
     drawdownCellA: "Drawdown in cell A",
     drawdownCellB: "Drawdown in cell B",
@@ -282,5 +292,12 @@ export function setLanguage(language: Language): void {
 export function t<Key extends TranslationKey>(
   key: Key,
 ): (typeof translations)[Language][Key] {
-  return translations[getLanguage()][key];
+  return translate(getLanguage(), key);
+}
+
+export function translate<Key extends TranslationKey>(
+  language: Language,
+  key: Key,
+): (typeof translations)[Language][Key] {
+  return translations[language][key];
 }

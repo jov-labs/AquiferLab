@@ -25,26 +25,28 @@
     <div id="app">
       <aside class="panel controls-panel" aria-label="Controles del escenario">
         <div>
-          <p class="eyebrow">AQUIFER LAB</p>
-          <button id="home-button" class="home-button" type="button">Inicio</button>
+          <div class="panel-actions">
+            <button id="home-button" class="home-button" type="button">Inicio</button>
+            <button id="quick-guide-button" class="quick-guide-button" type="button">Guía rápida</button>
+          </div>
           <p id="public-controls-copy" class="panel-copy">Cambia cuánta agua extrae cada pozo y observa qué ocurre.</p>
-          <section class="scenario-note">
-            <strong id="scenario-note-title">Acuífero transmisivo de ejemplo</strong>
-            <p id="scenario-note-copy">Este escenario educativo no representa un lugar real ni determina caudales seguros.</p>
-          </section>
         </div>
 
-        <label class="slider-control" for="well-a-rate">
-          <span id="public-pumping-a">¿Cuánta agua extrae el pozo A?</span>
+        <div class="slider-control">
+          <span class="help-term">
+            <label id="public-pumping-a" for="well-a-rate">¿Cuánta agua extrae el pozo A?</label><button class="help-button" type="button" data-help-key="well-a-pumping">?</button>
+          </span>
           <output id="well-a-value" for="well-a-rate">0 l/s</output>
           <input id="well-a-rate" type="range" min="0" max="50" step="1" value="0" />
-        </label>
+        </div>
 
-        <label class="slider-control" for="well-b-rate">
-          <span id="public-pumping-b">¿Cuánta agua extrae el pozo B?</span>
+        <div class="slider-control">
+          <span class="help-term">
+            <label id="public-pumping-b" for="well-b-rate">¿Cuánta agua extrae el pozo B?</label><button class="help-button" type="button" data-help-key="well-b-pumping">?</button>
+          </span>
           <output id="well-b-value" for="well-b-rate">0 l/s</output>
           <input id="well-b-rate" type="range" min="0" max="50" step="1" value="0" />
-        </label>
+        </div>
 
         <section class="drawdown-legend" aria-label="Escala de descenso mostrado en el acuífero">
           <h3 id="public-drawdown-title">Descenso mostrado en el acuífero</h3>
@@ -60,27 +62,35 @@
           <summary id="technical-controls-summary">Ver controles técnicos</summary>
 
           <div class="technical-controls-content">
-            <label class="slider-control" for="well-a-radius">
-              <span id="well-radius-a-label">Radio pozo A</span>
+            <div class="slider-control">
+              <span class="help-term">
+                <label id="well-radius-a-label" for="well-a-radius">Radio pozo A</label><button class="help-button" type="button" data-help-key="well-radius">?</button>
+              </span>
               <output id="well-a-radius-value" for="well-a-radius">0.10 m</output>
               <input id="well-a-radius" type="range" min="0.05" max="0.50" step="0.01" value="0.10" />
-            </label>
+            </div>
 
-            <label class="slider-control" for="well-b-radius">
-              <span id="well-radius-b-label">Radio pozo B</span>
+            <div class="slider-control">
+              <span class="help-term">
+                <label id="well-radius-b-label" for="well-b-radius">Radio pozo B</label><button class="help-button" type="button" data-help-key="well-radius">?</button>
+              </span>
               <output id="well-b-radius-value" for="well-b-radius">0.10 m</output>
               <input id="well-b-radius" type="range" min="0.05" max="0.50" step="0.01" value="0.10" />
-            </label>
+            </div>
 
-            <label class="checkbox-control" for="show-qualitative-streamlines">
+            <div class="checkbox-control">
               <input id="show-qualitative-streamlines" type="checkbox" checked />
-              <span id="qualitative-flow-label">Mostrar líneas de flujo cualitativas</span>
-            </label>
+              <span class="help-term">
+                <label id="qualitative-flow-label" for="show-qualitative-streamlines">Mostrar líneas de flujo cualitativas</label><button class="help-button" type="button" data-help-key="qualitative-flow-lines">?</button>
+              </span>
+            </div>
 
-            <label class="checkbox-control" for="enable-geological-cut">
+            <div class="checkbox-control">
               <input id="enable-geological-cut" type="checkbox" />
-              <span id="geological-cut-label">Activar corte geológico</span>
-            </label>
+              <span class="help-term">
+                <label id="geological-cut-label" for="enable-geological-cut">Activar corte geológico</label><button class="help-button" type="button" data-help-key="geological-cut">?</button>
+              </span>
+            </div>
 
             <label class="cut-position-control" for="cut-position">
               <span><span id="cut-position-label">Posición del corte</span> <output id="cut-position-value" for="cut-position">—</output></span>
@@ -94,29 +104,37 @@
         <section class="parameter-section" aria-labelledby="parameter-title">
           <h2 id="parameter-title">Parámetros del acuífero</h2>
 
-          <label class="slider-control" for="hydraulic-conductivity-exponent">
-            <span id="hydraulic-conductivity-label">Conductividad hidráulica K</span>
+          <div class="slider-control">
+            <span class="help-term">
+              <label id="hydraulic-conductivity-label" for="hydraulic-conductivity-exponent">Conductividad hidráulica K</label><button class="help-button" type="button" data-help-key="hydraulic-conductivity">?</button>
+            </span>
             <output id="hydraulic-conductivity-value" for="hydraulic-conductivity-exponent">—</output>
             <input id="hydraulic-conductivity-exponent" type="range" min="-6" max="-4" step="0.1" />
-          </label>
+          </div>
 
-          <label class="slider-control" for="recharge">
-            <span id="recharge-label">Recarga</span>
+          <div class="slider-control">
+            <span class="help-term">
+              <label id="recharge-label" for="recharge">Recarga</label><button class="help-button" type="button" data-help-key="recharge">?</button>
+            </span>
             <output id="recharge-value" for="recharge">—</output>
             <input id="recharge" type="range" min="0" max="500" step="10" />
-          </label>
+          </div>
 
-          <label class="slider-control" for="aquifer-thickness">
-            <span id="aquifer-thickness-label">Espesor del acuífero</span>
+          <div class="slider-control">
+            <span class="help-term">
+              <label id="aquifer-thickness-label" for="aquifer-thickness">Espesor del acuífero</label><button class="help-button" type="button" data-help-key="aquifer-thickness">?</button>
+            </span>
             <output id="aquifer-thickness-value" for="aquifer-thickness">—</output>
             <input id="aquifer-thickness" type="range" min="10" max="100" step="5" />
-          </label>
+          </div>
 
-          <label class="slider-control" for="river-head">
-            <span id="river-head-label">Carga del río</span>
+          <div class="slider-control">
+            <span class="help-term">
+              <label id="river-head-label" for="river-head">Carga del río</label><button class="help-button" type="button" data-help-key="river-head">?</button>
+            </span>
             <output id="river-head-value" for="river-head">—</output>
             <input id="river-head" type="range" min="80" max="120" step="1" />
-          </label>
+          </div>
 
           <label class="number-control" for="aquifer-top-elevation">
             <span id="aquifer-top-elevation-label">Cota del techo del acuífero</span>
@@ -128,16 +146,22 @@
 
           <p id="hydraulic-block-note" class="parameter-note">Espesor hidráulico configurable; bloque geológico esquemático sin escala vertical.</p>
           <p id="aquifer-top-note" class="parameter-note">La cota del techo usa el mismo datum que la carga hidráulica y sólo evalúa la validez del modelo confinado.</p>
+          <section class="model-settings">
+            <p><span class="help-term"><span id="mesh-resolution-label">Resolución de malla</span><button class="help-button" type="button" data-help-key="mesh-resolution">?</button></span><strong class="atomic-value">41 × 41</strong></p>
+            <p><span class="help-term"><span id="maximum-iterations-label">Iteraciones máximas</span><button class="help-button" type="button" data-help-key="maximum-iterations">?</button></span><strong class="atomic-value">20,000</strong></p>
+            <p><span class="help-term"><span id="solver-tolerance-label">Tolerancia</span><button class="help-button" type="button" data-help-key="solver-tolerance">?</button></span><strong class="atomic-value">1e−6 m</strong></p>
+          </section>
         </section>
 
         <div class="legend" aria-label="Leyenda científica">
-          <p><span class="legend-swatch river"></span><span id="river-level-legend">Nivel del agua del río: 100 m</span></p>
-          <p><span class="legend-swatch surface"></span><span id="piezometric-surface-label">Superficie piezométrica</span></p>
-          <p><span class="legend-swatch flow"></span><span id="qualitative-flow-legend">Líneas de flujo cualitativas</span></p>
-          <p><span class="legend-swatch aquifer"></span><span id="confined-aquifer-legend">Acuífero confinado modelado</span></p>
+          <p><span class="legend-item"><span class="legend-swatch river"></span><span id="river-level-legend">Nivel del agua del río: 100 m</span></span></p>
+          <p><span class="legend-item"><span class="legend-swatch surface"></span><span id="piezometric-surface-label">Superficie piezométrica</span></span></p>
+          <p><span class="legend-item"><span class="legend-swatch flow"></span><span class="help-term"><span id="qualitative-flow-legend">Líneas de flujo cualitativas</span><button class="help-button" type="button" data-help-key="qualitative-flow-lines">?</button></span></span></p>
+          <p><span class="legend-item"><span class="legend-swatch aquifer"></span><span id="confined-aquifer-legend">Acuífero confinado modelado</span></span></p>
           <p id="visual-context-note">Las unidades superior y basal son sólo contexto visual; no participan en el cálculo.</p>
           <p><span id="piezometric-reference">Superficie piezométrica mostrada respecto a h = 100 m.</span></p>
-          <p id="arrow-scale-note">Longitud de flechas con escala visual √normalizada; la dirección y el orden relativo de magnitudes se conservan.</p>
+          <p><span class="help-term"><span id="darcy-arrows-label">Flechas de Darcy</span><button class="help-button" type="button" data-help-key="darcy-arrows">?</button></span></p>
+          <p id="arrow-scale-note">Longitud de flechas con escala visual de raíz cuadrada normalizada; la dirección y el orden relativo de magnitudes se conservan.</p>
           <p id="darcy-direction-note">Representan la dirección del flujo de Darcy; no representan velocidad intersticial ni tiempo de viaje.</p>
           <p id="geological-cut-note">Corte geológico: visualización; no modifica el modelo hidráulico.</p>
         </div>
@@ -156,32 +180,34 @@
       </main>
 
       <aside class="panel results-panel" aria-labelledby="results-title">
-        <div>
-          <p id="current-solution-label" class="eyebrow">SOLUCIÓN ACTUAL</p>
-          <h2 id="results-title">¿Qué está pasando?</h2>
+        <div class="results-overview">
+          <div class="results-heading">
+            <p id="current-solution-label" class="eyebrow">SOLUCIÓN ACTUAL</p>
+            <h2 id="results-title">¿Qué está pasando?</h2>
+          </div>
+
+          <section class="public-result" aria-labelledby="public-result-title">
+            <h3 id="public-result-title">Resultado del escenario</h3>
+            <p id="public-result-summary" aria-live="polite">Calculando...</p>
+
+            <dl class="public-well-results">
+              <div>
+                <dt id="public-well-a-label">Pozo A</dt>
+                <dd id="public-well-a-drawdown">—</dd>
+              </div>
+              <div>
+                <dt id="public-well-b-label">Pozo B</dt>
+                <dd id="public-well-b-drawdown">—</dd>
+              </div>
+            </dl>
+
+            <p id="public-well-note" class="parameter-note">
+              Dentro del pozo, el descenso puede ser mayor que el observado alrededor.
+            </p>
+
+            <div id="public-model-warning" class="public-model-warning" aria-live="polite"></div>
+          </section>
         </div>
-
-        <section class="public-result" aria-labelledby="public-result-title">
-          <h3 id="public-result-title">Resultado del escenario</h3>
-          <p id="public-result-summary" aria-live="polite">Calculando...</p>
-
-          <dl class="public-well-results">
-            <div>
-              <dt id="public-well-a-label">Pozo A</dt>
-              <dd id="public-well-a-drawdown">—</dd>
-            </div>
-            <div>
-              <dt id="public-well-b-label">Pozo B</dt>
-              <dd id="public-well-b-drawdown">—</dd>
-            </div>
-          </dl>
-
-          <p id="public-well-note" class="parameter-note">
-            Dentro del pozo, el descenso puede ser mayor que el observado alrededor.
-          </p>
-
-          <div id="public-model-warning" class="public-model-warning" aria-live="polite"></div>
-        </section>
 
         <details class="technical-results">
           <summary id="technical-results-summary">Ver resultados técnicos</summary>
@@ -189,65 +215,65 @@
 
         <dl class="metrics">
           <div>
-            <dt id="metric-status-label">Estado</dt>
+            <dt><span class="help-term"><span id="metric-status-label">Estado</span><button class="help-button" type="button" data-help-key="status">?</button></span></dt>
             <dd id="result-status" data-status="pending">Calculando</dd>
           </div>
           <div>
-            <dt id="metric-iterations-label">Iteraciones</dt>
+            <dt><span class="help-term"><span id="metric-iterations-label">Iteraciones</span><button class="help-button" type="button" data-help-key="iterations">?</button></span></dt>
             <dd id="result-iterations">—</dd>
           </div>
           <div>
-            <dt id="metric-min-head-label">Carga mínima de malla</dt>
+            <dt><span class="help-term"><span id="metric-min-head-label">Carga mínima de malla</span><button class="help-button" type="button" data-help-key="minimum-grid-head">?</button></span></dt>
             <dd id="result-min-head">—</dd>
           </div>
           <div>
-            <dt id="metric-max-head-label">Carga máxima</dt>
+            <dt><span class="help-term"><span id="metric-max-head-label">Carga máxima</span><button class="help-button" type="button" data-help-key="maximum-head">?</button></span></dt>
             <dd id="result-max-head">—</dd>
           </div>
           <div>
-            <dt id="metric-head-a-label">Carga en celda A</dt>
+            <dt><span class="help-term"><span id="metric-head-a-label">Carga en celda A</span><button class="help-button" type="button" data-help-key="well-a-cell-head">?</button></span></dt>
             <dd id="result-well-a-head">—</dd>
           </div>
           <div>
-            <dt id="metric-head-b-label">Carga en celda B</dt>
+            <dt><span class="help-term"><span id="metric-head-b-label">Carga en celda B</span><button class="help-button" type="button" data-help-key="well-b-cell-head">?</button></span></dt>
             <dd id="result-well-b-head">—</dd>
           </div>
           <div>
-            <dt id="metric-estimated-head-a-label">Carga estimada pozo A</dt>
+            <dt><span class="help-term"><span id="metric-estimated-head-a-label">Carga estimada pozo A</span><button class="help-button" type="button" data-help-key="well-a-estimated-head">?</button></span></dt>
             <dd id="result-estimated-well-a-head">—</dd>
           </div>
           <div>
-            <dt id="metric-estimated-head-b-label">Carga estimada pozo B</dt>
+            <dt><span class="help-term"><span id="metric-estimated-head-b-label">Carga estimada pozo B</span><button class="help-button" type="button" data-help-key="well-b-estimated-head">?</button></span></dt>
             <dd id="result-estimated-well-b-head">—</dd>
           </div>
           <div>
-            <dt id="metric-darcy-label">Q Darcy máx.</dt>
+            <dt><span class="help-term"><span id="metric-darcy-label">Flujo específico de Darcy máximo</span><button class="help-button" type="button" data-help-key="maximum-darcy-flux">?</button></span></dt>
             <dd id="result-darcy-max">—</dd>
           </div>
           <div>
-            <dt id="metric-max-drawdown-label">Abatimiento máx. de malla</dt>
+            <dt><span class="help-term"><span id="metric-max-drawdown-label">Abatimiento máx. de malla</span><button class="help-button" type="button" data-help-key="maximum-grid-drawdown">?</button></span></dt>
             <dd id="result-max-drawdown">—</dd>
           </div>
           <div>
-            <dt id="metric-drawdown-a-label">Abatimiento en celda A</dt>
+            <dt><span class="help-term"><span id="metric-drawdown-a-label">Abatimiento en celda A</span><button class="help-button" type="button" data-help-key="well-a-cell-drawdown">?</button></span></dt>
             <dd id="result-well-a-drawdown">—</dd>
           </div>
           <div>
-            <dt id="metric-drawdown-b-label">Abatimiento en celda B</dt>
+            <dt><span class="help-term"><span id="metric-drawdown-b-label">Abatimiento en celda B</span><button class="help-button" type="button" data-help-key="well-b-cell-drawdown">?</button></span></dt>
             <dd id="result-well-b-drawdown">—</dd>
           </div>
           <div>
-            <dt id="metric-estimated-drawdown-a-label">Abatimiento estimado pozo A</dt>
+            <dt><span class="help-term"><span id="metric-estimated-drawdown-a-label">Abatimiento estimado pozo A</span><button class="help-button" type="button" data-help-key="well-a-estimated-drawdown">?</button></span></dt>
             <dd id="result-estimated-well-a-drawdown">—</dd>
           </div>
           <div>
-            <dt id="metric-estimated-drawdown-b-label">Abatimiento estimado pozo B</dt>
+            <dt><span class="help-term"><span id="metric-estimated-drawdown-b-label">Abatimiento estimado pozo B</span><button class="help-button" type="button" data-help-key="well-b-estimated-drawdown">?</button></span></dt>
             <dd id="result-estimated-well-b-drawdown">—</dd>
           </div>
         </dl>
-        <p id="peaceman-note" class="parameter-note">Estimación Peaceman para pozo ideal completamente penetrante, sin pérdidas de pantalla ni skin.</p>
+        <p class="parameter-note"><span class="help-term"><span id="peaceman-note">Estimación Peaceman para pozo ideal completamente penetrante, sin pérdidas de pantalla ni skin.</span><button class="help-button" type="button" data-help-key="peaceman">?</button></span></p>
         <section class="confined-validity" aria-labelledby="confined-validity-title">
-          <h3 id="confined-validity-title">Validez del modelo confinado</h3>
+          <h3><span class="help-term"><span id="confined-validity-title">Validez del modelo confinado</span><button class="help-button" type="button" data-help-key="confined-validity">?</button></span></h3>
           <p id="confined-validity-status" data-status="pending" aria-live="polite">—</p>
           <p id="confined-validity-summary" class="parameter-note"></p>
           <p id="confined-validity-warnings" class="solver-message"></p>
@@ -259,6 +285,13 @@
         <p id="solver-message" class="solver-message" aria-live="polite"></p>
       </aside>
     </div>
+    <dialog id="learning-dialog" class="learning-dialog" aria-modal="true">
+      <header>
+        <h2 id="learning-dialog-title"></h2>
+        <button id="learning-dialog-close" type="button"></button>
+      </header>
+      <div id="learning-dialog-content"></div>
+    </dialog>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
