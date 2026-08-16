@@ -75,6 +75,26 @@ h2 {
   margin: 10px 0 0;
 }
 
+.scenario-note {
+  margin-top: 12px;
+  padding: 9px 11px;
+  color: #cfe1ee;
+  background: rgb(97 212 236 / 8%);
+  border-left: 3px solid #61d4ec;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.scenario-note strong,
+.scenario-note p {
+  display: block;
+}
+
+.scenario-note p {
+  margin: 3px 0 0;
+}
+
 .slider-control {
   display: grid;
   gap: 10px;
@@ -337,6 +357,14 @@ input[type="range"] {
 }
 
 #confined-validity-status[data-status="invalid"] {
+  color: #ff7f88;
+}
+
+#confined-validity-status[data-status="well-degraded"] {
+  color: #ffd166;
+}
+
+#confined-validity-status[data-status="mesh-invalid"] {
   color: #ff7f88;
 }
 
@@ -676,21 +704,39 @@ dd {
   line-height: 1.5;
 }
 
-#public-pumping-a,
-#public-pumping-b {
-  text-transform: none;
-  letter-spacing: normal;
+.mesh-invalid-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  width: min(440px, calc(100% - 40px));
+  padding: 20px;
+  transform: translate(-50%, -50%);
+  color: #fff4f5;
+  background: rgb(72 18 27 / 94%);
+  border: 2px solid #ff7f88;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 45%);
+  pointer-events: none;
 }
 
-.public-model-warning:not(:empty) {
-  margin: 18px 0 0;
-  padding: 12px 14px;
-  color: #ffd166;
-  background: rgb(255 209 102 / 9%);
-  border-left: 4px solid #ffd166;
-  border-radius: 6px;
-  font-weight: 700;
+.mesh-invalid-card h3,
+.mesh-invalid-card p {
+  margin: 0;
+}
+
+.mesh-invalid-card h3 {
+  font-size: 1.05rem;
+}
+
+.mesh-invalid-card p {
+  margin-top: 12px;
   line-height: 1.5;
+}
+
+.mesh-invalid-card p:last-child {
+  color: #ffd166;
+  font-weight: 800;
 }
 
 .technical-results dt,

@@ -3,6 +3,13 @@ export const CONFINED_VALIDITY_TOLERANCE_METERS = 1e-9;
 
 export type ConfinedValidityStatus = "VALID_CONFINED" | "OUTSIDE_CONFINED_RANGE";
 
+/**
+ * Nivel de validez para presentación. La malla domina porque invalida todas
+ * las salidas derivadas, mientras que una estimación de pozo sólo afecta ese
+ * posproceso de Peaceman.
+ */
+export type ConfinedValidityLevel = "valid" | "wellDegraded" | "meshInvalid";
+
 export type WellConfinedValidityStatus = ConfinedValidityStatus | "NOT_EVALUATED";
 
 export interface EstimatedWellHeadsMeters {
@@ -24,6 +31,9 @@ export interface WellConfinedValidity {
 }
 
 export interface ConfinedValidityResult {
+  /** Clasificación con precedencia: meshInvalid > wellDegraded > valid. */
+  level: ConfinedValidityLevel;
+  /** Estado binario conservado para compatibilidad con consumidores existentes. */
   status: ConfinedValidityStatus;
   minimumGridHeadMeters: number;
   minimumMarginToAquiferTopMeters: number;
@@ -66,14 +76,11 @@ export function evaluateConfinedModelValidity(
     0,
     aquiferTopElevationMeters - minimumGridHeadMeters,
   );
-  const status =
-    cellsBelowAquiferTop > 0 ||
-    wellA.status === "OUTSIDE_CONFINED_RANGE" ||
-    wellB.status === "OUTSIDE_CONFINED_RANGE"
-      ? "OUTSIDE_CONFINED_RANGE"
-      : "VALID_CONFINED";
+  const level = classifyConfinedValidityLevel(cellsBelowAquiferTop, wellA, wellB);
+  const status = level === "valid" ? "VALID_CONFINED" : "OUTSIDE_CONFINED_RANGE";
 
   return {
+    level,
     status,
     minimumGridHeadMeters,
     minimumMarginToAquiferTopMeters,
@@ -83,6 +90,23 @@ export function evaluateConfinedModelValidity(
     wellA,
     wellB,
   };
+}
+
+function classifyConfinedValidityLevel(
+  cellsBelowAquiferTop: number,
+  wellA: WellConfinedValidity,
+  wellB: WellConfinedValidity,
+): ConfinedValidityLevel {
+  if (cellsBelowAquiferTop > 0) {
+    return "meshInvalid";
+  }
+  if (
+    wellA.status === "OUTSIDE_CONFINED_RANGE" ||
+    wellB.status === "OUTSIDE_CONFINED_RANGE"
+  ) {
+    return "wellDegraded";
+  }
+  return "valid";
 }
 
 function evaluateWell(

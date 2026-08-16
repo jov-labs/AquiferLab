@@ -93,7 +93,7 @@ export function createDefaultModelInput(): GroundwaterModelInput {
     heightMeters: 2_000,
     rows,
     columns,
-    hydraulicConductivityMetersPerDay: metersPerSecondToMetersPerDay(1e-5),
+    hydraulicConductivityMetersPerDay: metersPerSecondToMetersPerDay(1e-4),
     thicknessMeters: 20,
     rechargeMetersPerDay: millimetersPerYearToMetersPerDay(120),
     fixedHeadCells: Array.from({ length: rows }, (_, row) => ({

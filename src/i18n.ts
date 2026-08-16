@@ -7,6 +7,9 @@ const translations = {
     start: "Empecemos",
     home: "Inicio",
     controlsIntro: "Cambia cuánta agua extrae cada pozo y observa qué ocurre.",
+    exampleAquiferTitle: "Acuífero transmisivo de ejemplo",
+    exampleAquiferCopy:
+      "Este escenario educativo no representa un lugar real ni determina caudales seguros.",
     intro: "Descubre qué ocurre con el agua subterránea cuando uno o más pozos extraen agua.",
     noKnowledge: "No necesitas conocimientos avanzados para empezar.",
     pumpingA: "¿Cuánta agua extrae el pozo A?",
@@ -81,6 +84,17 @@ const translations = {
     confinedValidityTitle: "Validez del modelo confinado",
     confinedValidityValidSummary:
       "Todas las cargas de malla y las estimaciones dentro de los pozos permanecen sobre el techo del acuífero.",
+    confinedValidityValidStatus: "Modelo confinado válido",
+    wellDegradedStatus: "Fuera del modelo confinado",
+    meshInvalidStatus: "Escenario fuera del modelo confinado",
+    wellDegradedSummary:
+      "La malla permanece dentro del régimen confinado, pero una o más estimaciones Peaceman dentro de pozo quedan fuera de ese régimen.",
+    meshInvalidSummary: (
+      cells: number,
+      percentage: string,
+      deficit: string,
+    ) =>
+      `El solver convergió, pero la malla salió del régimen confinado. ${cells} celdas afectadas (${percentage} %). Déficit máximo de malla: ${deficit}.`,
     confinedValidityInvalidSummary: (
       cells: number,
       percentage: string,
@@ -97,10 +111,21 @@ const translations = {
       "No se pudo evaluar la validez del modelo confinado.",
     confinedExtrapolation:
       "Estos resultados son una extrapolación del modelo confinado con T constante; no representan desaturación ni flujo no confinado.",
+    wellDegradedExtrapolation:
+      "La estimación Peaceman marcada queda fuera del modelo confinado; la malla permanece dentro del régimen evaluado.",
     publicGridWarning:
       "⚠ Parte del acuífero modelado salió del rango que este modelo simple puede representar correctamente.",
-    wellRangeWarning: (wells: string) =>
-      `⚠ La estimación dentro del pozo ${wells} queda fuera del rango que este modelo simple puede representar con fiabilidad. El acuífero mostrado alrededor todavía permanece dentro del rango confinado.`,
+    wellRangeWarningTitle: (wells: string) => `⚠ Límite local en el pozo ${wells}`,
+    wellRangeWarningEstimate:
+      "La estimación dentro del pozo ya no es válida para un acuífero confinado.",
+    wellRangeWarningGrid: "La malla alrededor permanece dentro del rango del modelo.",
+    meshInvalidPublicWarning:
+      "⚠ Escenario fuera del modelo confinado: los resultados se conservan para auditoría, pero no deben interpretarse como válidos.",
+    outsideConfinedModel: "Fuera del modelo confinado",
+    meshInvalidCardTitle: "Este resultado no es físicamente válido",
+    meshInvalidCardDescription:
+      "El bombeo bajó el agua por debajo del techo del acuífero. AquiferLab ya no puede representar este escenario como acuífero confinado.",
+    meshInvalidCardAction: "Reduce el bombeo hasta que desaparezca esta advertencia.",
     validityCheckFailed:
       "No se pudo comprobar si este escenario está dentro de los límites del modelo simple.",
     calculationFailed: "No se pudo calcular este escenario.",
@@ -113,6 +138,9 @@ const translations = {
     start: "Let's begin",
     home: "Home",
     controlsIntro: "Change how much water each well extracts and see what happens.",
+    exampleAquiferTitle: "Example high-transmissivity aquifer",
+    exampleAquiferCopy:
+      "This educational scenario does not represent a real location or determine safe pumping rates.",
     intro: "Discover what happens to groundwater when one or more wells extract water.",
     noKnowledge: "You don't need advanced knowledge to get started.",
     pumpingA: "How much water does well A extract?",
@@ -187,6 +215,17 @@ const translations = {
     confinedValidityTitle: "Confined model validity",
     confinedValidityValidSummary:
       "All grid heads and in-well estimates remain above the aquifer top.",
+    confinedValidityValidStatus: "Confined model valid",
+    wellDegradedStatus: "Outside the confined model",
+    meshInvalidStatus: "Scenario outside the confined model",
+    wellDegradedSummary:
+      "The grid remains within the confined regime, but one or more Peaceman in-well estimates fall outside that regime.",
+    meshInvalidSummary: (
+      cells: number,
+      percentage: string,
+      deficit: string,
+    ) =>
+      `The solver converged, but the grid is outside the confined regime. ${cells} cells affected (${percentage} %). Maximum grid deficit: ${deficit}.`,
     confinedValidityInvalidSummary: (
       cells: number,
       percentage: string,
@@ -203,10 +242,21 @@ const translations = {
       "The confined-model validity could not be evaluated.",
     confinedExtrapolation:
       "These results are an extrapolation of the confined model with constant T; they do not represent desaturation or unconfined flow.",
+    wellDegradedExtrapolation:
+      "The marked Peaceman estimate is outside the confined model; the grid remains within the evaluated regime.",
     publicGridWarning:
       "⚠ Part of the modeled aquifer is outside the range this simple model can represent correctly.",
-    wellRangeWarning: (wells: string) =>
-      `⚠ The estimate inside well ${wells} is outside the range this simple model can represent reliably. The surrounding modeled aquifer is still within the confined range.`,
+    wellRangeWarningTitle: (wells: string) => `⚠ Local limit at Well ${wells}`,
+    wellRangeWarningEstimate:
+      "The estimate inside the well is no longer valid for a confined aquifer.",
+    wellRangeWarningGrid: "The surrounding grid remains within the model’s valid range.",
+    meshInvalidPublicWarning:
+      "⚠ Scenario outside the confined model: results are retained for audit, but must not be interpreted as valid.",
+    outsideConfinedModel: "Outside the confined model",
+    meshInvalidCardTitle: "This result is not physically valid",
+    meshInvalidCardDescription:
+      "Pumping lowered the water below the aquifer top. AquiferLab can no longer represent this scenario as a confined aquifer.",
+    meshInvalidCardAction: "Reduce pumping until this warning disappears.",
     validityCheckFailed:
       "It was not possible to verify whether this scenario is within the limits of the simple model.",
     calculationFailed: "This scenario could not be calculated.",

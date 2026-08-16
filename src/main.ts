@@ -27,6 +27,7 @@ import {
   evaluateConfinedModelValidity,
   type EstimatedWellHeadsMeters,
 } from "./confined-validity.js";
+import { getConfinedPresentationState } from "./confined-presentation.js";
 import { getLanguage, setLanguage, t } from "./i18n.js";
 
 const REFERENCE_HEAD_METERS = 100;
@@ -68,6 +69,10 @@ const drawdownLegendMinimum = getElement<HTMLElement>("drawdown-legend-minimum")
 const drawdownLegendZero = getElement<HTMLElement>("drawdown-legend-zero");
 const drawdownLegendMaximum = getElement<HTMLElement>("drawdown-legend-maximum");
 const drawdownScale = getElement<HTMLElement>("drawdown-scale");
+const meshInvalidCard = getElement<HTMLElement>("mesh-invalid-card");
+const meshInvalidCardTitle = getElement<HTMLElement>("mesh-invalid-card-title");
+const meshInvalidCardDescription = getElement<HTMLElement>("mesh-invalid-card-description");
+const meshInvalidCardAction = getElement<HTMLElement>("mesh-invalid-card-action");
 const qualitativeStreamlinesToggle = getElement<HTMLInputElement>("show-qualitative-streamlines");
 const geologicalCutToggle = getElement<HTMLInputElement>("enable-geological-cut");
 const cutPosition = getElement<HTMLInputElement>("cut-position");
@@ -89,6 +94,8 @@ const welcomeStart = getElement<HTMLButtonElement>("welcome-start");
 const welcomeDialog = getElement<HTMLDialogElement>("welcome-dialog");
 const homeButton = getElement<HTMLButtonElement>("home-button");
 const publicControlsCopy = getElement<HTMLElement>("public-controls-copy");
+const scenarioNoteTitle = getElement<HTMLElement>("scenario-note-title");
+const scenarioNoteCopy = getElement<HTMLElement>("scenario-note-copy");
 const publicPumpingA = getElement<HTMLElement>("public-pumping-a");
 const publicPumpingB = getElement<HTMLElement>("public-pumping-b");
 const publicDrawdownTitle = getElement<HTMLElement>("public-drawdown-title");
@@ -154,6 +161,8 @@ function updateLanguageToggle(): void {
   welcomeStart.textContent = t("start");
   homeButton.textContent = t("home");
   publicControlsCopy.textContent = t("controlsIntro");
+  scenarioNoteTitle.textContent = t("exampleAquiferTitle");
+  scenarioNoteCopy.textContent = t("exampleAquiferCopy");
   publicPumpingA.textContent = t("pumpingA");
   publicPumpingB.textContent = t("pumpingB");
   publicDrawdownTitle.textContent = t("drawdownAquifer");
@@ -212,6 +221,9 @@ function updateLanguageToggle(): void {
     t("confinedValidityTitle");
   getElement<HTMLElement>("confined-validity-extrapolation").textContent =
     t("confinedExtrapolation");
+  meshInvalidCardTitle.textContent = t("meshInvalidCardTitle");
+  meshInvalidCardDescription.textContent = t("meshInvalidCardDescription");
+  meshInvalidCardAction.textContent = t("meshInvalidCardAction");
 
   document.querySelector<HTMLElement>(".river-label")?.replaceChildren(t("river"));
 }
@@ -247,6 +259,11 @@ interface LastWellMetricState {
   input: GroundwaterModelInput;
   result: GroundwaterResult;
   drawdown: DrawdownResult;
+}
+
+interface EstimatedWellMetrics {
+  heads: Required<EstimatedWellHeadsMeters>;
+  drawdowns: { wellA: number; wellB: number };
 }
 
 let lastWellMetricState: LastWellMetricState | null = null;
@@ -406,8 +423,8 @@ function recalculate(): void {
     headsMeters: actualResult.headsMeters,
     referenceHeadMeters: REFERENCE_HEAD_METERS,
   });
-  showResult(actualInput, actualResult, darcyFlow.maxMagnitudeMetersPerDay, drawdown);
   updateDrawdownLegend(drawdown.drawdownMeters);
+  showResult(actualInput, actualResult, darcyFlow.maxMagnitudeMetersPerDay, drawdown);
 }
 
 function streamlineTargets(input: GroundwaterModelInput): StreamlineTarget[] {
@@ -466,62 +483,68 @@ function updateEstimatedWellMetrics(): void {
   if (!lastWellMetricState) {
     return;
   }
-  const { input, result, drawdown } = lastWellMetricState;
-  const estimatedHeads = calculateEstimatedWellHeads(input, result);
-  const parametersA = correctionParameters(input, 0, Number(wellARadius.value));
-  const parametersB = correctionParameters(input, 1, Number(wellBRadius.value));
-  const estimatedDrawdownA = estimateWellDrawdownMeters(
-    drawdown.drawdownMeters[WELL_A.row][WELL_A.column],
-    parametersA,
-  );
-  const estimatedDrawdownB = estimateWellDrawdownMeters(
-    drawdown.drawdownMeters[WELL_B.row][WELL_B.column],
-    parametersB,
-  );
+  const { input } = lastWellMetricState;
+  const estimatedMetrics = calculateEstimatedWellMetrics(lastWellMetricState);
+  const { heads: estimatedHeads, drawdowns: estimatedDrawdowns } = estimatedMetrics;
 
   estimatedWellAHead.textContent = formatMeters(estimatedHeads.wellA);
   estimatedWellBHead.textContent = formatMeters(estimatedHeads.wellB);
-  estimatedWellADrawdown.textContent = formatDrawdownMeters(estimatedDrawdownA);
-  estimatedWellBDrawdown.textContent = formatDrawdownMeters(estimatedDrawdownB);
+  estimatedWellADrawdown.textContent = formatDrawdownMeters(estimatedDrawdowns.wellA);
+  estimatedWellBDrawdown.textContent = formatDrawdownMeters(estimatedDrawdowns.wellB);
 
   publicWellADrawdown.textContent =
-    `${t("estimatedDecline")}: ${formatDrawdownMeters(estimatedDrawdownA)}`;
+    `${t("estimatedDecline")}: ${formatDrawdownMeters(estimatedDrawdowns.wellA)}`;
   publicWellBDrawdown.textContent =
-    `${t("estimatedDecline")}: ${formatDrawdownMeters(estimatedDrawdownB)}`;
+    `${t("estimatedDecline")}: ${formatDrawdownMeters(estimatedDrawdowns.wellB)}`;
 
   const hasPumping = input.wells.some((well) => well.rateCubicMetersPerDay > 0);
   publicResultSummary.textContent = hasPumping
     ? t("pumpingDecline")
     : t("noPumping");
 
-  updateConfinedValidity(estimatedHeads);
+  updateConfinedValidity(estimatedMetrics);
 }
 
-function calculateEstimatedWellHeads(
-  input: GroundwaterModelInput,
-  result: GroundwaterResult,
-): Required<EstimatedWellHeadsMeters> {
+function calculateEstimatedWellMetrics(
+  state: LastWellMetricState,
+): EstimatedWellMetrics {
+  const { input, result, drawdown } = state;
   const parametersA = correctionParameters(input, 0, Number(wellARadius.value));
   const parametersB = correctionParameters(input, 1, Number(wellBRadius.value));
   return {
-    wellA: estimateWellHeadMeters(result.headsMeters[WELL_A.row][WELL_A.column], parametersA),
-    wellB: estimateWellHeadMeters(result.headsMeters[WELL_B.row][WELL_B.column], parametersB),
+    heads: {
+      wellA: estimateWellHeadMeters(result.headsMeters[WELL_A.row][WELL_A.column], parametersA),
+      wellB: estimateWellHeadMeters(result.headsMeters[WELL_B.row][WELL_B.column], parametersB),
+    },
+    drawdowns: {
+      wellA: estimateWellDrawdownMeters(
+        drawdown.drawdownMeters[WELL_A.row][WELL_A.column],
+        parametersA,
+      ),
+      wellB: estimateWellDrawdownMeters(
+        drawdown.drawdownMeters[WELL_B.row][WELL_B.column],
+        parametersB,
+      ),
+    },
   };
 }
 
-function updateConfinedValidity(estimatedHeads?: Required<EstimatedWellHeadsMeters>): void {
+function updateConfinedValidity(estimatedMetrics?: EstimatedWellMetrics): void {
   if (!lastWellMetricState) {
     return;
   }
   try {
-    const { input, result } = lastWellMetricState;
+    const { result } = lastWellMetricState;
+    const metrics = estimatedMetrics ?? calculateEstimatedWellMetrics(lastWellMetricState);
     const validity = evaluateConfinedModelValidity({
       headsMeters: result.headsMeters,
       aquiferTopElevationMeters: aquiferTopElevation.valueAsNumber,
-      estimatedWellHeadsMeters: estimatedHeads ?? calculateEstimatedWellHeads(input, result),
+      estimatedWellHeadsMeters: metrics.heads,
     });
-    showConfinedValidity(validity);
+    showConfinedValidity(validity, metrics);
   } catch (error) {
+    clearScientificOutputAudit();
+    meshInvalidCard.hidden = true;
     confinedValidityStatus.textContent = t("invalidElevation");
     confinedValidityStatus.dataset.status = "invalid";
     confinedValiditySummary.textContent = t("confinedValidityEvaluationFailed");
@@ -533,45 +556,69 @@ function updateConfinedValidity(estimatedHeads?: Required<EstimatedWellHeadsMete
 
 function showConfinedValidity(
   validity: ReturnType<typeof evaluateConfinedModelValidity>,
+  estimatedMetrics: EstimatedWellMetrics,
 ): void {
-  const isValid = validity.status === "VALID_CONFINED";
-  confinedValidityStatus.textContent =
-    isValid ? t("valid") : t("outsideRange");
-  confinedValidityStatus.dataset.status = isValid ? "valid" : "invalid";
-  confinedValidityExtrapolation.hidden = isValid;
-  if (isValid) {
-    confinedValiditySummary.textContent =
-      t("confinedValidityValidSummary");
+  const presentation = getConfinedPresentationState(validity);
+  applyScientificOutputAudit(presentation, estimatedMetrics);
+  meshInvalidCard.hidden = presentation.level !== "meshInvalid";
+  if (presentation.level === "valid") {
+    confinedValidityStatus.textContent = t("confinedValidityValidStatus");
+    confinedValidityStatus.dataset.status = "valid";
+    confinedValiditySummary.textContent = t("confinedValidityValidSummary");
     confinedValidityWarnings.textContent = "";
+    confinedValidityExtrapolation.hidden = true;
     publicModelWarning.textContent = "";
     return;
   }
 
-  if (validity.cellsBelowAquiferTop > 0) {
-    publicModelWarning.textContent = t("publicGridWarning");
-  } else {
+  if (presentation.level === "wellDegraded") {
+    confinedValidityStatus.textContent = t("wellDegradedStatus");
+    confinedValidityStatus.dataset.status = "well-degraded";
+    confinedValiditySummary.textContent = t("wellDegradedSummary");
+    confinedValidityExtrapolation.textContent = t("wellDegradedExtrapolation");
+    confinedValidityExtrapolation.hidden = false;
     const affectedWells = [
       validity.wellA.status === "OUTSIDE_CONFINED_RANGE" ? "A" : null,
       validity.wellB.status === "OUTSIDE_CONFINED_RANGE" ? "B" : null,
     ].filter((label): label is string => label !== null);
 
-    publicModelWarning.textContent =
-      affectedWells.length > 0
-        ? t("wellRangeWarning")(affectedWells.join(t("and")))
-        : "";
+    if (affectedWells.length > 0) {
+      showWellRangeWarning(affectedWells.join(t("and")));
+    } else {
+      publicModelWarning.replaceChildren();
+    }
+    const wellWarnings = [
+      confinedWellWarning("A", validity.wellA),
+      confinedWellWarning("B", validity.wellB),
+    ].filter((warning): warning is string => warning !== null);
+    confinedValidityWarnings.textContent = wellWarnings.join(" ");
+    return;
   }
 
-  confinedValiditySummary.textContent =
-    t("confinedValidityInvalidSummary")(
-      validity.cellsBelowAquiferTop,
-      validity.percentageCellsBelowAquiferTop.toFixed(2),
-      formatMeters(validity.maximumGridDeficitBelowAquiferTopMeters),
-    );
-  const wellWarnings = [
+  confinedValidityStatus.textContent = t("meshInvalidStatus");
+  confinedValidityStatus.dataset.status = "mesh-invalid";
+  confinedValiditySummary.textContent = t("meshInvalidSummary")(
+    validity.cellsBelowAquiferTop,
+    validity.percentageCellsBelowAquiferTop.toFixed(2),
+    formatMeters(validity.maximumGridDeficitBelowAquiferTopMeters),
+  );
+  confinedValidityWarnings.textContent = [
     confinedWellWarning("A", validity.wellA),
     confinedWellWarning("B", validity.wellB),
-  ].filter((warning): warning is string => warning !== null);
-  confinedValidityWarnings.textContent = wellWarnings.join(" ");
+  ].filter((warning): warning is string => warning !== null).join(" ");
+  confinedValidityExtrapolation.textContent = t("confinedExtrapolation");
+  confinedValidityExtrapolation.hidden = false;
+  publicModelWarning.textContent = t("meshInvalidPublicWarning");
+}
+
+function showWellRangeWarning(wells: string): void {
+  const title = document.createElement("h3");
+  title.textContent = t("wellRangeWarningTitle")(wells);
+  const estimate = document.createElement("p");
+  estimate.textContent = t("wellRangeWarningEstimate");
+  const grid = document.createElement("p");
+  grid.textContent = t("wellRangeWarningGrid");
+  publicModelWarning.replaceChildren(title, estimate, grid);
 }
 
 function confinedWellWarning(
@@ -588,6 +635,97 @@ function confinedWellWarning(
   );
 }
 
+interface ScientificOutput {
+  element: HTMLElement;
+  label: string;
+  rawValue: string;
+}
+
+function applyScientificOutputAudit(
+  presentation: ReturnType<typeof getConfinedPresentationState>,
+  estimatedMetrics: EstimatedWellMetrics,
+): void {
+  if (!lastWellMetricState) {
+    return;
+  }
+  const { result, drawdown } = lastWellMetricState;
+  const meshOutputs: ScientificOutput[] = [
+    { element: minHead, label: metricMinHeadLabel.textContent ?? "", rawValue: formatMeters(result.minHeadMeters) },
+    { element: maxHead, label: metricMaxHeadLabel.textContent ?? "", rawValue: formatMeters(result.maxHeadMeters) },
+    { element: wellAHead, label: metricHeadALabel.textContent ?? "", rawValue: formatMeters(result.headsMeters[WELL_A.row][WELL_A.column]) },
+    { element: wellBHead, label: metricHeadBLabel.textContent ?? "", rawValue: formatMeters(result.headsMeters[WELL_B.row][WELL_B.column]) },
+    { element: darcyMax, label: metricDarcyLabel.textContent ?? "", rawValue: darcyMax.textContent ?? "" },
+    { element: maxDrawdown, label: metricMaxDrawdownLabel.textContent ?? "", rawValue: formatDrawdownMeters(drawdown.maxDrawdownMeters) },
+    { element: wellADrawdown, label: metricDrawdownALabel.textContent ?? "", rawValue: formatDrawdownMeters(drawdown.drawdownMeters[WELL_A.row][WELL_A.column]) },
+    { element: wellBDrawdown, label: metricDrawdownBLabel.textContent ?? "", rawValue: formatDrawdownMeters(drawdown.drawdownMeters[WELL_B.row][WELL_B.column]) },
+    { element: drawdownLegendMinimum, label: publicDrawdownTitle.textContent ?? "", rawValue: drawdownLegendMinimum.textContent ?? "" },
+    { element: drawdownLegendZero, label: publicDrawdownTitle.textContent ?? "", rawValue: drawdownLegendZero.textContent ?? "" },
+    { element: drawdownLegendMaximum, label: publicDrawdownTitle.textContent ?? "", rawValue: drawdownLegendMaximum.textContent ?? "" },
+  ];
+  const wellAOutputs: ScientificOutput[] = [
+    { element: estimatedWellAHead, label: metricEstimatedHeadALabel.textContent ?? "", rawValue: formatMeters(estimatedMetrics.heads.wellA) },
+    { element: estimatedWellADrawdown, label: metricEstimatedDrawdownALabel.textContent ?? "", rawValue: formatDrawdownMeters(estimatedMetrics.drawdowns.wellA) },
+    { element: publicWellADrawdown, label: publicWellALabel.textContent ?? "", rawValue: formatDrawdownMeters(estimatedMetrics.drawdowns.wellA) },
+  ];
+  const wellBOutputs: ScientificOutput[] = [
+    { element: estimatedWellBHead, label: metricEstimatedHeadBLabel.textContent ?? "", rawValue: formatMeters(estimatedMetrics.heads.wellB) },
+    { element: estimatedWellBDrawdown, label: metricEstimatedDrawdownBLabel.textContent ?? "", rawValue: formatDrawdownMeters(estimatedMetrics.drawdowns.wellB) },
+    { element: publicWellBDrawdown, label: publicWellBLabel.textContent ?? "", rawValue: formatDrawdownMeters(estimatedMetrics.drawdowns.wellB) },
+  ];
+
+  for (const output of meshOutputs) {
+    setScientificOutputAudit(output, presentation.meshOutputsDegraded);
+  }
+  for (const output of wellAOutputs) {
+    setScientificOutputAudit(output, presentation.wellAOutputsDegraded);
+  }
+  for (const output of wellBOutputs) {
+    setScientificOutputAudit(output, presentation.wellBOutputsDegraded);
+  }
+}
+
+function setScientificOutputAudit(output: ScientificOutput, auditRequired: boolean): void {
+  if (!auditRequired) {
+    delete output.element.dataset.rawValue;
+    output.element.removeAttribute("title");
+    output.element.removeAttribute("aria-label");
+    return;
+  }
+  output.element.dataset.rawValue = output.rawValue;
+  output.element.title = output.rawValue;
+  output.element.setAttribute(
+    "aria-label",
+    `${output.label}: ${output.rawValue}. ${t("outsideConfinedModel")}.`,
+  );
+}
+
+function clearScientificOutputAudit(): void {
+  const outputs = [
+    minHead,
+    maxHead,
+    wellAHead,
+    wellBHead,
+    estimatedWellAHead,
+    estimatedWellBHead,
+    darcyMax,
+    maxDrawdown,
+    wellADrawdown,
+    wellBDrawdown,
+    estimatedWellADrawdown,
+    estimatedWellBDrawdown,
+    publicWellADrawdown,
+    publicWellBDrawdown,
+    drawdownLegendMinimum,
+    drawdownLegendZero,
+    drawdownLegendMaximum,
+  ];
+  for (const output of outputs) {
+    delete output.dataset.rawValue;
+    output.removeAttribute("title");
+    output.removeAttribute("aria-label");
+  }
+}
+
 function clearEstimatedWellMetrics(): void {
   estimatedWellAHead.textContent = "—";
   estimatedWellBHead.textContent = "—";
@@ -598,6 +736,8 @@ function clearEstimatedWellMetrics(): void {
 }
 
 function clearConfinedValidity(): void {
+  clearScientificOutputAudit();
+  meshInvalidCard.hidden = true;
   confinedValidityStatus.textContent = "—";
   confinedValidityStatus.dataset.status = "pending";
   confinedValiditySummary.textContent = "";

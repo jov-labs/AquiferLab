@@ -28,6 +28,10 @@
           <p class="eyebrow">AQUIFER LAB</p>
           <button id="home-button" class="home-button" type="button">Inicio</button>
           <p id="public-controls-copy" class="panel-copy">Cambia cuánta agua extrae cada pozo y observa qué ocurre.</p>
+          <section class="scenario-note">
+            <strong id="scenario-note-title">Acuífero transmisivo de ejemplo</strong>
+            <p id="scenario-note-copy">Este escenario educativo no representa un lugar real ni determina caudales seguros.</p>
+          </section>
         </div>
 
         <label class="slider-control" for="well-a-rate">
@@ -143,6 +147,11 @@
 
       <main class="scene-panel" aria-label="Visualización Three.js del acuífero">
         <div id="scene-container"></div>
+        <section id="mesh-invalid-card" class="mesh-invalid-card" aria-live="assertive" hidden>
+          <h3 id="mesh-invalid-card-title">Este resultado no es físicamente válido</h3>
+          <p id="mesh-invalid-card-description">El bombeo bajó el agua por debajo del techo del acuífero. AquiferLab ya no puede representar este escenario como acuífero confinado.</p>
+          <p id="mesh-invalid-card-action">Reduce el bombeo hasta que desaparezca esta advertencia.</p>
+        </section>
         <p id="scene-hint" class="scene-hint">Arrastra para rotar · rueda para zoom · botón derecho para desplazar</p>
       </main>
 
@@ -171,7 +180,7 @@
             Dentro del pozo, el descenso puede ser mayor que el observado alrededor.
           </p>
 
-          <p id="public-model-warning" class="public-model-warning" aria-live="polite"></p>
+          <div id="public-model-warning" class="public-model-warning" aria-live="polite"></div>
         </section>
 
         <details class="technical-results">
