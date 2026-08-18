@@ -1094,12 +1094,26 @@ dd {
 }
 
 .scenario-remove-button,
-.scenario-add-button {
+.scenario-add-button,
+.scenario-active-button {
   border: 1px solid #4d7698;
   border-radius: 4px;
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+}
+
+.scenario-active-button {
+  width: 100%;
+  margin-top: 6px;
+  padding: 4px 6px;
+  color: #06101d;
+  background: #61d4ec;
+}
+
+.scenario-active-button[aria-pressed="false"] {
+  color: #d9e8f5;
+  background: transparent;
 }
 
 .scenario-remove-button {

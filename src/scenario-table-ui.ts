@@ -15,6 +15,12 @@ import {
   updateScenarioPositionInTable,
   type ScenarioTableState,
 } from "./scenario-table.js";
+import {
+  createScenarioSelection,
+  reconcileScenarioSelectionAfterRemoval,
+  setActiveScenario,
+  type ScenarioSelection,
+} from "./scenario-selection.js";
 
 export interface ScenarioTableInterface {
   render(): void;
@@ -27,6 +33,7 @@ export function createScenarioTableInterface(
 ): ScenarioTableInterface {
   let state = createInitialScenarioTableState(parameters);
   let positionError: "scenarioPositionOutsideDomain" | "scenarioPositionOnFixedHead" | null = null;
+  let selection: ScenarioSelection = createScenarioSelection(state.scenarios);
 
   function render(): void {
     const section = document.createElement("section");
@@ -85,6 +92,18 @@ export function createScenarioTableInterface(
       });
       cell.append(name);
 
+      const activeButton = document.createElement("button");
+      activeButton.className = "scenario-active-button";
+      activeButton.type = "button";
+      const isActive = selection.activeScenarioId === scenario.id;
+      activeButton.textContent = isActive ? t("activeScenario") : t("useScenario");
+      activeButton.setAttribute("aria-pressed", String(isActive));
+      activeButton.addEventListener("click", () => {
+        selection = setActiveScenario(selection, state.scenarios, scenario.id);
+        refresh();
+      });
+      cell.append(activeButton);
+
       const removeButton = document.createElement("button");
       removeButton.className = "scenario-remove-button";
       removeButton.type = "button";
@@ -93,6 +112,12 @@ export function createScenarioTableInterface(
       removeButton.addEventListener("click", () => {
         const result = removeScenarioFromTable(state, scenario.id);
         if (result.ok) {
+          selection = reconcileScenarioSelectionAfterRemoval(
+            selection,
+            state.scenarios,
+            result.state.scenarios,
+            scenario.id,
+          );
           state = result.state;
           refresh();
         }
