@@ -15,6 +15,7 @@ import {
   updateScenarioPositionInTable,
   type ScenarioTableState,
 } from "./scenario-table.js";
+import type { Scenario } from "./scenarios.js";
 import {
   createScenarioSelection,
   reconcileScenarioSelectionAfterRemoval,
@@ -24,12 +25,18 @@ import {
 
 export interface ScenarioTableInterface {
   render(): void;
+  getActiveScenario(): Scenario;
+}
+
+export interface ScenarioTableOptions {
+  readonly onActiveScenarioChange?: (scenario: Scenario) => void;
 }
 
 /** Renderiza el editor de escenarios sin acoplarlo a la ejecución del simulador. */
 export function createScenarioTableInterface(
   container: HTMLElement,
   parameters: GroundwaterModelInput,
+  options: ScenarioTableOptions = {},
 ): ScenarioTableInterface {
   let state = createInitialScenarioTableState(parameters);
   let positionError: "scenarioPositionOutsideDomain" | "scenarioPositionOnFixedHead" | null = null;
@@ -100,6 +107,7 @@ export function createScenarioTableInterface(
       activeButton.setAttribute("aria-pressed", String(isActive));
       activeButton.addEventListener("click", () => {
         selection = setActiveScenario(selection, state.scenarios, scenario.id);
+        notifyActiveScenarioChange();
         refresh();
       });
       cell.append(activeButton);
@@ -119,6 +127,7 @@ export function createScenarioTableInterface(
             scenario.id,
           );
           state = result.state;
+          notifyActiveScenarioChange();
           refresh();
         }
       });
@@ -236,6 +245,7 @@ export function createScenarioTableInterface(
           scenario.id,
           select.value as typeof HYDRAULIC_REFERENCE_OPTIONS[number],
         );
+        notifyActiveScenarioChange();
         render();
       });
       cell.append(select);
@@ -249,7 +259,21 @@ export function createScenarioTableInterface(
     return row;
   }
 
-  return { render };
+  function getActiveScenario(): Scenario {
+    const activeScenario = state.scenarios.find(
+      (scenario) => scenario.id === selection.activeScenarioId,
+    );
+    if (!activeScenario) {
+      throw new Error("No existe un escenario activo válido.");
+    }
+    return activeScenario;
+  }
+
+  function notifyActiveScenarioChange(): void {
+    options.onActiveScenarioChange?.(getActiveScenario());
+  }
+
+  return { render, getActiveScenario };
 }
 
 function isPositionField(field: string): field is "wellAX" | "wellAY" | "wellBX" | "wellBY" {

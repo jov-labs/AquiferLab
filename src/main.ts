@@ -35,6 +35,8 @@ import {
   createScenarioTableInterface,
   type ScenarioTableInterface,
 } from "./scenario-table-ui.js";
+import { getScenarioVisualState } from "./scenario-visual.js";
+import type { Scenario } from "./scenarios.js";
 
 const REFERENCE_HEAD_METERS = 100;
 const WELL_A = { row: 20, column: 20, label: "Pozo A" };
@@ -266,11 +268,6 @@ updateLanguageToggle();
 
 const baseInput = createDefaultModelInput();
 initializeParameterControls(baseInput);
-scenarioTableInterface = createScenarioTableInterface(
-  getElement<HTMLDivElement>("scenario-comparator-root"),
-  currentInput(),
-);
-scenarioTableInterface.render();
 const scene = createAquiferScene(
   getElement<HTMLElement>("scene-container"),
   {
@@ -281,6 +278,20 @@ const scene = createAquiferScene(
   },
   [WELL_A, WELL_B],
 );
+
+function updateActiveScenarioVisual(scenario: Scenario): void {
+  const { showRiver } = getScenarioVisualState(scenario.boundary.referenceKind);
+  scene.setRiverVisible(showRiver);
+  riverLevelLegend.hidden = !showRiver;
+}
+
+scenarioTableInterface = createScenarioTableInterface(
+  getElement<HTMLDivElement>("scenario-comparator-root"),
+  currentInput(),
+  { onActiveScenarioChange: updateActiveScenarioVisual },
+);
+scenarioTableInterface.render();
+updateActiveScenarioVisual(scenarioTableInterface.getActiveScenario());
 
 interface LastWellMetricState {
   input: GroundwaterModelInput;

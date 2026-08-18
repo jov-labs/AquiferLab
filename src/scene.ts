@@ -79,10 +79,15 @@ export interface QualitativeStreamlineOverlayData {
   referenceHeadMeters: number;
 }
 
+export interface SceneVisualOptions {
+  readonly showRiver?: boolean;
+}
+
 export interface AquiferScene {
   updatePiezometricSurface(data: PiezometricSurfaceData): void;
   updateDarcyFlow(data: DarcyOverlayData): void;
   updateQualitativeStreamlines(data: QualitativeStreamlineOverlayData): void;
+  setRiverVisible(visible: boolean): void;
   setDarcyFlowVisible(visible: boolean): void;
   setQualitativeStreamlinesVisible(visible: boolean): void;
   setGeologicalCut(enabled: boolean, positionPercent: number): void;
@@ -93,6 +98,7 @@ export function createAquiferScene(
   container: HTMLElement,
   domain: SceneDomain,
   wells: readonly WellMarker[],
+  options: SceneVisualOptions = {},
 ): AquiferScene {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x09111f);
@@ -121,7 +127,9 @@ export function createAquiferScene(
   const clippingMaterials: THREE.Material[] = [];
 
   addGeologicalContext(scene, domain, clippingMaterials);
-  const riverLabel = addRiver(scene, container, domain, clippingMaterials);
+  let riverLabel = options.showRiver === false
+    ? null
+    : addRiver(scene, container, domain, clippingMaterials);
   const wellLabels = wells.map((well) =>
     addWellMarker(scene, container, domain, well, clippingMaterials),
   );
@@ -215,12 +223,9 @@ export function createAquiferScene(
       wellWorldPosition,
       wellLabelWorldPosition,
     );
-    updateRiverLabelPosition(
-      camera,
-      container,
-      riverLabel,
-      riverLabelWorldPosition,
-    );
+    if (riverLabel) {
+      updateRiverLabelPosition(camera, container, riverLabel, riverLabelWorldPosition);
+    }
     renderer.render(scene, camera);
     window.requestAnimationFrame(render);
   };
@@ -244,6 +249,15 @@ export function createAquiferScene(
     },
     setQualitativeStreamlinesVisible(visible: boolean): void {
       streamlineGroup.visible = visible;
+    },
+    setRiverVisible(visible: boolean): void {
+      if (visible && !riverLabel) {
+        riverLabel = addRiver(scene, container, domain, clippingMaterials);
+      } else if (!visible && riverLabel) {
+        scene.remove(riverLabel.marker);
+        riverLabel.label.remove();
+        riverLabel = null;
+      }
     },
     setGeologicalCut(enabled: boolean, positionPercent: number): void {
       const clampedPercent = THREE.MathUtils.clamp(positionPercent, 0, 100);
