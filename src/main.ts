@@ -30,6 +30,10 @@ import {
 import { getConfinedPresentationState } from "./confined-presentation.js";
 import { createHelpInterface } from "./help-ui.js";
 import { getLanguage, setLanguage, t } from "./i18n.js";
+import {
+  createScenarioTableInterface,
+  type ScenarioTableInterface,
+} from "./scenario-table-ui.js";
 
 const REFERENCE_HEAD_METERS = 100;
 const WELL_A = { row: 20, column: 20, label: "Pozo A" };
@@ -155,6 +159,7 @@ const metricEstimatedDrawdownALabel = getElement<HTMLElement>("metric-estimated-
 const metricEstimatedDrawdownBLabel = getElement<HTMLElement>("metric-estimated-drawdown-b-label");
 const peacemanNote = getElement<HTMLElement>("peaceman-note");
 const helpInterface = createHelpInterface();
+let scenarioTableInterface: ScenarioTableInterface | null = null;
 
 function updateLanguageToggle(): void {
   const language = getLanguage();
@@ -228,6 +233,7 @@ function updateLanguageToggle(): void {
   metricEstimatedDrawdownALabel.textContent = t("estimatedDrawdownA");
   metricEstimatedDrawdownBLabel.textContent = t("estimatedDrawdownB");
   peacemanNote.textContent = t("peacemanNote");
+  scenarioTableInterface?.render();
 
   rechargeValue.value = `${recharge.value} ${t("rechargeUnit")}`;
 
@@ -259,6 +265,11 @@ updateLanguageToggle();
 
 const baseInput = createDefaultModelInput();
 initializeParameterControls(baseInput);
+scenarioTableInterface = createScenarioTableInterface(
+  getElement<HTMLDivElement>("scenario-comparator-root"),
+  baseInput,
+);
+scenarioTableInterface.render();
 const scene = createAquiferScene(
   getElement<HTMLElement>("scene-container"),
   {

@@ -1,0 +1,142 @@
+import type { GroundwaterModelInput } from "./groundwater.js";
+import { t } from "./i18n.js";
+import {
+  MAX_SCENARIOS,
+  SCENARIO_TABLE_ROWS,
+  addScenarioToTable,
+  createInitialScenarioTableState,
+  getScenarioTableValue,
+  removeScenarioFromTable,
+  renameScenarioInTable,
+  updateScenarioInTable,
+  type ScenarioTableState,
+} from "./scenario-table.js";
+
+export interface ScenarioTableInterface {
+  render(): void;
+}
+
+/** Renderiza el editor de escenarios sin acoplarlo a la ejecución del simulador. */
+export function createScenarioTableInterface(
+  container: HTMLElement,
+  parameters: GroundwaterModelInput,
+): ScenarioTableInterface {
+  let state = createInitialScenarioTableState(parameters);
+
+  function render(): void {
+    const section = document.createElement("section");
+    section.className = "scenario-comparator";
+    const title = document.createElement("h2");
+    title.textContent = t("scenarioComparatorTitle");
+    section.append(title);
+
+    const tableWrap = document.createElement("div");
+    tableWrap.className = "scenario-table-wrap";
+    const table = document.createElement("table");
+    table.className = "scenario-table";
+    table.append(createHeader(state, () => render()));
+    table.append(createBody(state));
+    tableWrap.append(table);
+    section.append(tableWrap);
+
+    const addButton = document.createElement("button");
+    addButton.className = "scenario-add-button";
+    addButton.type = "button";
+    addButton.textContent = t("addScenario");
+    addButton.disabled = state.scenarios.length >= MAX_SCENARIOS;
+    addButton.addEventListener("click", () => {
+      const result = addScenarioToTable(state);
+      if (result.ok) {
+        state = result.state;
+        render();
+      }
+    });
+    section.append(addButton);
+    container.replaceChildren(section);
+  }
+
+  function createHeader(currentState: ScenarioTableState, refresh: () => void): HTMLTableSectionElement {
+    const head = document.createElement("thead");
+    const row = document.createElement("tr");
+    row.append(createHeaderCell(t("parameter")));
+    for (const scenario of currentState.scenarios) {
+      const cell = document.createElement("th");
+      cell.scope = "col";
+      const name = document.createElement("input");
+      name.className = "scenario-name-input";
+      name.type = "text";
+      name.value = scenario.name;
+      name.setAttribute("aria-label", t("scenarioName"));
+      name.addEventListener("change", () => {
+        state = renameScenarioInTable(state, scenario.id, name.value);
+      });
+      cell.append(name);
+
+      const removeButton = document.createElement("button");
+      removeButton.className = "scenario-remove-button";
+      removeButton.type = "button";
+      removeButton.textContent = t("removeScenario");
+      removeButton.disabled = currentState.scenarios.length <= 1;
+      removeButton.addEventListener("click", () => {
+        const result = removeScenarioFromTable(state, scenario.id);
+        if (result.ok) {
+          state = result.state;
+          refresh();
+        }
+      });
+      cell.append(removeButton);
+      row.append(cell);
+    }
+    row.append(createHeaderCell(t("unit")));
+    head.append(row);
+    return head;
+  }
+
+  function createBody(currentState: ScenarioTableState): HTMLTableSectionElement {
+    const body = document.createElement("tbody");
+    for (const rowDefinition of SCENARIO_TABLE_ROWS) {
+      const row = document.createElement("tr");
+      const label = document.createElement("th");
+      label.scope = "row";
+      label.textContent = t(rowDefinition.labelKey);
+      row.append(label);
+
+      for (const scenario of currentState.scenarios) {
+        const cell = document.createElement("td");
+        const input = document.createElement("input");
+        input.type = "number";
+        input.className = "scenario-value-input";
+        input.min = String(rowDefinition.min);
+        input.max = String(rowDefinition.max);
+        input.step = String(rowDefinition.step);
+        input.value = String(getScenarioTableValue(scenario, rowDefinition.field));
+        input.setAttribute("aria-label", `${t(rowDefinition.labelKey)}: ${scenario.name}`);
+        input.addEventListener("change", () => {
+          if (!input.validity.valid) {
+            input.value = String(getScenarioTableValue(scenario, rowDefinition.field));
+            return;
+          }
+          state = updateScenarioInTable(state, scenario.id, rowDefinition.field, Number(input.value));
+        });
+        cell.append(input);
+        row.append(cell);
+      }
+
+      const unit = document.createElement("td");
+      unit.className = "scenario-unit";
+      unit.textContent = t(rowDefinition.unitKey);
+      row.append(unit);
+      body.append(row);
+    }
+    return body;
+  }
+
+  return { render };
+}
+
+function createHeaderCell(text: string): HTMLTableCellElement {
+  const cell = document.createElement("th");
+  cell.scope = "col";
+  cell.textContent = text;
+  return cell;
+}

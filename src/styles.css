@@ -1003,6 +1003,118 @@ dd {
   text-transform: none;
 }
 
+.scenario-comparator {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.scenario-comparator h2 {
+  margin: 0;
+  padding-bottom: 6px;
+  color: #61d4ec;
+  border-bottom: 1px solid rgb(97 212 236 / 35%);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.scenario-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #36516c;
+  border-radius: 6px;
+}
+
+.scenario-table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.scenario-table th,
+.scenario-table td {
+  padding: 8px;
+  border: 1px solid rgb(54 81 108 / 75%);
+  text-align: left;
+  vertical-align: top;
+}
+
+.scenario-table thead th {
+  color: #cfe9f5;
+  background: #13283b;
+  font-weight: 700;
+}
+
+.scenario-table tbody th {
+  min-width: 116px;
+  color: #e2ebf3;
+  background: rgb(19 40 59 / 55%);
+  font-weight: 700;
+}
+
+.scenario-table td {
+  min-width: 118px;
+  background: #091725;
+}
+
+.scenario-name-input,
+.scenario-value-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 7px;
+  color: #edf7ff;
+  background: #06101d;
+  border: 1px solid #36516c;
+  border-radius: 4px;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.scenario-name-input:focus,
+.scenario-value-input:focus {
+  outline: 2px solid #61d4ec;
+  outline-offset: 1px;
+}
+
+.scenario-remove-button,
+.scenario-add-button {
+  border: 1px solid #4d7698;
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.scenario-remove-button {
+  width: 100%;
+  margin-top: 6px;
+  padding: 4px 6px;
+  color: #d9e8f5;
+  background: transparent;
+}
+
+.scenario-add-button {
+  justify-self: start;
+  padding: 8px 10px;
+  color: #06101d;
+  background: #61d4ec;
+}
+
+.scenario-add-button:disabled,
+.scenario-remove-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.scenario-unit {
+  min-width: 72px;
+  color: #62d8f2;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 /* Texto general */
 .panel-copy,
 .slider-control,
