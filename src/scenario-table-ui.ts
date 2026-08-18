@@ -39,9 +39,10 @@ export interface ScenarioTableInterface {
 
 export interface ScenarioTableOptions {
   readonly onActiveScenarioChange?: (scenario: Scenario) => void;
+  readonly onScenarioActivated?: (scenario: Scenario) => void;
 }
 
-/** Renderiza el editor de escenarios sin acoplarlo a la ejecución del simulador. */
+/** Renderiza el editor de escenarios y notifica de forma opcional su selección activa. */
 export function createScenarioTableInterface(
   container: HTMLElement,
   parameters: GroundwaterModelInput,
@@ -117,6 +118,7 @@ export function createScenarioTableInterface(
       activeButton.addEventListener("click", () => {
         selection = setActiveScenario(selection, state.scenarios, scenario.id);
         notifyActiveScenarioChange();
+        notifyScenarioActivated();
         refresh();
       });
       cell.append(activeButton);
@@ -127,6 +129,7 @@ export function createScenarioTableInterface(
       removeButton.textContent = t("removeScenario");
       removeButton.disabled = currentState.scenarios.length <= 1;
       removeButton.addEventListener("click", () => {
+        const activeScenarioIdBeforeRemoval = selection.activeScenarioId;
         const result = removeScenarioFromTable(state, scenario.id);
         if (result.ok) {
           selection = reconcileScenarioSelectionAfterRemoval(
@@ -137,6 +140,9 @@ export function createScenarioTableInterface(
           );
           state = result.state;
           notifyActiveScenarioChange();
+          if (selection.activeScenarioId !== activeScenarioIdBeforeRemoval) {
+            notifyScenarioActivated();
+          }
           refresh();
         }
       });
@@ -333,6 +339,10 @@ export function createScenarioTableInterface(
 
   function notifyActiveScenarioChange(): void {
     options.onActiveScenarioChange?.(getActiveScenario());
+  }
+
+  function notifyScenarioActivated(): void {
+    options.onScenarioActivated?.(getActiveScenario());
   }
 
   return { render, getActiveScenario };

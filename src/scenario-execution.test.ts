@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { createDefaultModelInput, type GroundwaterModelInput } from "./groundwater.js";
+import {
+  createDefaultModelInput,
+  solveGroundwater,
+  type GroundwaterModelInput,
+} from "./groundwater.js";
 import { buildModelInput } from "./scenario-execution.js";
 import {
   createScenario,
@@ -56,7 +60,7 @@ describe("adaptador de ejecución de Scenario", () => {
   });
 
   it.each(["west", "east", "north", "south"] as const)(
-    "conserva la frontera regional %s sin reinterpretarla",
+    "lleva la frontera regional %s al solver sin reinterpretarla",
     (side: RegionalReferenceSide) => {
       const regional = createScenario({
         id: "regional",
@@ -69,8 +73,31 @@ describe("adaptador de ejecución de Scenario", () => {
 
       expect(input.fixedHeadCells).toEqual(configured.parameters.fixedHeadCells);
       expect(input.fixedHeadCells).not.toBe(configured.parameters.fixedHeadCells);
+      expect(solveGroundwater(input)).toMatchObject({ converged: true, isValid: true });
     },
   );
+
+  it("produce soluciones distintas para referencias regionales oeste y este", () => {
+    const regional = createScenario({
+      id: "regional",
+      name: "Regional",
+      parameters: modelParameters(),
+      boundary: { referenceKind: "regional" },
+    });
+    const west = setScenarioRegionalReferenceSide(regional, "west");
+    const east = setScenarioRegionalReferenceSide(regional, "east");
+
+    const westInput = buildModelInput(west);
+    const eastInput = buildModelInput(east);
+    const westResult = solveGroundwater(westInput);
+    const eastResult = solveGroundwater(eastInput);
+
+    expect(westInput.fixedHeadCells.every((cell) => cell.column === 0)).toBe(true);
+    expect(eastInput.fixedHeadCells.every((cell) => cell.column === eastInput.columns - 1)).toBe(true);
+    expect(westResult).toMatchObject({ converged: true, isValid: true });
+    expect(eastResult).toMatchObject({ converged: true, isValid: true });
+    expect(westResult.headsMeters[2][0]).not.toBe(eastResult.headsMeters[2][0]);
+  });
 
   it("no reinterpreta la geometría física de una referencia river", () => {
     const scenario = createScenario({
@@ -83,6 +110,7 @@ describe("adaptador de ejecución de Scenario", () => {
 
     expect(input.fixedHeadCells).toEqual(scenario.parameters.fixedHeadCells);
     expect(input.fixedHeadCells.every((cell) => cell.column === 0)).toBe(true);
+    expect(solveGroundwater(input)).toMatchObject({ converged: true, isValid: true });
   });
 
   it("no muta el Scenario y aísla wells y fixedHeadCells mutables", () => {
@@ -92,6 +120,7 @@ describe("adaptador de ejecución de Scenario", () => {
 
     input.wells[0].rateCubicMetersPerDay = 999;
     input.fixedHeadCells[0].headMeters = 77;
+    solveGroundwater(buildModelInput(scenario));
 
     expect(scenario).toEqual(before);
     expect(input.wells[0]).not.toBe(scenario.parameters.wells[0]);

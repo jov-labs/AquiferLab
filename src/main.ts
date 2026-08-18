@@ -35,6 +35,8 @@ import {
   createScenarioTableInterface,
   type ScenarioTableInterface,
 } from "./scenario-table-ui.js";
+import { buildModelInput } from "./scenario-execution.js";
+import { projectModelInputToControlValues } from "./model-input-controls.js";
 import { getScenarioVisualState } from "./scenario-visual.js";
 import type { Scenario } from "./scenarios.js";
 
@@ -285,10 +287,19 @@ function updateActiveScenarioVisual(scenario: Scenario): void {
   riverLevelLegend.hidden = !showRiver;
 }
 
+function recalculateScenario(scenario: Scenario): void {
+  const input = buildModelInput(scenario);
+  projectModelInputToControls(input);
+  recalculate(input);
+}
+
 scenarioTableInterface = createScenarioTableInterface(
   getElement<HTMLDivElement>("scenario-comparator-root"),
   currentInput(),
-  { onActiveScenarioChange: updateActiveScenarioVisual },
+  {
+    onActiveScenarioChange: updateActiveScenarioVisual,
+    onScenarioActivated: recalculateScenario,
+  },
 );
 scenarioTableInterface.render();
 updateActiveScenarioVisual(scenarioTableInterface.getActiveScenario());
@@ -356,6 +367,18 @@ function referenceInput(actualInput: GroundwaterModelInput): GroundwaterModelInp
 function updateSliderLabels(): void {
   wellAValue.value = `${wellARate.value} l/s`;
   wellBValue.value = `${wellBRate.value} l/s`;
+}
+
+function projectModelInputToControls(input: GroundwaterModelInput): void {
+  const values = projectModelInputToControlValues(input);
+  hydraulicConductivityExponent.value = String(values.hydraulicConductivityExponent);
+  recharge.value = String(values.rechargeMillimetersPerYear);
+  aquiferThickness.value = String(values.aquiferThicknessMeters);
+  riverHead.value = String(values.referenceHeadMeters);
+  wellARate.value = String(values.wellARateLitersPerSecond);
+  wellBRate.value = String(values.wellBRateLitersPerSecond);
+  updateParameterLabels();
+  updateSliderLabels();
 }
 
 function updateWellRadiusLabels(): void {
