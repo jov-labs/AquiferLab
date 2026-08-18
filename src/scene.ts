@@ -4,6 +4,7 @@ import { LineMaterial } from "three/addons/lines/LineMaterial.js";
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 import type { DarcyFlowField } from "./flow.js";
+import type { ExtractionWell } from "./groundwater.js";
 import type { QualitativeStreamline } from "./streamlines.js";
 
 const SURFACE_GRID_INTERVAL = 3;
@@ -91,6 +92,16 @@ export interface AquiferScene {
   setDarcyFlowVisible(visible: boolean): void;
   setQualitativeStreamlinesVisible(visible: boolean): void;
   setGeologicalCut(enabled: boolean, positionPercent: number): void;
+  updateWellMarkers(
+    wellA: Readonly<ExtractionWell>,
+    wellB: Readonly<ExtractionWell>,
+  ): void;
+}
+
+/** Existing marker mesh whose position can be updated for an executed well. */
+export interface WellMarkerPositionTarget {
+  readonly marker: Pick<THREE.Mesh, "position">;
+  readonly label: unknown;
 }
 
 /** Representación Three.js: recibe campos ya resueltos, sin cálculo hidrogeológico. */
@@ -274,7 +285,37 @@ export function createAquiferScene(
         arrow.visible = isRetainedByCut(arrow.userData.originX as number, cutEnabled, cutX);
       }
     },
+    updateWellMarkers(wellA: Readonly<ExtractionWell>, wellB: Readonly<ExtractionWell>): void {
+      updateWellMarkerPositions(domain, wellLabels, wellA, wellB);
+    },
   };
+}
+
+/**
+ * Moves the two existing visible well markers to the cells of an executed
+ * input. It deliberately does not create markers or labels.
+ */
+export function updateWellMarkerPositions(
+  domain: SceneDomain,
+  markers: readonly WellMarkerPositionTarget[],
+  wellA: Readonly<ExtractionWell>,
+  wellB: Readonly<ExtractionWell>,
+): void {
+  if (markers.length !== 2) {
+    throw new Error("La escena requiere exactamente dos marcadores de pozo.");
+  }
+
+  updateWellMarkerPosition(markers[0].marker, domain, wellA);
+  updateWellMarkerPosition(markers[1].marker, domain, wellB);
+}
+
+function updateWellMarkerPosition(
+  marker: Pick<THREE.Mesh, "position">,
+  domain: SceneDomain,
+  well: Readonly<Pick<ExtractionWell, "row" | "column">>,
+): void {
+  const position = cellCenterPosition(domain, well.row, well.column);
+  marker.position.set(position.x, -2, position.z);
 }
 
 function addGeologicalContext(
@@ -360,8 +401,7 @@ function addWellMarker(
   });
   clippingMaterials.push(material);
   const marker = new THREE.Mesh(geometry, material);
-  const position = cellCenterPosition(domain, well.row, well.column);
-  marker.position.set(position.x, -2, position.z);
+  updateWellMarkerPosition(marker, domain, well);
   marker.name = well.label;
   scene.add(marker);
 

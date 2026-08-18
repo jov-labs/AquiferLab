@@ -36,6 +36,7 @@ import {
   readWellCellMetrics,
   type WellEstimatedMetrics,
 } from "./well-metrics.js";
+import { getWellSlots } from "./well-slots.js";
 
 const REFERENCE_HEAD_METERS = 100;
 const WELL_A = { row: 20, column: 20, label: "Pozo A" };
@@ -449,6 +450,8 @@ function toSuperscript(value: number): string {
 }
 
 function recalculate(actualInput: GroundwaterModelInput): void {
+  const { a: wellA, b: wellB } = getWellSlots(actualInput);
+  scene.updateWellMarkers(wellA, wellB);
   const referenceInputForScenario = referenceInput(actualInput);
   let referenceResult: GroundwaterResult;
   let actualResult: GroundwaterResult;
