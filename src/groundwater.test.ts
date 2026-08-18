@@ -50,6 +50,28 @@ describe("conversiones centralizadas", () => {
 });
 
 describe("validación del modelo", () => {
+  it("rechaza un modelo sin carga fija y diagnostica la falta de referencia hidráulica", () => {
+    let error: unknown;
+    try {
+      solveGroundwater({ ...testModel(), fixedHeadCells: [] });
+    } catch (caught) {
+      error = caught;
+    }
+
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toBe(
+      "Se requiere al menos una celda de carga fija para definir una referencia hidráulica.",
+    );
+    expect((error as Error).message).not.toMatch(/río/i);
+  });
+
+  it("conserva las 41 cargas fijas predeterminadas en la columna cero", () => {
+    const model = createDefaultModelInput();
+
+    expect(model.fixedHeadCells).toHaveLength(41);
+    expect(model.fixedHeadCells.every((cell) => cell.column === 0)).toBe(true);
+  });
+
   it("rechaza K menor o igual que cero", () => {
     expect(() =>
       solveGroundwater({ ...testModel(), hydraulicConductivityMetersPerDay: 0 }),
@@ -98,7 +120,7 @@ describe("validación del modelo", () => {
 });
 
 describe("solver de flujo confinado", () => {
-  it("mantiene exactamente las cargas prescritas del río", () => {
+  it("mantiene exactamente las cargas prescritas", () => {
     const model = testModel();
     const result = solveGroundwater(model);
 
@@ -126,7 +148,7 @@ describe("solver de flujo confinado", () => {
     expect(model).toEqual(before);
   });
 
-  it("reproduce el benchmark 1D de recarga con río y límite de no flujo", () => {
+  it("reproduce el benchmark 1D de recarga con carga fija y límite de no flujo", () => {
     const widthMeters = 1_000;
     const columns = 11;
     const rows = 5;
@@ -185,7 +207,7 @@ describe("solver de flujo confinado", () => {
       wells: [{ row: 20, column: 20, rateCubicMetersPerDay: 0 }],
     });
 
-    // Hay recarga y un río de carga fija: existe gradiente, pero el pozo a cero
+    // Hay recarga y una carga fija: existe gradiente, pero el pozo a cero
     // no debe modificar ningún nodo respecto al mismo caso sin pozo.
     expect(inactiveWell.headsMeters).toEqual(withoutWell.headsMeters);
   });

@@ -27,7 +27,7 @@ export interface GroundwaterModelInput {
   thicknessMeters: number;
   /** Recarga distribuida R, en m/día. */
   rechargeMetersPerDay: number;
-  /** Celdas de río u otras fronteras de carga fija. */
+  /** Celdas de río u otras fronteras de carga hidráulica fija. */
   fixedHeadCells: readonly FixedHeadCell[];
   /** Hasta dos pozos de extracción. */
   wells: readonly ExtractionWell[];
@@ -86,7 +86,7 @@ export function litersPerSecondToCubicMetersPerDay(value: number): number {
 export function createDefaultModelInput(): GroundwaterModelInput {
   const rows = 41;
   const columns = 41;
-  const riverHeadMeters = 100;
+  const defaultFixedHeadMeters = 100;
 
   return {
     widthMeters: 2_000,
@@ -99,7 +99,7 @@ export function createDefaultModelInput(): GroundwaterModelInput {
     fixedHeadCells: Array.from({ length: rows }, (_, row) => ({
       row,
       column: 0,
-      headMeters: riverHeadMeters,
+      headMeters: defaultFixedHeadMeters,
     })),
     wells: [],
     tolerance: 1e-6,
@@ -228,7 +228,9 @@ function validateInput(input: GroundwaterModelInput): void {
     throw new Error("El máximo de iteraciones debe ser un entero positivo.");
   }
   if (input.fixedHeadCells.length === 0) {
-    throw new Error("Se requiere al menos una celda de carga fija para el río.");
+    throw new Error(
+      "Se requiere al menos una celda de carga fija para definir una referencia hidráulica.",
+    );
   }
   if (input.wells.length > 2) {
     throw new Error("El modelo admite como máximo dos pozos de extracción.");
