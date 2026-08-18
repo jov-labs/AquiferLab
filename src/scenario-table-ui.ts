@@ -8,7 +8,9 @@ import {
   getScenarioTableValue,
   removeScenarioFromTable,
   renameScenarioInTable,
+  scenarioTableBounds,
   updateScenarioInTable,
+  updateScenarioPositionInTable,
   type ScenarioTableState,
 } from "./scenario-table.js";
 
@@ -22,6 +24,7 @@ export function createScenarioTableInterface(
   parameters: GroundwaterModelInput,
 ): ScenarioTableInterface {
   let state = createInitialScenarioTableState(parameters);
+  let positionError: "scenarioPositionOutsideDomain" | "scenarioPositionOnFixedHead" | null = null;
 
   function render(): void {
     const section = document.createElement("section");
@@ -38,6 +41,14 @@ export function createScenarioTableInterface(
     table.append(createBody(state));
     tableWrap.append(table);
     section.append(tableWrap);
+
+    if (positionError) {
+      const error = document.createElement("p");
+      error.className = "scenario-table-error";
+      error.setAttribute("role", "alert");
+      error.textContent = t(positionError);
+      section.append(error);
+    }
 
     const addButton = document.createElement("button");
     addButton.className = "scenario-add-button";
@@ -106,14 +117,43 @@ export function createScenarioTableInterface(
         const input = document.createElement("input");
         input.type = "number";
         input.className = "scenario-value-input";
-        input.min = String(rowDefinition.min);
-        input.max = String(rowDefinition.max);
+        const bounds = scenarioTableBounds(scenario, rowDefinition.field);
+        input.min = String(bounds.min);
+        input.max = String(bounds.max);
         input.step = String(rowDefinition.step);
         input.value = String(getScenarioTableValue(scenario, rowDefinition.field));
+        input.readOnly = rowDefinition.readonly === true;
         input.setAttribute("aria-label", `${t(rowDefinition.labelKey)}: ${scenario.name}`);
         input.addEventListener("change", () => {
+          if (rowDefinition.readonly) {
+            return;
+          }
           if (!input.validity.valid) {
-            input.value = String(getScenarioTableValue(scenario, rowDefinition.field));
+            if (isPositionField(rowDefinition.field)) {
+              positionError = "scenarioPositionOutsideDomain";
+              render();
+            } else {
+              input.value = String(getScenarioTableValue(scenario, rowDefinition.field));
+            }
+            return;
+          }
+          if (isPositionField(rowDefinition.field)) {
+            const result = updateScenarioPositionInTable(
+              state,
+              scenario.id,
+              rowDefinition.field,
+              Number(input.value),
+            );
+            if (result.ok) {
+              state = result.state;
+              positionError = null;
+            } else {
+              positionError =
+                result.reason === "POSITION_ON_FIXED_HEAD"
+                  ? "scenarioPositionOnFixedHead"
+                  : "scenarioPositionOutsideDomain";
+            }
+            render();
             return;
           }
           state = updateScenarioInTable(state, scenario.id, rowDefinition.field, Number(input.value));
@@ -132,6 +172,10 @@ export function createScenarioTableInterface(
   }
 
   return { render };
+}
+
+function isPositionField(field: string): field is "wellAX" | "wellAY" | "wellBX" | "wellBY" {
+  return field === "wellAX" || field === "wellAY" || field === "wellBX" || field === "wellBY";
 }
 
 function createHeaderCell(text: string): HTMLTableCellElement {

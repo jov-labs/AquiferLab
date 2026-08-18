@@ -10,6 +10,7 @@ import {
   removeScenarioFromTable,
   renameScenarioInTable,
   updateScenarioInTable,
+  updateScenarioPositionInTable,
 } from "./scenario-table.js";
 
 function tableState() {
@@ -36,6 +37,11 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(getScenarioTableValue(scenario, "riverHead")).toBe(100);
     expect(getScenarioTableValue(scenario, "wellARate")).toBeCloseTo(1);
     expect(getScenarioTableValue(scenario, "wellBRate")).toBeCloseTo(2);
+    expect(getScenarioTableValue(scenario, "wellAX")).toBe(1_000);
+    expect(getScenarioTableValue(scenario, "wellAY")).toBe(1_000);
+    expect(getScenarioTableValue(scenario, "wellBX")).toBeCloseTo(1487.8048780487804);
+    expect(getScenarioTableValue(scenario, "wellBY")).toBeCloseTo(1390.2439024390244);
+    expect(getScenarioTableValue(scenario, "wellDistance")).toBeCloseTo(624.6950475544243);
   });
 
   it("edita una celda sólo en el escenario correspondiente", () => {
@@ -45,6 +51,96 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(updated.scenarios[0].parameters.thicknessMeters).toBe(35);
     expect(updated.scenarios[1].parameters.thicknessMeters).toBe(20);
     expect(original.scenarios[0].parameters.thicknessMeters).toBe(20);
+  });
+
+  it("cambia X de A sólo en el escenario indicado y conserva su caudal", () => {
+    const initial = tableState();
+    const result = updateScenarioPositionInTable(initial, "scenario-1", "wellAX", 1_100);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.state.scenarios[0].parameters.wells[0]).toMatchObject({
+      row: 20,
+      column: 22,
+      rateCubicMetersPerDay: 86.4,
+    });
+    expect(result.state.scenarios[1].parameters.wells[0]).toEqual(initial.scenarios[1].parameters.wells[0]);
+  });
+
+  it("cambia Y de B sólo en el escenario indicado y conserva su caudal", () => {
+    const initial = tableState();
+    const result = updateScenarioPositionInTable(initial, "scenario-1", "wellBY", 1_500);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.state.scenarios[0].parameters.wells[1]).toMatchObject({
+      row: 30,
+      column: 30,
+      rateCubicMetersPerDay: 172.8,
+    });
+    expect(result.state.scenarios[1].parameters.wells[1]).toEqual(initial.scenarios[1].parameters.wells[1]);
+  });
+
+  it("conserva las propiedades adicionales existentes del pozo al moverlo", () => {
+    const wellA = {
+      row: 20,
+      column: 20,
+      rateCubicMetersPerDay: 86.4,
+      existingMetadata: "preservar",
+    };
+    const state = createInitialScenarioTableState({
+      ...createDefaultModelInput(),
+      wells: [wellA, { row: 28, column: 30, rateCubicMetersPerDay: 172.8 }],
+    });
+    const result = updateScenarioPositionInTable(state, "scenario-1", "wellAX", 1_100);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect((result.state.scenarios[0].parameters.wells[0] as typeof wellA).existingMetadata).toBe(
+      "preservar",
+    );
+  });
+
+  it("recalcula la distancia A–B a partir de las posiciones de cada escenario", () => {
+    const initial = tableState();
+    const result = updateScenarioPositionInTable(initial, "scenario-1", "wellBX", 1_000);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(getScenarioTableValue(result.state.scenarios[0], "wellDistance")).toBeCloseTo(
+      390.2439024390244,
+    );
+    expect(getScenarioTableValue(result.state.scenarios[1], "wellDistance")).toBeCloseTo(
+      624.6950475544243,
+    );
+  });
+
+  it("rechaza una coordenada fuera del dominio sin corromper el Scenario", () => {
+    const initial = tableState();
+    const result = updateScenarioPositionInTable(initial, "scenario-1", "wellAX", 2_000);
+
+    expect(result).toMatchObject({ ok: false, reason: "POSITION_OUTSIDE_DOMAIN", state: initial });
+    expect(initial.scenarios[0].parameters.wells[0]).toEqual({
+      row: 20,
+      column: 20,
+      rateCubicMetersPerDay: 86.4,
+    });
+  });
+
+  it("mantiene parámetros no relacionados al cambiar una posición", () => {
+    const initial = tableState();
+    const result = updateScenarioPositionInTable(initial, "scenario-1", "wellAY", 1_100);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const after = result.state.scenarios[0].parameters;
+    expect(after.hydraulicConductivityMetersPerDay).toBe(
+      initial.scenarios[0].parameters.hydraulicConductivityMetersPerDay,
+    );
+    expect(after.thicknessMeters).toBe(initial.scenarios[0].parameters.thicknessMeters);
+    expect(after.rechargeMetersPerDay).toBe(initial.scenarios[0].parameters.rechargeMetersPerDay);
+    expect(after.fixedHeadCells).toEqual(initial.scenarios[0].parameters.fixedHeadCells);
+    expect(after.wells[1]).toEqual(initial.scenarios[0].parameters.wells[1]);
   });
 
   it("renombra un escenario", () => {
@@ -104,7 +200,12 @@ describe("modelo de presentación del comparador de escenarios", () => {
       "metersUnit",
       "metersUnit",
       "litersPerSecondUnit",
+      "metersUnit",
+      "metersUnit",
       "litersPerSecondUnit",
+      "metersUnit",
+      "metersUnit",
+      "metersUnit",
     ]);
   });
 

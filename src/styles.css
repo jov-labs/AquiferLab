@@ -1078,6 +1078,12 @@ dd {
   outline-offset: 1px;
 }
 
+.scenario-value-input[readonly] {
+  color: #62d8f2;
+  background: rgb(19 40 59 / 70%);
+  cursor: default;
+}
+
 .scenario-remove-button,
 .scenario-add-button {
   border: 1px solid #4d7698;
@@ -1113,6 +1119,17 @@ dd {
   color: #62d8f2;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.scenario-table-error {
+  margin: 0;
+  padding: 8px 10px;
+  color: #ffd8dc;
+  background: rgb(111 30 39 / 55%);
+  border-left: 3px solid #ff7f88;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  line-height: 1.4;
 }
 
 /* Texto general */

@@ -28,6 +28,7 @@ import {
   type EstimatedWellHeadsMeters,
 } from "./confined-validity.js";
 import { getConfinedPresentationState } from "./confined-presentation.js";
+import { gridCellCenterMeters } from "./grid-coordinates.js";
 import { createHelpInterface } from "./help-ui.js";
 import { getLanguage, setLanguage, t } from "./i18n.js";
 import {
@@ -267,7 +268,7 @@ const baseInput = createDefaultModelInput();
 initializeParameterControls(baseInput);
 scenarioTableInterface = createScenarioTableInterface(
   getElement<HTMLDivElement>("scenario-comparator-root"),
-  baseInput,
+  currentInput(),
 );
 scenarioTableInterface.render();
 const scene = createAquiferScene(
@@ -479,12 +480,10 @@ function recalculate(): void {
 }
 
 function streamlineTargets(input: GroundwaterModelInput): StreamlineTarget[] {
-  const dx = input.widthMeters / input.columns;
-  const dz = input.heightMeters / input.rows;
-  const toPoint = (row: number, column: number) => ({
-    xMeters: (column + 0.5) * dx,
-    zMeters: (row + 0.5) * dz,
-  });
+  const toPoint = (row: number, column: number) => {
+    const position = gridCellCenterMeters(input, row, column);
+    return { xMeters: position.xMeters, zMeters: position.yMeters };
+  };
   return [
     ...input.fixedHeadCells.map((cell) => ({ ...toPoint(cell.row, cell.column), kind: "river" as const })),
     ...input.wells
