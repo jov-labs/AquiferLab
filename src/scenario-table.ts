@@ -37,6 +37,15 @@ export type ScenarioTableField =
   | "wellBY"
   | "wellDistance";
 
+/** Campos hidráulicos editables también desde los controles principales. */
+export type ScenarioTableHydraulicField =
+  | "hydraulicConductivity"
+  | "recharge"
+  | "thickness"
+  | "riverHead"
+  | "wellARate"
+  | "wellBRate";
+
 export interface ScenarioTableRow {
   field: ScenarioTableField;
   labelKey:
@@ -89,6 +98,11 @@ export const SCENARIO_TABLE_ROWS: readonly ScenarioTableRow[] = [
 
 export interface ScenarioTableState {
   readonly scenarios: readonly Scenario[];
+}
+
+export interface UpdateActiveScenarioTableValueResult {
+  readonly state: ScenarioTableState;
+  readonly scenario: Scenario;
 }
 
 export type AddScenarioTableResult =
@@ -214,6 +228,21 @@ export function updateScenarioInTable(
       scenario.id === id ? updateScenarioTableValue(scenario, field, value) : scenario,
     ),
   };
+}
+
+/** Actualiza un campo hidráulico del escenario seleccionado sin cambiar la selección. */
+export function updateActiveScenarioTableValue(
+  state: ScenarioTableState,
+  activeScenarioId: string,
+  field: ScenarioTableHydraulicField,
+  value: number,
+): UpdateActiveScenarioTableValueResult {
+  const nextState = updateScenarioInTable(state, activeScenarioId, field, value);
+  const scenario = nextState.scenarios.find((candidate) => candidate.id === activeScenarioId);
+  if (!scenario) {
+    throw new Error("No existe un escenario activo válido.");
+  }
+  return { state: nextState, scenario };
 }
 
 /** Actualiza solo la procedencia semántica de la carga fija del escenario indicado. */

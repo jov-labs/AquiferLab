@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createDefaultModelInput } from "./groundwater.js";
+import { createScenarioSelection } from "./scenario-selection.js";
 import {
   MAX_SCENARIOS,
   HYDRAULIC_REFERENCE_OPTIONS,
@@ -13,6 +14,7 @@ import {
   renameScenarioInTable,
   setScenarioReferenceInTable,
   setScenarioRegionalReferenceSideInTable,
+  updateActiveScenarioTableValue,
   updateScenarioInTable,
   updateScenarioPositionInTable,
 } from "./scenario-table.js";
@@ -55,6 +57,83 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(updated.scenarios[0].parameters.thicknessMeters).toBe(35);
     expect(updated.scenarios[1].parameters.thicknessMeters).toBe(20);
     expect(original.scenarios[0].parameters.thicknessMeters).toBe(20);
+  });
+
+  it("actualiza exclusivamente el escenario activo y devuelve su versión nueva", () => {
+    const initial = tableState();
+    const selection = createScenarioSelection(initial.scenarios);
+    const result = updateActiveScenarioTableValue(
+      initial,
+      selection.activeScenarioId,
+      "thickness",
+      35,
+    );
+
+    expect(result.scenario.id).toBe("scenario-1");
+    expect(selection.activeScenarioId).toBe("scenario-1");
+    expect(result.scenario.parameters.thicknessMeters).toBe(35);
+    expect(result.state.scenarios[0]).toBe(result.scenario);
+    expect(result.state.scenarios[1]).toEqual(initial.scenarios[1]);
+    expect(initial.scenarios[0].parameters.thicknessMeters).toBe(20);
+  });
+
+  it("conserva el metadato regional y la geometría al actualizar la carga activa", () => {
+    const regional = setScenarioRegionalReferenceSideInTable(
+      setScenarioReferenceInTable(tableState(), "scenario-1", "regional"),
+      "scenario-1",
+      "east",
+    );
+    const beforeCells = regional.scenarios[0].parameters.fixedHeadCells.map(({ row, column }) => ({ row, column }));
+    const result = updateActiveScenarioTableValue(regional, "scenario-1", "riverHead", 110);
+
+    expect(result.scenario.boundary).toEqual({
+      referenceKind: "regional",
+      regionalReferenceSide: "east",
+    });
+    expect(result.scenario.parameters.fixedHeadCells.map(({ row, column }) => ({ row, column }))).toEqual(
+      beforeCells,
+    );
+    expect(result.scenario.parameters.fixedHeadCells.every((cell) => cell.headMeters === 110)).toBe(true);
+  });
+
+  it("actualiza los caudales activos por slot sin mover los pozos", () => {
+    const initial = tableState();
+    const afterA = updateActiveScenarioTableValue(initial, "scenario-1", "wellARate", 15);
+    const afterB = updateActiveScenarioTableValue(afterA.state, "scenario-1", "wellBRate", 25);
+
+    expect(afterA.scenario.parameters.wells[0]).toMatchObject({
+      row: 20,
+      column: 20,
+      rateCubicMetersPerDay: 1_296,
+    });
+    expect(afterA.scenario.parameters.wells[1]).toEqual(initial.scenarios[0].parameters.wells[1]);
+    expect(afterB.scenario.parameters.wells[0]).toEqual(afterA.scenario.parameters.wells[0]);
+    expect(afterB.scenario.parameters.wells[1]).toMatchObject({
+      row: 28,
+      column: 30,
+      rateCubicMetersPerDay: 2_160,
+    });
+    expect(afterB.state.scenarios[1]).toEqual(initial.scenarios[1]);
+  });
+
+  it("acumula actualizaciones hidráulicas sobre el escenario activo más reciente", () => {
+    const initial = tableState();
+    const afterK = updateActiveScenarioTableValue(
+      initial,
+      "scenario-1",
+      "hydraulicConductivity",
+      1e-5,
+    );
+    const afterRecharge = updateActiveScenarioTableValue(
+      afterK.state,
+      "scenario-1",
+      "recharge",
+      250,
+    );
+
+    expect(getScenarioTableValue(afterRecharge.scenario, "hydraulicConductivity")).toBeCloseTo(1e-5);
+    expect(getScenarioTableValue(afterRecharge.scenario, "recharge")).toBe(250);
+    expect(afterRecharge.scenario.parameters.thicknessMeters).toBe(20);
   });
 
   it("expone exactamente las referencias Río y Regional", () => {

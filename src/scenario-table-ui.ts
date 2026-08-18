@@ -13,8 +13,10 @@ import {
   scenarioTableBounds,
   setScenarioReferenceInTable,
   setScenarioRegionalReferenceSideInTable,
+  updateActiveScenarioTableValue,
   updateScenarioInTable,
   updateScenarioPositionInTable,
+  type ScenarioTableHydraulicField,
   type ScenarioTableState,
 } from "./scenario-table.js";
 import type { Scenario } from "./scenarios.js";
@@ -35,6 +37,7 @@ const REGIONAL_REFERENCE_SIDE_LABEL_KEYS = {
 export interface ScenarioTableInterface {
   render(): void;
   getActiveScenario(): Scenario;
+  updateActiveScenarioValue(field: ScenarioTableHydraulicField, value: number): Scenario;
 }
 
 export interface ScenarioTableOptions {
@@ -345,7 +348,22 @@ export function createScenarioTableInterface(
     options.onScenarioActivated?.(getActiveScenario());
   }
 
-  return { render, getActiveScenario };
+  function updateActiveScenarioValue(
+    field: ScenarioTableHydraulicField,
+    value: number,
+  ): Scenario {
+    const result = updateActiveScenarioTableValue(
+      state,
+      selection.activeScenarioId,
+      field,
+      value,
+    );
+    state = result.state;
+    render();
+    return result.scenario;
+  }
+
+  return { render, getActiveScenario, updateActiveScenarioValue };
 }
 
 function isPositionField(field: string): field is "wellAX" | "wellAY" | "wellBX" | "wellBY" {
