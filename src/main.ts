@@ -18,15 +18,7 @@ import {
   DEFAULT_STREAMLINE_OPTIONS,
   type StreamlineTarget,
 } from "./streamlines.js";
-import {
-  estimateWellDrawdownMeters,
-  estimateWellHeadMeters,
-  type WellCorrectionParameters,
-} from "./well-correction.js";
-import {
-  evaluateConfinedModelValidity,
-  type EstimatedWellHeadsMeters,
-} from "./confined-validity.js";
+import { evaluateConfinedModelValidity } from "./confined-validity.js";
 import { getConfinedPresentationState } from "./confined-presentation.js";
 import { gridCellCenterMeters } from "./grid-coordinates.js";
 import { createHelpInterface } from "./help-ui.js";
@@ -39,6 +31,11 @@ import { buildModelInput } from "./scenario-execution.js";
 import { projectModelInputToControlValues } from "./model-input-controls.js";
 import { getScenarioVisualState } from "./scenario-visual.js";
 import type { Scenario } from "./scenarios.js";
+import {
+  calculateEstimatedWellMetrics,
+  readWellCellMetrics,
+  type WellEstimatedMetrics,
+} from "./well-metrics.js";
 
 const REFERENCE_HEAD_METERS = 100;
 const WELL_A = { row: 20, column: 20, label: "Pozo A" };
@@ -310,11 +307,6 @@ interface LastWellMetricState {
   drawdown: DrawdownResult;
 }
 
-interface EstimatedWellMetrics {
-  heads: Required<EstimatedWellHeadsMeters>;
-  drawdowns: { wellA: number; wellB: number };
-}
-
 let lastWellMetricState: LastWellMetricState | null = null;
 
 function getElement<ElementType extends HTMLElement>(id: string): ElementType {
@@ -540,30 +532,16 @@ function showResult(
   iterations.textContent = String(result.iterations);
   minHead.textContent = formatMeters(result.minHeadMeters);
   maxHead.textContent = formatMeters(result.maxHeadMeters);
-  wellAHead.textContent = formatMeters(result.headsMeters[WELL_A.row][WELL_A.column]);
-  wellBHead.textContent = formatMeters(result.headsMeters[WELL_B.row][WELL_B.column]);
+  const wellCellMetrics = readWellCellMetrics(input, result.headsMeters, drawdown.drawdownMeters);
+  wellAHead.textContent = formatMeters(wellCellMetrics.a.headMeters);
+  wellBHead.textContent = formatMeters(wellCellMetrics.b.headMeters);
   darcyMax.textContent = formatMetersPerDay(maxDarcyMetersPerDay);
   maxDrawdown.textContent = formatDrawdownMeters(drawdown.maxDrawdownMeters);
-  wellADrawdown.textContent = formatDrawdownMeters(drawdown.drawdownMeters[WELL_A.row][WELL_A.column]);
-  wellBDrawdown.textContent = formatDrawdownMeters(drawdown.drawdownMeters[WELL_B.row][WELL_B.column]);
+  wellADrawdown.textContent = formatDrawdownMeters(wellCellMetrics.a.drawdownMeters);
+  wellBDrawdown.textContent = formatDrawdownMeters(wellCellMetrics.b.drawdownMeters);
   lastWellMetricState = { input, result, drawdown };
   updateEstimatedWellMetrics();
   solverMessage.textContent = "";
-}
-
-function correctionParameters(
-  input: GroundwaterModelInput,
-  wellIndex: number,
-  wellRadiusMeters: number,
-): WellCorrectionParameters {
-  return {
-    cellWidthMeters: input.widthMeters / input.columns,
-    cellHeightMeters: input.heightMeters / input.rows,
-    hydraulicConductivityMetersPerDay: input.hydraulicConductivityMetersPerDay,
-    thicknessMeters: input.thicknessMeters,
-    extractionRateCubicMetersPerDay: input.wells[wellIndex].rateCubicMetersPerDay,
-    wellRadiusMeters,
-  };
 }
 
 function updateEstimatedWellMetrics(): void {
@@ -571,7 +549,7 @@ function updateEstimatedWellMetrics(): void {
     return;
   }
   const { input } = lastWellMetricState;
-  const estimatedMetrics = calculateEstimatedWellMetrics(lastWellMetricState);
+  const estimatedMetrics = estimatedWellMetricsFor(lastWellMetricState);
   const { heads: estimatedHeads, drawdowns: estimatedDrawdowns } = estimatedMetrics;
 
   estimatedWellAHead.textContent = formatMeters(estimatedHeads.wellA);
@@ -592,37 +570,23 @@ function updateEstimatedWellMetrics(): void {
   updateConfinedValidity(estimatedMetrics);
 }
 
-function calculateEstimatedWellMetrics(
-  state: LastWellMetricState,
-): EstimatedWellMetrics {
+function estimatedWellMetricsFor(state: LastWellMetricState): WellEstimatedMetrics {
   const { input, result, drawdown } = state;
-  const parametersA = correctionParameters(input, 0, Number(wellARadius.value));
-  const parametersB = correctionParameters(input, 1, Number(wellBRadius.value));
-  return {
-    heads: {
-      wellA: estimateWellHeadMeters(result.headsMeters[WELL_A.row][WELL_A.column], parametersA),
-      wellB: estimateWellHeadMeters(result.headsMeters[WELL_B.row][WELL_B.column], parametersB),
-    },
-    drawdowns: {
-      wellA: estimateWellDrawdownMeters(
-        drawdown.drawdownMeters[WELL_A.row][WELL_A.column],
-        parametersA,
-      ),
-      wellB: estimateWellDrawdownMeters(
-        drawdown.drawdownMeters[WELL_B.row][WELL_B.column],
-        parametersB,
-      ),
-    },
-  };
+  return calculateEstimatedWellMetrics(
+    input,
+    result.headsMeters,
+    drawdown.drawdownMeters,
+    { a: Number(wellARadius.value), b: Number(wellBRadius.value) },
+  );
 }
 
-function updateConfinedValidity(estimatedMetrics?: EstimatedWellMetrics): void {
+function updateConfinedValidity(estimatedMetrics?: WellEstimatedMetrics): void {
   if (!lastWellMetricState) {
     return;
   }
   try {
     const { result } = lastWellMetricState;
-    const metrics = estimatedMetrics ?? calculateEstimatedWellMetrics(lastWellMetricState);
+    const metrics = estimatedMetrics ?? estimatedWellMetricsFor(lastWellMetricState);
     const validity = evaluateConfinedModelValidity({
       headsMeters: result.headsMeters,
       aquiferTopElevationMeters: aquiferTopElevation.valueAsNumber,
@@ -643,7 +607,7 @@ function updateConfinedValidity(estimatedMetrics?: EstimatedWellMetrics): void {
 
 function showConfinedValidity(
   validity: ReturnType<typeof evaluateConfinedModelValidity>,
-  estimatedMetrics: EstimatedWellMetrics,
+  estimatedMetrics: WellEstimatedMetrics,
 ): void {
   const presentation = getConfinedPresentationState(validity);
   applyScientificOutputAudit(presentation, estimatedMetrics);
@@ -730,21 +694,22 @@ interface ScientificOutput {
 
 function applyScientificOutputAudit(
   presentation: ReturnType<typeof getConfinedPresentationState>,
-  estimatedMetrics: EstimatedWellMetrics,
+  estimatedMetrics: WellEstimatedMetrics,
 ): void {
   if (!lastWellMetricState) {
     return;
   }
-  const { result, drawdown } = lastWellMetricState;
+  const { input, result, drawdown } = lastWellMetricState;
+  const wellCellMetrics = readWellCellMetrics(input, result.headsMeters, drawdown.drawdownMeters);
   const meshOutputs: ScientificOutput[] = [
     { element: minHead, label: metricMinHeadLabel.textContent ?? "", rawValue: formatMeters(result.minHeadMeters) },
     { element: maxHead, label: metricMaxHeadLabel.textContent ?? "", rawValue: formatMeters(result.maxHeadMeters) },
-    { element: wellAHead, label: metricHeadALabel.textContent ?? "", rawValue: formatMeters(result.headsMeters[WELL_A.row][WELL_A.column]) },
-    { element: wellBHead, label: metricHeadBLabel.textContent ?? "", rawValue: formatMeters(result.headsMeters[WELL_B.row][WELL_B.column]) },
+    { element: wellAHead, label: metricHeadALabel.textContent ?? "", rawValue: formatMeters(wellCellMetrics.a.headMeters) },
+    { element: wellBHead, label: metricHeadBLabel.textContent ?? "", rawValue: formatMeters(wellCellMetrics.b.headMeters) },
     { element: darcyMax, label: metricDarcyLabel.textContent ?? "", rawValue: darcyMax.textContent ?? "" },
     { element: maxDrawdown, label: metricMaxDrawdownLabel.textContent ?? "", rawValue: formatDrawdownMeters(drawdown.maxDrawdownMeters) },
-    { element: wellADrawdown, label: metricDrawdownALabel.textContent ?? "", rawValue: formatDrawdownMeters(drawdown.drawdownMeters[WELL_A.row][WELL_A.column]) },
-    { element: wellBDrawdown, label: metricDrawdownBLabel.textContent ?? "", rawValue: formatDrawdownMeters(drawdown.drawdownMeters[WELL_B.row][WELL_B.column]) },
+    { element: wellADrawdown, label: metricDrawdownALabel.textContent ?? "", rawValue: formatDrawdownMeters(wellCellMetrics.a.drawdownMeters) },
+    { element: wellBDrawdown, label: metricDrawdownBLabel.textContent ?? "", rawValue: formatDrawdownMeters(wellCellMetrics.b.drawdownMeters) },
     { element: drawdownLegendMinimum, label: publicDrawdownTitle.textContent ?? "", rawValue: drawdownLegendMinimum.textContent ?? "" },
     { element: drawdownLegendZero, label: publicDrawdownTitle.textContent ?? "", rawValue: drawdownLegendZero.textContent ?? "" },
     { element: drawdownLegendMaximum, label: publicDrawdownTitle.textContent ?? "", rawValue: drawdownLegendMaximum.textContent ?? "" },
