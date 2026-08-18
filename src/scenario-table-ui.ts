@@ -2,6 +2,7 @@ import type { GroundwaterModelInput } from "./groundwater.js";
 import { t } from "./i18n.js";
 import {
   MAX_SCENARIOS,
+  HYDRAULIC_REFERENCE_OPTIONS,
   SCENARIO_TABLE_ROWS,
   addScenarioToTable,
   createInitialScenarioTableState,
@@ -9,6 +10,7 @@ import {
   removeScenarioFromTable,
   renameScenarioInTable,
   scenarioTableBounds,
+  setScenarioReferenceInTable,
   updateScenarioInTable,
   updateScenarioPositionInTable,
   type ScenarioTableState,
@@ -105,6 +107,7 @@ export function createScenarioTableInterface(
 
   function createBody(currentState: ScenarioTableState): HTMLTableSectionElement {
     const body = document.createElement("tbody");
+    body.append(createReferenceRow(currentState));
     for (const rowDefinition of SCENARIO_TABLE_ROWS) {
       const row = document.createElement("tr");
       const label = document.createElement("th");
@@ -159,6 +162,14 @@ export function createScenarioTableInterface(
           state = updateScenarioInTable(state, scenario.id, rowDefinition.field, Number(input.value));
         });
         cell.append(input);
+        if (rowDefinition.field === "riverHead") {
+          const note = document.createElement("small");
+          note.className = "scenario-reference-note";
+          note.textContent = t(
+            scenario.boundary.referenceKind === "river" ? "river" : "scenarioRegional",
+          );
+          cell.append(note);
+        }
         row.append(cell);
       }
 
@@ -169,6 +180,48 @@ export function createScenarioTableInterface(
       body.append(row);
     }
     return body;
+  }
+
+  function createReferenceRow(currentState: ScenarioTableState): HTMLTableRowElement {
+    const row = document.createElement("tr");
+    const label = document.createElement("th");
+    label.scope = "row";
+    label.textContent = t("scenarioHydraulicReference");
+    row.append(label);
+
+    for (const scenario of currentState.scenarios) {
+      const cell = document.createElement("td");
+      const select = document.createElement("select");
+      select.className = "scenario-reference-select";
+      select.setAttribute("aria-label", `${t("scenarioHydraulicReference")}: ${scenario.name}`);
+      for (const optionValue of HYDRAULIC_REFERENCE_OPTIONS) {
+        const option = document.createElement("option");
+        option.value = optionValue;
+        option.textContent = t(optionValue === "river" ? "river" : "scenarioRegional");
+        option.selected = optionValue === scenario.boundary.referenceKind;
+        select.append(option);
+      }
+      select.addEventListener("change", () => {
+        if (!HYDRAULIC_REFERENCE_OPTIONS.includes(select.value as typeof HYDRAULIC_REFERENCE_OPTIONS[number])) {
+          select.value = scenario.boundary.referenceKind;
+          return;
+        }
+        state = setScenarioReferenceInTable(
+          state,
+          scenario.id,
+          select.value as typeof HYDRAULIC_REFERENCE_OPTIONS[number],
+        );
+        render();
+      });
+      cell.append(select);
+      row.append(cell);
+    }
+
+    const unit = document.createElement("td");
+    unit.className = "scenario-unit";
+    unit.textContent = t("noUnit");
+    row.append(unit);
+    return row;
   }
 
   return { render };

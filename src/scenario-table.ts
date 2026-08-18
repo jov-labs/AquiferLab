@@ -13,9 +13,13 @@ import {
   createScenario,
   removeScenario,
   renameScenario,
+  setScenarioHydraulicReference,
   updateScenarioParameters,
+  type HydraulicReferenceKind,
   type Scenario,
 } from "./scenarios.js";
+
+export const HYDRAULIC_REFERENCE_OPTIONS = ["river", "regional"] as const;
 
 export type ScenarioTableField =
   | "hydraulicConductivity"
@@ -36,7 +40,7 @@ export interface ScenarioTableRow {
     | "scenarioParameterK"
     | "scenarioParameterThickness"
     | "recharge"
-    | "riverHead"
+    | "scenarioReferenceHead"
     | "scenarioWellARate"
     | "scenarioWellAX"
     | "scenarioWellAY"
@@ -62,7 +66,7 @@ export const SCENARIO_TABLE_ROWS: readonly ScenarioTableRow[] = [
   },
   { field: "recharge", labelKey: "recharge", unitKey: "rechargeUnit", min: 0, max: 500, step: 10 },
   { field: "thickness", labelKey: "scenarioParameterThickness", unitKey: "metersUnit", min: 10, max: 100, step: 5 },
-  { field: "riverHead", labelKey: "riverHead", unitKey: "metersUnit", min: 80, max: 120, step: 1 },
+  { field: "riverHead", labelKey: "scenarioReferenceHead", unitKey: "metersUnit", min: 80, max: 120, step: 1 },
   { field: "wellARate", labelKey: "scenarioWellARate", unitKey: "litersPerSecondUnit", min: 0, max: 50, step: 1 },
   { field: "wellAX", labelKey: "scenarioWellAX", unitKey: "metersUnit", min: 0, max: Infinity, step: "any" },
   { field: "wellAY", labelKey: "scenarioWellAY", unitKey: "metersUnit", min: 0, max: Infinity, step: "any" },
@@ -205,6 +209,19 @@ export function updateScenarioInTable(
   return {
     scenarios: state.scenarios.map((scenario) =>
       scenario.id === id ? updateScenarioTableValue(scenario, field, value) : scenario,
+    ),
+  };
+}
+
+/** Actualiza solo la procedencia semántica de la carga fija del escenario indicado. */
+export function setScenarioReferenceInTable(
+  state: ScenarioTableState,
+  id: string,
+  referenceKind: HydraulicReferenceKind,
+): ScenarioTableState {
+  return {
+    scenarios: state.scenarios.map((scenario) =>
+      scenario.id === id ? setScenarioHydraulicReference(scenario, referenceKind) : scenario,
     ),
   };
 }

@@ -1059,7 +1059,8 @@ dd {
 }
 
 .scenario-name-input,
-.scenario-value-input {
+.scenario-value-input,
+.scenario-reference-select {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
@@ -1073,7 +1074,8 @@ dd {
 }
 
 .scenario-name-input:focus,
-.scenario-value-input:focus {
+.scenario-value-input:focus,
+.scenario-reference-select:focus {
   outline: 2px solid #61d4ec;
   outline-offset: 1px;
 }
@@ -1082,6 +1084,13 @@ dd {
   color: #62d8f2;
   background: rgb(19 40 59 / 70%);
   cursor: default;
+}
+
+.scenario-reference-note {
+  display: block;
+  margin-top: 4px;
+  color: #91a8bd;
+  font-size: 0.72rem;
 }
 
 .scenario-remove-button,

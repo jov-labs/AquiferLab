@@ -3,12 +3,14 @@ import { describe, expect, it } from "vitest";
 import { createDefaultModelInput } from "./groundwater.js";
 import {
   MAX_SCENARIOS,
+  HYDRAULIC_REFERENCE_OPTIONS,
   SCENARIO_TABLE_ROWS,
   addScenarioToTable,
   createInitialScenarioTableState,
   getScenarioTableValue,
   removeScenarioFromTable,
   renameScenarioInTable,
+  setScenarioReferenceInTable,
   updateScenarioInTable,
   updateScenarioPositionInTable,
 } from "./scenario-table.js";
@@ -51,6 +53,51 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(updated.scenarios[0].parameters.thicknessMeters).toBe(35);
     expect(updated.scenarios[1].parameters.thicknessMeters).toBe(20);
     expect(original.scenarios[0].parameters.thicknessMeters).toBe(20);
+  });
+
+  it("expone exactamente las referencias Río y Regional", () => {
+    expect(HYDRAULIC_REFERENCE_OPTIONS).toEqual(["river", "regional"]);
+    expect(tableState().scenarios.map((scenario) => scenario.boundary.referenceKind)).toEqual([
+      "river",
+      "river",
+    ]);
+  });
+
+  it("cambia solo la referencia del escenario indicado", () => {
+    const initial = tableState();
+    const regional = setScenarioReferenceInTable(initial, "scenario-1", "regional");
+
+    expect(regional.scenarios[0].boundary.referenceKind).toBe("regional");
+    expect(regional.scenarios[1].boundary.referenceKind).toBe("river");
+    expect(regional.scenarios[0].parameters).toEqual(initial.scenarios[0].parameters);
+    expect(regional.scenarios[0].parameters.fixedHeadCells).toEqual(
+      initial.scenarios[0].parameters.fixedHeadCells,
+    );
+    expect(regional.scenarios[0].parameters.wells).toEqual(initial.scenarios[0].parameters.wells);
+  });
+
+  it("mantiene editable la carga de referencia sin depender del metadato", () => {
+    const initial = setScenarioReferenceInTable(tableState(), "scenario-1", "regional");
+    const updated = updateScenarioInTable(initial, "scenario-1", "riverHead", 110);
+
+    expect(updated.scenarios[0].boundary.referenceKind).toBe("regional");
+    expect(updated.scenarios[0].parameters.fixedHeadCells.every((cell) => cell.headMeters === 110)).toBe(true);
+    expect(updated.scenarios[1].parameters.fixedHeadCells[0].headMeters).toBe(100);
+  });
+
+  it("mantiene la carga fija al cambiar de Río a Regional", () => {
+    const initial = tableState();
+    const regional = setScenarioReferenceInTable(initial, "scenario-1", "regional");
+
+    expect(regional.scenarios[0].parameters.fixedHeadCells).toEqual(
+      initial.scenarios[0].parameters.fixedHeadCells,
+    );
+  });
+
+  it("usa una etiqueta neutral para la fila de carga", () => {
+    expect(SCENARIO_TABLE_ROWS.find((row) => row.field === "riverHead")?.labelKey).toBe(
+      "scenarioReferenceHead",
+    );
   });
 
   it("cambia X de A sólo en el escenario indicado y conserva su caudal", () => {
