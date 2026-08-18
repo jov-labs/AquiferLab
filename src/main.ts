@@ -29,6 +29,10 @@ import {
 } from "./scenario-table-ui.js";
 import { buildModelInput } from "./scenario-execution.js";
 import { projectModelInputToControlValues } from "./model-input-controls.js";
+import {
+  updateActiveScenarioFromControl,
+  type MainHydraulicControl,
+} from "./scenario-control-update.js";
 import { getScenarioVisualState } from "./scenario-visual.js";
 import type { Scenario } from "./scenarios.js";
 import {
@@ -507,8 +511,19 @@ function recalculate(actualInput: GroundwaterModelInput): void {
   showResult(actualInput, actualResult, darcyFlow.maxMagnitudeMetersPerDay, drawdown);
 }
 
-function recalculateFromControls(): void {
+function recalculateInitialInputFromControls(): void {
   recalculate(currentInput());
+}
+
+function recalculateActiveScenarioFromControl(
+  control: MainHydraulicControl,
+  value: number,
+): void {
+  if (!scenarioTableInterface) {
+    throw new Error("La tabla de escenarios no está inicializada.");
+  }
+  const scenario = updateActiveScenarioFromControl(scenarioTableInterface, control, value);
+  recalculateScenario(scenario);
 }
 
 function streamlineTargets(input: GroundwaterModelInput): StreamlineTarget[] {
@@ -874,11 +889,15 @@ function formatMetersPerDay(value: number): string {
   return `${value.toFixed(2)}\u00A0${t("metersPerDayUnit")}`;
 }
 
-for (const slider of [wellARate, wellBRate]) {
-  slider.addEventListener("input", updateSliderLabels);
-  // change se dispara al confirmar el valor, evitando solves por cada paso del arrastre.
-  slider.addEventListener("change", recalculateFromControls);
-}
+wellARate.addEventListener("input", updateSliderLabels);
+wellARate.addEventListener("change", () => {
+  recalculateActiveScenarioFromControl("wellARate", Number(wellARate.value));
+});
+
+wellBRate.addEventListener("input", updateSliderLabels);
+wellBRate.addEventListener("change", () => {
+  recalculateActiveScenarioFromControl("wellBRate", Number(wellBRate.value));
+});
 
 for (const radiusControl of [wellARadius, wellBRadius]) {
   radiusControl.addEventListener("input", () => {
@@ -892,14 +911,18 @@ aquiferTopElevation.addEventListener("input", () => {
   updateConfinedValidity();
 });
 
-for (const parameterControl of [
-  hydraulicConductivityExponent,
-  recharge,
-  aquiferThickness,
-  riverHead,
-]) {
+const hydraulicParameterControls: readonly [HTMLInputElement, MainHydraulicControl][] = [
+  [hydraulicConductivityExponent, "hydraulicConductivityExponent"],
+  [recharge, "recharge"],
+  [aquiferThickness, "thickness"],
+  [riverHead, "riverHead"],
+];
+
+for (const [parameterControl, control] of hydraulicParameterControls) {
   parameterControl.addEventListener("input", updateParameterLabels);
-  parameterControl.addEventListener("change", recalculateFromControls);
+  parameterControl.addEventListener("change", () => {
+    recalculateActiveScenarioFromControl(control, Number(parameterControl.value));
+  });
 }
 
 qualitativeStreamlinesToggle.addEventListener("change", () => {
@@ -919,4 +942,4 @@ updateSliderLabels();
 updateWellRadiusLabels();
 scene.setQualitativeStreamlinesVisible(qualitativeStreamlinesToggle.checked);
 updateGeologicalCut();
-recalculateFromControls();
+recalculateInitialInputFromControls();
