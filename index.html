@@ -28,6 +28,7 @@
           <div class="panel-actions">
             <button id="home-button" class="home-button" type="button">Inicio</button>
             <button id="quick-guide-button" class="quick-guide-button" type="button">Guía rápida</button>
+            <button id="scenario-comparator-toggle" class="quick-guide-button" type="button" aria-controls="scenario-comparator-panel" aria-expanded="false">Comparar escenarios</button>
           </div>
           <p id="public-controls-copy" class="panel-copy">Cambia cuánta agua extrae cada pozo y observa qué ocurre.</p>
         </div>
@@ -144,8 +145,6 @@
             </span>
           </label>
 
-          <div id="scenario-comparator-root"></div>
-
           <p id="hydraulic-block-note" class="parameter-note">Espesor hidráulico configurable; bloque geológico esquemático sin escala vertical.</p>
           <p id="aquifer-top-note" class="parameter-note">La cota del techo usa el mismo datum que la carga hidráulica y sólo evalúa la validez del modelo confinado.</p>
           <section class="model-settings">
@@ -169,6 +168,15 @@
         </div>
           </div>
         </details>
+      </aside>
+
+      <aside id="scenario-comparator-panel" class="scenario-comparator-panel" aria-labelledby="scenario-comparator-panel-title" hidden>
+        <div class="scenario-comparator-panel-header">
+          <h2 id="scenario-comparator-panel-title">Comparador de escenarios</h2>
+          <button id="scenario-comparator-close" class="scenario-comparator-close" type="button">Cerrar</button>
+        </div>
+        <div id="scenario-comparator-root"></div>
+        <div id="scenario-comparator-resize-handle" class="scenario-comparator-resize-handle" role="separator" aria-orientation="vertical" aria-label="Redimensionar comparador de escenarios" tabindex="0"></div>
       </aside>
 
       <main class="scene-panel" aria-label="Visualización Three.js del acuífero">

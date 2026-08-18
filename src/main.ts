@@ -40,6 +40,9 @@ import {
   type WellEstimatedMetrics,
 } from "./well-metrics.js";
 import { getWellSlots } from "./well-slots.js";
+import {
+  scenarioComparatorWidthFromPointer,
+} from "./scenario-comparator-resize.js";
 
 const REFERENCE_HEAD_METERS = 100;
 const WELL_A = { row: INITIAL_WELL_A.row, column: INITIAL_WELL_A.column, label: "Pozo A" };
@@ -104,6 +107,11 @@ const welcomeCopy = getElement<HTMLElement>("welcome-copy");
 const welcomeStart = getElement<HTMLButtonElement>("welcome-start");
 const welcomeDialog = getElement<HTMLDialogElement>("welcome-dialog");
 const homeButton = getElement<HTMLButtonElement>("home-button");
+const app = getElement<HTMLDivElement>("app");
+const scenarioComparatorToggle = getElement<HTMLButtonElement>("scenario-comparator-toggle");
+const scenarioComparatorPanel = getElement<HTMLElement>("scenario-comparator-panel");
+const scenarioComparatorClose = getElement<HTMLButtonElement>("scenario-comparator-close");
+const scenarioComparatorResizeHandle = getElement<HTMLDivElement>("scenario-comparator-resize-handle");
 const publicControlsCopy = getElement<HTMLElement>("public-controls-copy");
 const publicPumpingA = getElement<HTMLElement>("public-pumping-a");
 const publicPumpingB = getElement<HTMLElement>("public-pumping-b");
@@ -167,6 +175,61 @@ const peacemanNote = getElement<HTMLElement>("peaceman-note");
 const helpInterface = createHelpInterface();
 let scenarioTableInterface: ScenarioTableInterface | null = null;
 
+function setScenarioComparatorOpen(open: boolean): void {
+  document.body.classList.toggle("scenario-comparator-open", open);
+  scenarioComparatorPanel.hidden = !open;
+  scenarioComparatorToggle.setAttribute("aria-expanded", String(open));
+  (open ? scenarioComparatorClose : scenarioComparatorToggle).focus();
+}
+
+scenarioComparatorToggle.addEventListener("click", () => {
+  setScenarioComparatorOpen(scenarioComparatorPanel.hasAttribute("hidden"));
+});
+scenarioComparatorClose.addEventListener("click", () => setScenarioComparatorOpen(false));
+
+let scenarioComparatorResizeStart: { pointerId: number; startX: number; startWidth: number } | null = null;
+
+scenarioComparatorResizeHandle.addEventListener("pointerdown", (event) => {
+  if (!document.body.classList.contains("scenario-comparator-open")) {
+    return;
+  }
+  event.preventDefault();
+  scenarioComparatorResizeStart = {
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startWidth: scenarioComparatorPanel.getBoundingClientRect().width,
+  };
+  scenarioComparatorResizeHandle.setPointerCapture(event.pointerId);
+  scenarioComparatorResizeHandle.classList.add("is-resizing");
+});
+
+function updateScenarioComparatorWidth(event: PointerEvent): void {
+  if (scenarioComparatorResizeStart?.pointerId !== event.pointerId) {
+    return;
+  }
+  const width = scenarioComparatorWidthFromPointer(
+    scenarioComparatorResizeStart.startX,
+    scenarioComparatorResizeStart.startWidth,
+    event.clientX,
+  );
+  app.style.setProperty("--scenario-comparator-width", `${width}px`);
+}
+
+function finishScenarioComparatorResize(event: PointerEvent): void {
+  if (scenarioComparatorResizeStart?.pointerId !== event.pointerId) {
+    return;
+  }
+  if (scenarioComparatorResizeHandle.hasPointerCapture(event.pointerId)) {
+    scenarioComparatorResizeHandle.releasePointerCapture(event.pointerId);
+  }
+  scenarioComparatorResizeStart = null;
+  scenarioComparatorResizeHandle.classList.remove("is-resizing");
+}
+
+scenarioComparatorResizeHandle.addEventListener("pointermove", updateScenarioComparatorWidth);
+scenarioComparatorResizeHandle.addEventListener("pointerup", finishScenarioComparatorResize);
+scenarioComparatorResizeHandle.addEventListener("pointercancel", finishScenarioComparatorResize);
+
 function updateLanguageToggle(): void {
   const language = getLanguage();
   setLanguage(language);
@@ -175,6 +238,9 @@ function updateLanguageToggle(): void {
   welcomeCopy.textContent = `${t("intro")} ${t("noKnowledge")}`;
   welcomeStart.textContent = t("start");
   homeButton.textContent = t("home");
+  scenarioComparatorToggle.textContent = t("compareScenarios");
+  scenarioComparatorClose.textContent = t("closeScenarioComparator");
+  getElement<HTMLElement>("scenario-comparator-panel-title").textContent = t("scenarioComparatorTitle");
   publicControlsCopy.textContent = t("controlsIntro");
   publicPumpingA.textContent = t("pumpingA");
   publicPumpingB.textContent = t("pumpingB");

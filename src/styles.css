@@ -23,11 +23,16 @@ body {
 
 #app {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(420px, 1fr) minmax(220px, 280px);
+  --scenario-comparator-width: clamp(260px, 20vw, 280px);
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(220px, 280px);
   width: 100%;
   height: 100vh;
   min-height: 0;
   overflow: hidden;
+}
+
+body.scenario-comparator-open #app {
+  grid-template-columns: minmax(220px, 280px) var(--scenario-comparator-width) minmax(0, 1fr) minmax(220px, 280px);
 }
 
 .panel {
@@ -47,6 +52,82 @@ body {
 
 .results-panel {
   border-left: 1px solid #203247;
+}
+
+.scenario-comparator-panel {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px 8px;
+  overflow: visible;
+  background: #0c1827;
+  border-right: 1px solid #203247;
+}
+
+.scenario-comparator-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  z-index: 3;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.scenario-comparator-resize-handle:hover,
+.scenario-comparator-resize-handle.is-resizing {
+  background: rgb(97 212 236 / 35%);
+}
+
+.scenario-comparator-panel[hidden] {
+  display: none;
+}
+
+.scenario-comparator-panel-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.scenario-comparator-panel-header h2 {
+  color: #61d4ec;
+  font-size: 1.1rem;
+  line-height: 1.35;
+}
+
+#scenario-comparator-root {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.scenario-comparator-close {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 6px 9px;
+  color: #c8d8e8;
+  background: transparent;
+  border: 1px solid #36516c;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.scenario-comparator-close:hover {
+  color: #ffffff;
+  border-color: #61d4ec;
 }
 
 .eyebrow {
@@ -537,6 +618,11 @@ dd {
     overflow: visible;
   }
 
+  body.scenario-comparator-open #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto clamp(520px, 60vh, 720px) auto;
+  }
+
   .panel {
     gap: 20px;
   }
@@ -557,6 +643,12 @@ dd {
   .scene-panel {
     height: clamp(520px, 60vh, 720px);
     min-height: 0;
+  }
+
+  .scenario-comparator-panel {
+    max-height: min(760px, 80vh);
+    border-right: 0;
+    border-bottom: 1px solid #203247;
   }
 }
 
@@ -731,7 +823,8 @@ dd {
   }
 
   .home-button,
-  .quick-guide-button {
+  .quick-guide-button,
+  .scenario-comparator-close {
     min-height: 44px;
   }
 
@@ -1027,7 +1120,8 @@ dd {
 
 .scenario-table {
   width: 100%;
-  min-width: 560px;
+  min-width: 0;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.78rem;
 }
@@ -1046,11 +1140,24 @@ dd {
   font-weight: 700;
 }
 
+.scenario-table thead th:first-child,
+.scenario-table tbody th {
+  padding-right: 6px;
+  padding-left: 6px;
+  text-align: center;
+}
+
 .scenario-table tbody th {
   min-width: 116px;
+  white-space: normal;
+  line-height: 1.3;
   color: #e2ebf3;
   background: rgb(19 40 59 / 55%);
   font-weight: 700;
+}
+
+.scenario-label-line {
+  display: block;
 }
 
 .scenario-table td {
@@ -1071,6 +1178,10 @@ dd {
   border-radius: 4px;
   font: inherit;
   font-variant-numeric: tabular-nums;
+}
+
+.scenario-value-input {
+  max-width: 120px;
 }
 
 .scenario-name-input:focus,
@@ -1138,10 +1249,26 @@ dd {
 }
 
 .scenario-unit {
-  min-width: 72px;
   color: #62d8f2;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.scenario-table td.scenario-unit {
+  box-sizing: border-box;
+  min-width: 0;
+  padding-right: 4px;
+  padding-left: 4px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.scenario-table col.scenario-parameter-column {
+  width: 125px;
+}
+
+.scenario-table col.scenario-unit-column {
+  width: 80px;
 }
 
 .scenario-table-error {
@@ -1152,6 +1279,13 @@ dd {
   border-left: 3px solid #ff7f88;
   border-radius: 4px;
   font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.scenario-coordinate-note {
+  margin: 0;
+  color: #91a8bd;
+  font-size: 0.74rem;
   line-height: 1.4;
 }
 

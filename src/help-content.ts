@@ -330,7 +330,7 @@ export const QUICK_GUIDE: Record<Language, readonly QuickGuideSection[]> = {
     {
       title: "Cómo probar un escenario",
       description:
-        "Mueva los bombeos entre 0 y 50 L/s y observe las cargas y abatimientos. Son valores para explorar este ejemplo, no caudales seguros.",
+        "Mueva los bombeos entre 0 y 50 l/s y observe las cargas y abatimientos. Son valores para explorar este ejemplo, no caudales seguros.",
     },
     {
       title: "Cómo interpretar los colores y líneas",
@@ -373,7 +373,7 @@ export const QUICK_GUIDE: Record<Language, readonly QuickGuideSection[]> = {
     {
       title: "How to try a scenario",
       description:
-        "Move pumping between 0 and 50 L/s and observe heads and drawdowns. These are values for exploring this example, not safe pumping rates.",
+        "Move pumping between 0 and 50 l/s and observe heads and drawdowns. These are values for exploring this example, not safe pumping rates.",
     },
     {
       title: "How to read colours and lines",

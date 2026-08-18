@@ -1,5 +1,6 @@
 import type { GroundwaterModelInput } from "./groundwater.js";
-import { t } from "./i18n.js";
+import { t, type TranslationKey } from "./i18n.js";
+import { getScenarioTableMinWidth } from "./scenario-table-layout.js";
 import {
   MAX_SCENARIOS,
   HYDRAULIC_REFERENCE_OPTIONS,
@@ -58,18 +59,34 @@ export function createScenarioTableInterface(
   function render(): void {
     const section = document.createElement("section");
     section.className = "scenario-comparator";
-    const title = document.createElement("h2");
-    title.textContent = t("scenarioComparatorTitle");
-    section.append(title);
 
     const tableWrap = document.createElement("div");
     tableWrap.className = "scenario-table-wrap";
     const table = document.createElement("table");
     table.className = "scenario-table";
+    table.style.minWidth = `${getScenarioTableMinWidth(state.scenarios.length)}px`;
+    const columnGroup = document.createElement("colgroup");
+    const parameterColumn = document.createElement("col");
+    parameterColumn.className = "scenario-parameter-column";
+    columnGroup.append(parameterColumn);
+    for (const _scenario of state.scenarios) {
+      const valueColumn = document.createElement("col");
+      valueColumn.className = "scenario-value-column";
+      columnGroup.append(valueColumn);
+    }
+    const unitColumn = document.createElement("col");
+    unitColumn.className = "scenario-unit-column";
+    columnGroup.append(unitColumn);
+    table.append(columnGroup);
     table.append(createHeader(state, () => render()));
     table.append(createBody(state));
     tableWrap.append(table);
     section.append(tableWrap);
+
+    const coordinateNote = document.createElement("p");
+    coordinateNote.className = "scenario-coordinate-note";
+    coordinateNote.textContent = t("scenarioCoordinatesNote");
+    section.append(coordinateNote);
 
     if (positionError) {
       const error = document.createElement("p");
@@ -165,7 +182,7 @@ export function createScenarioTableInterface(
       const row = document.createElement("tr");
       const label = document.createElement("th");
       label.scope = "row";
-      label.textContent = t(rowDefinition.labelKey);
+      setScenarioLabel(label, rowDefinition.labelKey);
       row.append(label);
 
       for (const scenario of currentState.scenarios) {
@@ -177,7 +194,10 @@ export function createScenarioTableInterface(
         input.min = String(bounds.min);
         input.max = String(bounds.max);
         input.step = String(rowDefinition.step);
-        input.value = String(getScenarioTableValue(scenario, rowDefinition.field));
+        input.value = formatScenarioInputValue(
+          rowDefinition.field,
+          getScenarioTableValue(scenario, rowDefinition.field),
+        );
         input.readOnly = rowDefinition.readonly === true;
         input.setAttribute("aria-label", `${t(rowDefinition.labelKey)}: ${scenario.name}`);
         input.addEventListener("change", () => {
@@ -189,7 +209,10 @@ export function createScenarioTableInterface(
               positionError = "scenarioPositionOutsideDomain";
               render();
             } else {
-              input.value = String(getScenarioTableValue(scenario, rowDefinition.field));
+              input.value = formatScenarioInputValue(
+                rowDefinition.field,
+                getScenarioTableValue(scenario, rowDefinition.field),
+              );
             }
             return;
           }
@@ -239,7 +262,7 @@ export function createScenarioTableInterface(
     const row = document.createElement("tr");
     const label = document.createElement("th");
     label.scope = "row";
-    label.textContent = t("scenarioHydraulicReference");
+    setScenarioLabel(label, "scenarioHydraulicReference");
     row.append(label);
 
     for (const scenario of currentState.scenarios) {
@@ -282,7 +305,7 @@ export function createScenarioTableInterface(
     const row = document.createElement("tr");
     const label = document.createElement("th");
     label.scope = "row";
-    label.textContent = t("scenarioRegionalReferenceSide");
+    setScenarioLabel(label, "scenarioRegionalReferenceSide");
     row.append(label);
 
     for (const scenario of currentState.scenarios) {
@@ -368,6 +391,37 @@ export function createScenarioTableInterface(
 
 function isPositionField(field: string): field is "wellAX" | "wellAY" | "wellBX" | "wellBY" {
   return field === "wellAX" || field === "wellAY" || field === "wellBX" || field === "wellBY";
+}
+
+function formatScenarioInputValue(field: string, value: number): string {
+  if (field === "wellAX" || field === "wellAY" || field === "wellBX" || field === "wellBY" || field === "wellDistance") {
+    return String(Number(value.toFixed(1)));
+  }
+  return String(value);
+}
+
+function setScenarioLabel(label: HTMLElement, labelKey: TranslationKey): void {
+  label.setAttribute("aria-label", String(t(labelKey)));
+  let lineKey: "scenarioHydraulicReferenceLines" | "scenarioRegionalReferenceSideLines" | "scenarioReferenceHeadLines" | null = null;
+  if (labelKey === "scenarioHydraulicReference") {
+    lineKey = "scenarioHydraulicReferenceLines";
+  } else if (labelKey === "scenarioRegionalReferenceSide") {
+    lineKey = "scenarioRegionalReferenceSideLines";
+  } else if (labelKey === "scenarioReferenceHead") {
+    lineKey = "scenarioReferenceHeadLines";
+  }
+  if (lineKey === null) {
+    label.textContent = String(t(labelKey));
+    return;
+  }
+  label.replaceChildren(
+    ...t(lineKey).map((line) => {
+      const lineElement = document.createElement("span");
+      lineElement.className = "scenario-label-line";
+      lineElement.textContent = line;
+      return lineElement;
+    }),
+  );
 }
 
 function createHeaderCell(text: string): HTMLTableCellElement {
