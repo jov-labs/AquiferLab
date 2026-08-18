@@ -1,10 +1,4 @@
 import {
-  createDefaultModelInput,
-  litersPerSecondToCubicMetersPerDay,
-  metersPerDayToMetersPerSecond,
-  metersPerDayToMillimetersPerYear,
-  metersPerSecondToMetersPerDay,
-  millimetersPerYearToMetersPerDay,
   solveGroundwater,
   type GroundwaterModelInput,
   type GroundwaterResult,
@@ -23,6 +17,11 @@ import { getConfinedPresentationState } from "./confined-presentation.js";
 import { gridCellCenterMeters } from "./grid-coordinates.js";
 import { createHelpInterface } from "./help-ui.js";
 import { getLanguage, setLanguage, t } from "./i18n.js";
+import {
+  INITIAL_WELL_A,
+  INITIAL_WELL_B,
+  createInitialModelInput,
+} from "./initial-model-input.js";
 import {
   createScenarioTableInterface,
   type ScenarioTableInterface,
@@ -43,8 +42,8 @@ import {
 import { getWellSlots } from "./well-slots.js";
 
 const REFERENCE_HEAD_METERS = 100;
-const WELL_A = { row: 20, column: 20, label: "Pozo A" };
-const WELL_B = { row: 28, column: 30, label: "Pozo B" };
+const WELL_A = { row: INITIAL_WELL_A.row, column: INITIAL_WELL_A.column, label: "Pozo A" };
+const WELL_B = { row: INITIAL_WELL_B.row, column: INITIAL_WELL_B.column, label: "Pozo B" };
 
 const wellARate = getElement<HTMLInputElement>("well-a-rate");
 const wellBRate = getElement<HTMLInputElement>("well-b-rate");
@@ -270,15 +269,15 @@ languageEn.addEventListener("click", () => {
 
 updateLanguageToggle();
 
-const baseInput = createDefaultModelInput();
-initializeParameterControls(baseInput);
+const initialInput = createInitialModelInput();
+projectModelInputToControls(initialInput);
 const scene = createAquiferScene(
   getElement<HTMLElement>("scene-container"),
   {
-    widthMeters: baseInput.widthMeters,
-    heightMeters: baseInput.heightMeters,
-    rows: baseInput.rows,
-    columns: baseInput.columns,
+    widthMeters: initialInput.widthMeters,
+    heightMeters: initialInput.heightMeters,
+    rows: initialInput.rows,
+    columns: initialInput.columns,
   },
   [WELL_A, WELL_B],
 );
@@ -297,7 +296,7 @@ function recalculateScenario(scenario: Scenario): void {
 
 scenarioTableInterface = createScenarioTableInterface(
   getElement<HTMLDivElement>("scenario-comparator-root"),
-  currentInput(),
+  initialInput,
   {
     onActiveScenarioChange: updateActiveScenarioVisual,
     onScenarioActivated: recalculateScenario,
@@ -320,35 +319,6 @@ function getElement<ElementType extends HTMLElement>(id: string): ElementType {
     throw new Error(`No se encontró el elemento de interfaz #${id}.`);
   }
   return element as ElementType;
-}
-
-function currentInput(): GroundwaterModelInput {
-  const defaultInput = createDefaultModelInput();
-  const hydraulicConductivityMetersPerSecond = 10 ** Number(hydraulicConductivityExponent.value);
-  return {
-    ...defaultInput,
-    hydraulicConductivityMetersPerDay: metersPerSecondToMetersPerDay(
-      hydraulicConductivityMetersPerSecond,
-    ),
-    rechargeMetersPerDay: millimetersPerYearToMetersPerDay(Number(recharge.value)),
-    thicknessMeters: Number(aquiferThickness.value),
-    fixedHeadCells: defaultInput.fixedHeadCells.map((cell) => ({
-      ...cell,
-      headMeters: Number(riverHead.value),
-    })),
-    wells: [
-      {
-        row: WELL_A.row,
-        column: WELL_A.column,
-        rateCubicMetersPerDay: litersPerSecondToCubicMetersPerDay(Number(wellARate.value)),
-      },
-      {
-        row: WELL_B.row,
-        column: WELL_B.column,
-        rateCubicMetersPerDay: litersPerSecondToCubicMetersPerDay(Number(wellBRate.value)),
-      },
-    ],
-  };
 }
 
 function referenceInput(actualInput: GroundwaterModelInput): GroundwaterModelInput {
@@ -381,16 +351,6 @@ function projectModelInputToControls(input: GroundwaterModelInput): void {
 function updateWellRadiusLabels(): void {
   wellARadiusValue.value = `${Number(wellARadius.value).toFixed(2)} m`;
   wellBRadiusValue.value = `${Number(wellBRadius.value).toFixed(2)} m`;
-}
-
-function initializeParameterControls(defaultInput: GroundwaterModelInput): void {
-  hydraulicConductivityExponent.value = String(
-    Math.log10(metersPerDayToMetersPerSecond(defaultInput.hydraulicConductivityMetersPerDay)),
-  );
-  recharge.value = String(metersPerDayToMillimetersPerYear(defaultInput.rechargeMetersPerDay));
-  aquiferThickness.value = String(defaultInput.thicknessMeters);
-  riverHead.value = String(defaultInput.fixedHeadCells[0].headMeters);
-  updateParameterLabels();
 }
 
 function updateParameterLabels(): void {
@@ -509,10 +469,6 @@ function recalculate(actualInput: GroundwaterModelInput): void {
   });
   updateDrawdownLegend(drawdown.drawdownMeters);
   showResult(actualInput, actualResult, darcyFlow.maxMagnitudeMetersPerDay, drawdown);
-}
-
-function recalculateInitialInputFromControls(): void {
-  recalculate(currentInput());
 }
 
 function recalculateActiveScenarioFromControl(
@@ -942,4 +898,4 @@ updateSliderLabels();
 updateWellRadiusLabels();
 scene.setQualitativeStreamlinesVisible(qualitativeStreamlinesToggle.checked);
 updateGeologicalCut();
-recalculateInitialInputFromControls();
+recalculateScenario(scenarioTableInterface.getActiveScenario());
