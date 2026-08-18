@@ -433,8 +433,7 @@ function toSuperscript(value: number): string {
     .join("");
 }
 
-function recalculate(): void {
-  const actualInput = currentInput();
+function recalculate(actualInput: GroundwaterModelInput): void {
   const referenceInputForScenario = referenceInput(actualInput);
   let referenceResult: GroundwaterResult;
   let actualResult: GroundwaterResult;
@@ -488,6 +487,10 @@ function recalculate(): void {
   });
   updateDrawdownLegend(drawdown.drawdownMeters);
   showResult(actualInput, actualResult, darcyFlow.maxMagnitudeMetersPerDay, drawdown);
+}
+
+function recalculateFromControls(): void {
+  recalculate(currentInput());
 }
 
 function streamlineTargets(input: GroundwaterModelInput): StreamlineTarget[] {
@@ -883,7 +886,7 @@ function formatMetersPerDay(value: number): string {
 for (const slider of [wellARate, wellBRate]) {
   slider.addEventListener("input", updateSliderLabels);
   // change se dispara al confirmar el valor, evitando solves por cada paso del arrastre.
-  slider.addEventListener("change", recalculate);
+  slider.addEventListener("change", recalculateFromControls);
 }
 
 for (const radiusControl of [wellARadius, wellBRadius]) {
@@ -905,7 +908,7 @@ for (const parameterControl of [
   riverHead,
 ]) {
   parameterControl.addEventListener("input", updateParameterLabels);
-  parameterControl.addEventListener("change", recalculate);
+  parameterControl.addEventListener("change", recalculateFromControls);
 }
 
 qualitativeStreamlinesToggle.addEventListener("change", () => {
@@ -925,4 +928,4 @@ updateSliderLabels();
 updateWellRadiusLabels();
 scene.setQualitativeStreamlinesVisible(qualitativeStreamlinesToggle.checked);
 updateGeologicalCut();
-recalculate();
+recalculateFromControls();
