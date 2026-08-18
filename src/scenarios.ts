@@ -3,6 +3,12 @@ import type { GroundwaterModelInput } from "./groundwater.js";
 /** Número máximo de escenarios que puede contener el comparador futuro. */
 export const MAX_SCENARIOS = 4;
 
+export type HydraulicReferenceKind = "river" | "regional";
+
+export interface ScenarioBoundaryMetadata {
+  readonly referenceKind: HydraulicReferenceKind;
+}
+
 /**
  * Configuración de un escenario hidrogeológico.
  *
@@ -12,12 +18,14 @@ export interface Scenario {
   readonly id: string;
   readonly name: string;
   readonly parameters: GroundwaterModelInput;
+  readonly boundary: ScenarioBoundaryMetadata;
 }
 
 export interface CreateScenarioOptions {
   id: string;
   name: string;
   parameters: GroundwaterModelInput;
+  boundary?: ScenarioBoundaryMetadata;
 }
 
 export type AddScenarioResult =
@@ -29,13 +37,23 @@ export type AddScenarioResult =
     };
 
 /** Crea un escenario aislado a partir de parámetros ya válidos para el solver. */
-export function createScenario({ id, name, parameters }: CreateScenarioOptions): Scenario {
-  return { id, name, parameters: cloneParameters(parameters) };
+export function createScenario({ id, name, parameters, boundary }: CreateScenarioOptions): Scenario {
+  return {
+    id,
+    name,
+    parameters: cloneParameters(parameters),
+    boundary: cloneBoundary(boundary ?? { referenceKind: "river" }),
+  };
 }
 
 /** Devuelve una copia del escenario con un nombre nuevo. */
 export function renameScenario(scenario: Scenario, name: string): Scenario {
-  return { ...scenario, parameters: cloneParameters(scenario.parameters), name };
+  return {
+    ...scenario,
+    name,
+    parameters: cloneParameters(scenario.parameters),
+    boundary: cloneBoundary(scenario.boundary),
+  };
 }
 
 /** Devuelve una copia del escenario con una configuración nueva e independiente. */
@@ -43,7 +61,23 @@ export function updateScenarioParameters(
   scenario: Scenario,
   parameters: GroundwaterModelInput,
 ): Scenario {
-  return { ...scenario, parameters: cloneParameters(parameters) };
+  return {
+    ...scenario,
+    parameters: cloneParameters(parameters),
+    boundary: cloneBoundary(scenario.boundary),
+  };
+}
+
+/** Devuelve una copia con la procedencia semántica de la referencia actualizada. */
+export function setScenarioHydraulicReference(
+  scenario: Scenario,
+  referenceKind: HydraulicReferenceKind,
+): Scenario {
+  return {
+    ...scenario,
+    parameters: cloneParameters(scenario.parameters),
+    boundary: { referenceKind },
+  };
 }
 
 /** Añade un escenario mientras la colección no alcance el límite definido. */
@@ -75,7 +109,12 @@ function cloneScenario(scenario: Scenario): Scenario {
   return {
     ...scenario,
     parameters: cloneParameters(scenario.parameters),
+    boundary: cloneBoundary(scenario.boundary),
   };
+}
+
+function cloneBoundary(boundary: ScenarioBoundaryMetadata): ScenarioBoundaryMetadata {
+  return { referenceKind: boundary.referenceKind };
 }
 
 function cloneParameters(parameters: GroundwaterModelInput): GroundwaterModelInput {

@@ -8,6 +8,7 @@ import {
   getScenarioById,
   removeScenario,
   renameScenario,
+  setScenarioHydraulicReference,
   updateScenarioParameters,
 } from "./scenarios.js";
 
@@ -25,6 +26,51 @@ describe("scenarios", () => {
 
     expect(scenario).toMatchObject({ id: "base", name: "Base", parameters });
     expect(scenario.parameters).toEqual(parameters);
+    expect(scenario.boundary).toEqual({ referenceKind: "river" });
+  });
+
+  it("permite crear un escenario con referencia regional", () => {
+    const scenario = createScenario({
+      id: "regional",
+      name: "Regional",
+      parameters: modelParameters(),
+      boundary: { referenceKind: "regional" },
+    });
+
+    expect(scenario.boundary).toEqual({ referenceKind: "regional" });
+  });
+
+  it("cambia de río a regional sin mutar el original", () => {
+    const original = createScenario({ id: "base", name: "Base", parameters: modelParameters() });
+    const regional = setScenarioHydraulicReference(original, "regional");
+
+    expect(original.boundary).toEqual({ referenceKind: "river" });
+    expect(regional.boundary).toEqual({ referenceKind: "regional" });
+    expect(regional).not.toBe(original);
+  });
+
+  it("cambia de regional a río", () => {
+    const regional = createScenario({
+      id: "regional",
+      name: "Regional",
+      parameters: modelParameters(),
+      boundary: { referenceKind: "regional" },
+    });
+
+    expect(setScenarioHydraulicReference(regional, "river").boundary).toEqual({
+      referenceKind: "river",
+    });
+  });
+
+  it("cambiar la referencia conserva id, nombre y todos los parámetros", () => {
+    const original = createScenario({ id: "base", name: "Base", parameters: modelParameters() });
+    const regional = setScenarioHydraulicReference(original, "regional");
+
+    expect(regional.id).toBe(original.id);
+    expect(regional.name).toBe(original.name);
+    expect(regional.parameters).toEqual(original.parameters);
+    expect(regional.parameters.fixedHeadCells).toEqual(original.parameters.fixedHeadCells);
+    expect(regional.parameters.wells).toEqual(original.parameters.wells);
   });
 
   it("renombra sin mutar el escenario original", () => {
@@ -33,6 +79,7 @@ describe("scenarios", () => {
 
     expect(renamed).toMatchObject({ id: "base", name: "Alternativo" });
     expect(original.name).toBe("Base");
+    expect(renamed.boundary).toEqual(original.boundary);
     expect(renamed).not.toBe(original);
   });
 
@@ -43,6 +90,7 @@ describe("scenarios", () => {
 
     expect(updated.parameters.thicknessMeters).toBe(35);
     expect(original.parameters.thicknessMeters).toBe(20);
+    expect(updated.boundary).toEqual(original.boundary);
     expect(updated).not.toBe(original);
   });
 
@@ -66,6 +114,22 @@ describe("scenarios", () => {
 
     expect(scenarios).toHaveLength(MAX_SCENARIOS);
     expect(fifth).toEqual({ ok: false, reason: "MAX_SCENARIOS_REACHED", scenarios });
+  });
+
+  it("conserva boundary al añadir un escenario", () => {
+    const regional = createScenario({
+      id: "regional",
+      name: "Regional",
+      parameters: modelParameters(),
+      boundary: { referenceKind: "regional" },
+    });
+    const result = addScenario([], regional);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.scenarios[0].boundary).toEqual({ referenceKind: "regional" });
+      expect(result.scenarios[0].boundary).not.toBe(regional.boundary);
+    }
   });
 
   it("permite añadir otro después de eliminar un escenario", () => {
@@ -107,5 +171,17 @@ describe("scenarios", () => {
     expect(second.parameters.fixedHeadCells[0].headMeters).toBe(100);
     expect(parameters.wells[0].rateCubicMetersPerDay).toBe(25);
     expect(parameters.fixedHeadCells[0].headMeters).toBe(100);
+  });
+
+  it("no comparte accidentalmente metadatos entre escenarios", () => {
+    const parameters = modelParameters();
+    const first = createScenario({ id: "one", name: "Uno", parameters });
+    const second = createScenario({ id: "two", name: "Dos", parameters });
+
+    expect(first.boundary).not.toBe(second.boundary);
+    const regional = setScenarioHydraulicReference(first, "regional");
+
+    expect(second.boundary.referenceKind).toBe("river");
+    expect(regional.boundary).not.toBe(first.boundary);
   });
 });
