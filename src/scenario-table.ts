@@ -14,12 +14,15 @@ import {
   removeScenario,
   renameScenario,
   setScenarioHydraulicReference,
+  setScenarioRegionalReferenceSide,
   updateScenarioParameters,
   type HydraulicReferenceKind,
+  type RegionalReferenceSide,
   type Scenario,
 } from "./scenarios.js";
 
 export const HYDRAULIC_REFERENCE_OPTIONS = ["river", "regional"] as const;
+export const REGIONAL_REFERENCE_SIDE_OPTIONS = ["west", "east", "north", "south"] as const;
 
 export type ScenarioTableField =
   | "hydraulicConductivity"
@@ -222,6 +225,21 @@ export function setScenarioReferenceInTable(
   return {
     scenarios: state.scenarios.map((scenario) =>
       scenario.id === id ? setScenarioHydraulicReference(scenario, referenceKind) : scenario,
+    ),
+  };
+}
+
+/** Configura el borde regional del escenario indicado. */
+export function setScenarioRegionalReferenceSideInTable(
+  state: ScenarioTableState,
+  id: string,
+  regionalReferenceSide: RegionalReferenceSide,
+): ScenarioTableState {
+  return {
+    scenarios: state.scenarios.map((scenario) =>
+      scenario.id === id
+        ? setScenarioRegionalReferenceSide(scenario, regionalReferenceSide)
+        : scenario,
     ),
   };
 }

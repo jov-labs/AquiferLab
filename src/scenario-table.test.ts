@@ -4,6 +4,7 @@ import { createDefaultModelInput } from "./groundwater.js";
 import {
   MAX_SCENARIOS,
   HYDRAULIC_REFERENCE_OPTIONS,
+  REGIONAL_REFERENCE_SIDE_OPTIONS,
   SCENARIO_TABLE_ROWS,
   addScenarioToTable,
   createInitialScenarioTableState,
@@ -11,6 +12,7 @@ import {
   removeScenarioFromTable,
   renameScenarioInTable,
   setScenarioReferenceInTable,
+  setScenarioRegionalReferenceSideInTable,
   updateScenarioInTable,
   updateScenarioPositionInTable,
 } from "./scenario-table.js";
@@ -92,6 +94,17 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(regional.scenarios[0].parameters.fixedHeadCells).toEqual(
       initial.scenarios[0].parameters.fixedHeadCells,
     );
+  });
+
+  it("configura el lado regional solo en el escenario indicado", () => {
+    const initial = setScenarioReferenceInTable(tableState(), "scenario-1", "regional");
+    const east = setScenarioRegionalReferenceSideInTable(initial, "scenario-1", "east");
+
+    expect(REGIONAL_REFERENCE_SIDE_OPTIONS).toEqual(["west", "east", "north", "south"]);
+    expect(east.scenarios[0].boundary.regionalReferenceSide).toBe("east");
+    expect(east.scenarios[0].parameters.fixedHeadCells.every((cell) => cell.column === 40)).toBe(true);
+    expect(east.scenarios[0].parameters.wells).toEqual(initial.scenarios[0].parameters.wells);
+    expect(east.scenarios[1]).toEqual(initial.scenarios[1]);
   });
 
   it("usa una etiqueta neutral para la fila de carga", () => {

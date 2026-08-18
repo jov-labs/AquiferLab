@@ -3,6 +3,7 @@ import { t } from "./i18n.js";
 import {
   MAX_SCENARIOS,
   HYDRAULIC_REFERENCE_OPTIONS,
+  REGIONAL_REFERENCE_SIDE_OPTIONS,
   SCENARIO_TABLE_ROWS,
   addScenarioToTable,
   createInitialScenarioTableState,
@@ -11,6 +12,7 @@ import {
   renameScenarioInTable,
   scenarioTableBounds,
   setScenarioReferenceInTable,
+  setScenarioRegionalReferenceSideInTable,
   updateScenarioInTable,
   updateScenarioPositionInTable,
   type ScenarioTableState,
@@ -22,6 +24,13 @@ import {
   setActiveScenario,
   type ScenarioSelection,
 } from "./scenario-selection.js";
+
+const REGIONAL_REFERENCE_SIDE_LABEL_KEYS = {
+  west: "regionalReferenceWest",
+  east: "regionalReferenceEast",
+  north: "regionalReferenceNorth",
+  south: "regionalReferenceSouth",
+} as const;
 
 export interface ScenarioTableInterface {
   render(): void;
@@ -142,6 +151,7 @@ export function createScenarioTableInterface(
   function createBody(currentState: ScenarioTableState): HTMLTableSectionElement {
     const body = document.createElement("tbody");
     body.append(createReferenceRow(currentState));
+    body.append(createRegionalReferenceSideRow(currentState));
     for (const rowDefinition of SCENARIO_TABLE_ROWS) {
       const row = document.createElement("tr");
       const label = document.createElement("th");
@@ -244,6 +254,58 @@ export function createScenarioTableInterface(
           state,
           scenario.id,
           select.value as typeof HYDRAULIC_REFERENCE_OPTIONS[number],
+        );
+        notifyActiveScenarioChange();
+        render();
+      });
+      cell.append(select);
+      row.append(cell);
+    }
+
+    const unit = document.createElement("td");
+    unit.className = "scenario-unit";
+    unit.textContent = t("noUnit");
+    row.append(unit);
+    return row;
+  }
+
+  function createRegionalReferenceSideRow(currentState: ScenarioTableState): HTMLTableRowElement {
+    const row = document.createElement("tr");
+    const label = document.createElement("th");
+    label.scope = "row";
+    label.textContent = t("scenarioRegionalReferenceSide");
+    row.append(label);
+
+    for (const scenario of currentState.scenarios) {
+      const cell = document.createElement("td");
+      if (scenario.boundary.referenceKind !== "regional") {
+        cell.textContent = t("noUnit");
+        row.append(cell);
+        continue;
+      }
+
+      const select = document.createElement("select");
+      select.className = "scenario-reference-select";
+      select.setAttribute(
+        "aria-label",
+        `${t("scenarioRegionalReferenceSide")}: ${scenario.name}`,
+      );
+      for (const side of REGIONAL_REFERENCE_SIDE_OPTIONS) {
+        const option = document.createElement("option");
+        option.value = side;
+        option.textContent = t(REGIONAL_REFERENCE_SIDE_LABEL_KEYS[side]);
+        option.selected = side === scenario.boundary.regionalReferenceSide;
+        select.append(option);
+      }
+      select.addEventListener("change", () => {
+        if (!REGIONAL_REFERENCE_SIDE_OPTIONS.includes(select.value as typeof REGIONAL_REFERENCE_SIDE_OPTIONS[number])) {
+          select.value = scenario.boundary.regionalReferenceSide;
+          return;
+        }
+        state = setScenarioRegionalReferenceSideInTable(
+          state,
+          scenario.id,
+          select.value as typeof REGIONAL_REFERENCE_SIDE_OPTIONS[number],
         );
         notifyActiveScenarioChange();
         render();

@@ -1,12 +1,24 @@
 import type { GroundwaterModelInput } from "./groundwater.js";
+import {
+  createRegionalFixedHeadCells,
+  type RegionalReferenceSide,
+} from "./regional-reference.js";
 
 /** Número máximo de escenarios que puede contener el comparador futuro. */
 export const MAX_SCENARIOS = 4;
 
 export type HydraulicReferenceKind = "river" | "regional";
+export type { RegionalReferenceSide } from "./regional-reference.js";
 
 export interface ScenarioBoundaryMetadata {
   readonly referenceKind: HydraulicReferenceKind;
+  /** Lado completo usado únicamente cuando la referencia es regional. */
+  readonly regionalReferenceSide: RegionalReferenceSide;
+}
+
+export interface ScenarioBoundaryOptions {
+  readonly referenceKind: HydraulicReferenceKind;
+  readonly regionalReferenceSide?: RegionalReferenceSide;
 }
 
 /**
@@ -25,7 +37,7 @@ export interface CreateScenarioOptions {
   id: string;
   name: string;
   parameters: GroundwaterModelInput;
-  boundary?: ScenarioBoundaryMetadata;
+  boundary?: ScenarioBoundaryOptions;
 }
 
 export type AddScenarioResult =
@@ -42,7 +54,7 @@ export function createScenario({ id, name, parameters, boundary }: CreateScenari
     id,
     name,
     parameters: cloneParameters(parameters),
-    boundary: cloneBoundary(boundary ?? { referenceKind: "river" }),
+    boundary: createBoundaryMetadata(boundary),
   };
 }
 
@@ -76,7 +88,44 @@ export function setScenarioHydraulicReference(
   return {
     ...scenario,
     parameters: cloneParameters(scenario.parameters),
-    boundary: { referenceKind },
+    boundary: { ...scenario.boundary, referenceKind },
+  };
+}
+
+/** Configura el lado de carga fija de un escenario regional sin tocar pozos ni otros parámetros. */
+export function setScenarioRegionalReferenceSide(
+  scenario: Scenario,
+  regionalReferenceSide: RegionalReferenceSide,
+): Scenario {
+  const boundary = { ...scenario.boundary, regionalReferenceSide };
+  if (scenario.boundary.referenceKind !== "regional") {
+    return {
+      ...scenario,
+      parameters: cloneParameters(scenario.parameters),
+      boundary,
+    };
+  }
+
+  const referenceHeadMeters = scenario.parameters.fixedHeadCells[0]?.headMeters;
+  if (referenceHeadMeters === undefined) {
+    return {
+      ...scenario,
+      parameters: cloneParameters(scenario.parameters),
+      boundary,
+    };
+  }
+
+  return {
+    ...scenario,
+    parameters: cloneParameters({
+      ...scenario.parameters,
+      fixedHeadCells: createRegionalFixedHeadCells(
+        scenario.parameters,
+        regionalReferenceSide,
+        referenceHeadMeters,
+      ),
+    }),
+    boundary,
   };
 }
 
@@ -114,7 +163,19 @@ function cloneScenario(scenario: Scenario): Scenario {
 }
 
 function cloneBoundary(boundary: ScenarioBoundaryMetadata): ScenarioBoundaryMetadata {
-  return { referenceKind: boundary.referenceKind };
+  return {
+    referenceKind: boundary.referenceKind,
+    regionalReferenceSide: boundary.regionalReferenceSide,
+  };
+}
+
+function createBoundaryMetadata(
+  boundary: ScenarioBoundaryOptions | undefined,
+): ScenarioBoundaryMetadata {
+  return {
+    referenceKind: boundary?.referenceKind ?? "river",
+    regionalReferenceSide: boundary?.regionalReferenceSide ?? "west",
+  };
 }
 
 function cloneParameters(parameters: GroundwaterModelInput): GroundwaterModelInput {

@@ -9,6 +9,7 @@ import {
   removeScenario,
   renameScenario,
   setScenarioHydraulicReference,
+  setScenarioRegionalReferenceSide,
   updateScenarioParameters,
 } from "./scenarios.js";
 
@@ -26,7 +27,7 @@ describe("scenarios", () => {
 
     expect(scenario).toMatchObject({ id: "base", name: "Base", parameters });
     expect(scenario.parameters).toEqual(parameters);
-    expect(scenario.boundary).toEqual({ referenceKind: "river" });
+    expect(scenario.boundary).toEqual({ referenceKind: "river", regionalReferenceSide: "west" });
   });
 
   it("permite crear un escenario con referencia regional", () => {
@@ -37,15 +38,15 @@ describe("scenarios", () => {
       boundary: { referenceKind: "regional" },
     });
 
-    expect(scenario.boundary).toEqual({ referenceKind: "regional" });
+    expect(scenario.boundary).toEqual({ referenceKind: "regional", regionalReferenceSide: "west" });
   });
 
   it("cambia de río a regional sin mutar el original", () => {
     const original = createScenario({ id: "base", name: "Base", parameters: modelParameters() });
     const regional = setScenarioHydraulicReference(original, "regional");
 
-    expect(original.boundary).toEqual({ referenceKind: "river" });
-    expect(regional.boundary).toEqual({ referenceKind: "regional" });
+    expect(original.boundary).toEqual({ referenceKind: "river", regionalReferenceSide: "west" });
+    expect(regional.boundary).toEqual({ referenceKind: "regional", regionalReferenceSide: "west" });
     expect(regional).not.toBe(original);
   });
 
@@ -59,6 +60,7 @@ describe("scenarios", () => {
 
     expect(setScenarioHydraulicReference(regional, "river").boundary).toEqual({
       referenceKind: "river",
+      regionalReferenceSide: "west",
     });
   });
 
@@ -71,6 +73,47 @@ describe("scenarios", () => {
     expect(regional.parameters).toEqual(original.parameters);
     expect(regional.parameters.fixedHeadCells).toEqual(original.parameters.fixedHeadCells);
     expect(regional.parameters.wells).toEqual(original.parameters.wells);
+  });
+
+  it("usa Oeste por defecto y conserva exactamente las cargas fijas históricas", () => {
+    const parameters = modelParameters();
+    const regional = createScenario({
+      id: "regional",
+      name: "Regional",
+      parameters,
+      boundary: { referenceKind: "regional" },
+    });
+
+    expect(regional.boundary.regionalReferenceSide).toBe("west");
+    expect(regional.parameters.fixedHeadCells).toEqual(parameters.fixedHeadCells);
+  });
+
+  it("cambia solo la frontera regional y conserva pozos y demás parámetros", () => {
+    const regional = createScenario({
+      id: "regional",
+      name: "Regional",
+      parameters: modelParameters(),
+      boundary: { referenceKind: "regional" },
+    });
+    const east = setScenarioRegionalReferenceSide(regional, "east");
+
+    expect(east.boundary).toEqual({ referenceKind: "regional", regionalReferenceSide: "east" });
+    expect(east.parameters.fixedHeadCells).toHaveLength(east.parameters.rows);
+    expect(east.parameters.fixedHeadCells.every((cell) => cell.column === east.parameters.columns - 1)).toBe(true);
+    expect(east.parameters.fixedHeadCells.every((cell) => cell.headMeters === 100)).toBe(true);
+    expect(east.parameters.wells).toEqual(regional.parameters.wells);
+    expect(east.parameters.hydraulicConductivityMetersPerDay).toBe(
+      regional.parameters.hydraulicConductivityMetersPerDay,
+    );
+    expect(east.parameters.rechargeMetersPerDay).toBe(regional.parameters.rechargeMetersPerDay);
+  });
+
+  it("no cambia celdas fijas al configurar un lado que no está activo en un escenario río", () => {
+    const river = createScenario({ id: "river", name: "Río", parameters: modelParameters() });
+    const configured = setScenarioRegionalReferenceSide(river, "south");
+
+    expect(configured.boundary).toEqual({ referenceKind: "river", regionalReferenceSide: "south" });
+    expect(configured.parameters.fixedHeadCells).toEqual(river.parameters.fixedHeadCells);
   });
 
   it("renombra sin mutar el escenario original", () => {
@@ -127,7 +170,10 @@ describe("scenarios", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.scenarios[0].boundary).toEqual({ referenceKind: "regional" });
+      expect(result.scenarios[0].boundary).toEqual({
+        referenceKind: "regional",
+        regionalReferenceSide: "west",
+      });
       expect(result.scenarios[0].boundary).not.toBe(regional.boundary);
     }
   });
