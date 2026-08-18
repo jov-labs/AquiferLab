@@ -496,7 +496,7 @@ function streamlineTargets(input: GroundwaterModelInput): StreamlineTarget[] {
     return { xMeters: position.xMeters, zMeters: position.yMeters };
   };
   return [
-    ...input.fixedHeadCells.map((cell) => ({ ...toPoint(cell.row, cell.column), kind: "river" as const })),
+    ...input.fixedHeadCells.map((cell) => ({ ...toPoint(cell.row, cell.column), kind: "fixedHead" as const })),
     ...input.wells
       .filter((well) => well.rateCubicMetersPerDay > 0)
       .map((well) => ({ ...toPoint(well.row, well.column), kind: "well" as const })),

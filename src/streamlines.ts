@@ -14,12 +14,12 @@ export interface StreamlineDomain {
 }
 
 export interface StreamlineTarget extends StreamlinePoint {
-  kind: "river" | "well";
+  kind: "fixedHead" | "well";
 }
 
 export type StreamlineTermination =
   | "outOfDomain"
-  | "river"
+  | "fixedHead"
   | "well"
   | "nearZeroFlow"
   | "maxLength"
@@ -46,7 +46,7 @@ export interface StreamlineOptions {
   maxLengthMeters: number;
   /** Umbral explícito de |q|, en m/día, para detener una trayectoria. */
   nearZeroFlowMetersPerDay: number;
-  /** Distancia explícita de captura de río o pozo, en m. */
+  /** Distancia explícita de captura de carga fija o pozo, en m. */
   targetToleranceMeters: number;
   /** Distancia por debajo de la cual un avance se considera estancado, en m. */
   stagnationToleranceMeters: number;

@@ -88,6 +88,35 @@ describe("líneas de flujo cualitativas", () => {
     expect(Math.hypot(lastPoint.xMeters - well.xMeters, lastPoint.zMeters - well.zMeters)).toBeLessThanOrEqual(options.targetToleranceMeters);
   });
 
+  it("termina al alcanzar una carga fija y conserva la clasificación del pozo", () => {
+    const fixedHead = { xMeters: 50, zMeters: 50, kind: "fixedHead" as const };
+    const well = { xMeters: 80, zMeters: 50, kind: "well" as const };
+    const trace = integrateStreamline(
+      domain,
+      fieldFrom(() => ({ qxMetersPerDay: 1, qzMetersPerDay: 0 })),
+      { xMeters: fixedHead.xMeters, zMeters: fixedHead.zMeters },
+      [fixedHead, well],
+      options,
+      1,
+    );
+
+    expect(trace.termination).toBe("fixedHead");
+    expect(trace.points).toEqual([{ xMeters: fixedHead.xMeters, zMeters: fixedHead.zMeters }]);
+    expect(well.kind).toBe("well");
+  });
+
+  it("mantiene las mismas trayectorias para referencias con las mismas cargas fijas", () => {
+    const fixedHeadTargetsA = [
+      { xMeters: 50, zMeters: 50, kind: "fixedHead" as const },
+    ];
+    const fixedHeadTargetsB = fixedHeadTargetsA.map((target) => ({ ...target }));
+    const field = fieldFrom(() => ({ qxMetersPerDay: 3, qzMetersPerDay: 4 }));
+    const traceA = integrateStreamline(domain, field, { xMeters: 20, zMeters: 20 }, fixedHeadTargetsA, options, 1);
+    const traceB = integrateStreamline(domain, field, { xMeters: 20, zMeters: 20 }, fixedHeadTargetsB, options, 1);
+
+    expect(traceB).toEqual(traceA);
+  });
+
   it("termina de forma segura en una región de flujo prácticamente nulo", () => {
     const trace = integrateStreamline(
       domain,
