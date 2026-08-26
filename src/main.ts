@@ -27,6 +27,7 @@ import {
   type ScenarioTableInterface,
 } from "./scenario-table-ui.js";
 import { buildModelInput } from "./scenario-execution.js";
+import { prepareHydroModelDownload } from "./contract-export.js";
 import { projectModelInputToControlValues } from "./model-input-controls.js";
 import {
   updateActiveScenarioFromControl,
@@ -107,6 +108,7 @@ const welcomeCopy = getElement<HTMLElement>("welcome-copy");
 const welcomeStart = getElement<HTMLButtonElement>("welcome-start");
 const welcomeDialog = getElement<HTMLDialogElement>("welcome-dialog");
 const homeButton = getElement<HTMLButtonElement>("home-button");
+const exportHydroModelButton = getElement<HTMLButtonElement>("export-hydro-model");
 const app = getElement<HTMLDivElement>("app");
 const scenarioComparatorToggle = getElement<HTMLButtonElement>("scenario-comparator-toggle");
 const scenarioComparatorPanel = getElement<HTMLElement>("scenario-comparator-panel");
@@ -238,6 +240,7 @@ function updateLanguageToggle(): void {
   welcomeCopy.textContent = `${t("intro")} ${t("noKnowledge")}`;
   welcomeStart.textContent = t("start");
   homeButton.textContent = t("home");
+  exportHydroModelButton.textContent = t("exportHydroModel");
   scenarioComparatorToggle.textContent = t("compareScenarios");
   scenarioComparatorClose.textContent = t("closeScenarioComparator");
   getElement<HTMLElement>("scenario-comparator-panel-title").textContent = t("scenarioComparatorTitle");
@@ -360,6 +363,33 @@ function recalculateScenario(scenario: Scenario): void {
   recalculate(input);
 }
 
+function downloadActiveHydroModel(): void {
+  if (!scenarioTableInterface) {
+    solverMessage.textContent = t("hydroModelExportFailed");
+    return;
+  }
+
+  try {
+    const download = prepareHydroModelDownload(
+      buildModelInput(scenarioTableInterface.getActiveScenario()),
+    );
+    const url = URL.createObjectURL(
+      new Blob([download.content], { type: "application/json;charset=utf-8" }),
+    );
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = download.filename;
+    try {
+      anchor.click();
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+    solverMessage.textContent = "";
+  } catch (error) {
+    solverMessage.textContent = error instanceof Error ? error.message : t("hydroModelExportFailed");
+  }
+}
+
 scenarioTableInterface = createScenarioTableInterface(
   getElement<HTMLDivElement>("scenario-comparator-root"),
   initialInput,
@@ -370,6 +400,7 @@ scenarioTableInterface = createScenarioTableInterface(
 );
 scenarioTableInterface.render();
 updateActiveScenarioVisual(scenarioTableInterface.getActiveScenario());
+exportHydroModelButton.addEventListener("click", downloadActiveHydroModel);
 
 interface LastWellMetricState {
   input: GroundwaterModelInput;

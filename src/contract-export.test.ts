@@ -4,6 +4,8 @@ import type { GroundwaterModelInput } from "./groundwater.js";
 import {
   ContractExportError,
   exportToHydroModel,
+  HYDRO_MODEL_FILENAME,
+  prepareHydroModelDownload,
   serializeHydroModel,
 } from "./contract-export.js";
 
@@ -73,10 +75,23 @@ describe("exportación hydro_model 0.1.0", () => {
     expect(first).toBe(second);
   });
 
+  it("prepara hydro_model.json desde la serialización contractual", () => {
+    const input = asymmetricCase();
+    const copy = structuredClone(input);
+    const download = prepareHydroModelDownload(input);
+
+    expect(download.filename).toBe(HYDRO_MODEL_FILENAME);
+    expect(download.filename).toBe("hydro_model.json");
+    expect(download.content).toBe(serializeHydroModel(exportToHydroModel(input)));
+    expect(JSON.parse(download.content).contract_version).toBe("0.1.0");
+    expect(input).toEqual(copy);
+  });
+
   it("rechaza recarga distinta de cero en lugar de descartarla", () => {
     const input = asymmetricCase();
     input.rechargeMetersPerDay = 120 / 1000 / 365;
     expect(() => exportToHydroModel(input)).toThrow(ContractExportError);
+    expect(() => prepareHydroModelDownload(input)).toThrow(ContractExportError);
   });
 
   it("no emite campos fuera del contrato", () => {

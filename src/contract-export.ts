@@ -8,6 +8,7 @@
 import type { GroundwaterModelInput } from "./groundwater.js";
 
 export const HYDRO_MODEL_CONTRACT_VERSION = "0.1.0" as const;
+export const HYDRO_MODEL_FILENAME = "hydro_model.json";
 
 export interface HydroModelPayload {
   contract_version: typeof HYDRO_MODEL_CONTRACT_VERSION;
@@ -79,4 +80,14 @@ export function exportToHydroModel(
 
 export function serializeHydroModel(payload: Readonly<HydroModelPayload>): string {
   return JSON.stringify(payload);
+}
+
+/** Prepara el contenido contractual que la interfaz entrega como descarga. */
+export function prepareHydroModelDownload(
+  input: Readonly<GroundwaterModelInput>,
+): { filename: typeof HYDRO_MODEL_FILENAME; content: string } {
+  return {
+    filename: HYDRO_MODEL_FILENAME,
+    content: serializeHydroModel(exportToHydroModel(input)),
+  };
 }
