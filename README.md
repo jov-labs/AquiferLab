@@ -151,7 +151,7 @@ incluye ni demuestra:
 - acuífero libre, desaturación, almacenamiento ni comportamiento transitorio;
 - heterogeneidad espacial, anisotropía, transporte, dispersión, partículas o
   velocidad intersticial;
-- PWA/offline, backend, persistencia de escenarios, CI u hosting público;
+- PWA/offline, backend, persistencia de escenarios u hosting público;
 - compatibilidad verificada con navegadores, sistemas operativos o dispositivos
   concretos.
 
@@ -182,6 +182,13 @@ npm test
 npm run typecheck
 npm run build
 ```
+
+## Demo pública futura
+
+El workflow de GitHub Actions valida tests, typecheck y build, y queda preparado
+para publicar `dist/` en GitHub Pages desde `main`. Aún no existe una URL
+pública: crear/configurar el repositorio en GitHub y autorizar su publicación
+son pasos posteriores.
 
 ## Tecnologías y estado
 
