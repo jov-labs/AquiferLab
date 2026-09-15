@@ -196,3 +196,7 @@ AquiferLab usa TypeScript, Vite, Three.js y Vitest. Es un proyecto en desarrollo
 orientado a exploración y presentación verificable de un modelo simplificado;
 no se presenta como producto desplegado ni como herramienta hidrogeológica de
 producción.
+
+## Licencia
+
+GNU General Public License v3.0 or later (GPL-3.0-or-later)
