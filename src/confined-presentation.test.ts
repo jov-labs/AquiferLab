@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { evaluateConfinedModelValidity } from "./confined-validity.js";
 import { getConfinedPresentationState } from "./confined-presentation.js";
+import { translate } from "./i18n.js";
 
 function validityFor(headsMeters: number[][], wellA: number, wellB: number) {
   return evaluateConfinedModelValidity({
@@ -40,5 +41,20 @@ describe("presentación de validez confinada", () => {
       wellAOutputsDegraded: true,
       wellBOutputsDegraded: true,
     });
+  });
+
+  it("expresa en ES y EN que una malla inválida no debe interpretarse como válida", () => {
+    expect(translate("es", "meshInvalidStatus")).toBe(
+      "Escenario fuera del modelo confinado",
+    );
+    expect(translate("es", "meshInvalidPublicWarning")).toContain(
+      "no deben interpretarse como válidos",
+    );
+    expect(translate("en", "meshInvalidStatus")).toBe(
+      "Scenario outside the confined model",
+    );
+    expect(translate("en", "meshInvalidPublicWarning")).toContain(
+      "must not be interpreted as valid",
+    );
   });
 });
