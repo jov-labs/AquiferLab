@@ -74,7 +74,7 @@ describe("pure drawdown calculation", () => {
   });
 
   it("rejects incompatible dimensions", () => {
-    expect(() => calculateDrawdown([[100, 100]], [[100], [100]])).toThrow(/dimensiones/);
+    expect(() => calculateDrawdown([[100, 100]], [[100], [100]])).toThrow(/same dimensions/);
   });
 
   it("rejects non-rectangular matrices", () => {
@@ -84,16 +84,16 @@ describe("pure drawdown calculation", () => {
   });
 
   it("rejects empty matrices", () => {
-    expect(() => calculateDrawdown([], [])).toThrow(/vacía/);
+    expect(() => calculateDrawdown([], [])).toThrow(/empty/);
   });
 
   it("rejects NaN", () => {
-    expect(() => calculateDrawdown([[Number.NaN]], [[100]])).toThrow(/finitos/);
+    expect(() => calculateDrawdown([[Number.NaN]], [[100]])).toThrow(/finite numbers/);
   });
 
   it("rejects Infinity", () => {
     expect(() => calculateDrawdown([[100]], [[Number.POSITIVE_INFINITY]])).toThrow(
-      /finitos/,
+      /finite numbers/,
     );
   });
 

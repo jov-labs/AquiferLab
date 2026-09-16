@@ -45,7 +45,7 @@ export function calculateDarcyFlow(
         !Number.isFinite(qzMetersPerDay) ||
         !Number.isFinite(magnitudeMetersPerDay)
       ) {
-        throw new Error("El campo de Darcy contiene valores no finitos.");
+        throw new Error("The Darcy field contains non-finite values.");
       }
 
       vectors.push({
@@ -66,22 +66,22 @@ function validateInputAndHeads(
   input: GroundwaterModelInput,
   headsMeters: readonly (readonly number[])[],
 ): void {
-  assertPositive(input.widthMeters, "El ancho físico");
-  assertPositive(input.heightMeters, "El alto físico");
+  assertPositive(input.widthMeters, "Physical width");
+  assertPositive(input.heightMeters, "Physical height");
   assertPositive(input.hydraulicConductivityMetersPerDay, "K");
-  assertGridDimension(input.rows, "El número de filas");
-  assertGridDimension(input.columns, "El número de columnas");
+  assertGridDimension(input.rows, "Row count");
+  assertGridDimension(input.columns, "Column count");
 
   if (headsMeters.length !== input.rows) {
-    throw new Error("headsMeters debe tener el mismo número de filas que la malla.");
+    throw new Error("headsMeters must have the same row count as the grid.");
   }
   for (const row of headsMeters) {
     if (row.length !== input.columns) {
-      throw new Error("headsMeters debe ser una matriz rectangular compatible con la malla.");
+      throw new Error("headsMeters must be a rectangular matrix compatible with the grid.");
     }
     for (const head of row) {
       if (!Number.isFinite(head)) {
-        throw new Error("headsMeters no puede contener NaN ni Infinity.");
+        throw new Error("headsMeters cannot contain NaN or Infinity.");
       }
     }
   }
@@ -89,12 +89,12 @@ function validateInputAndHeads(
 
 function assertPositive(value: number, label: string): void {
   if (!Number.isFinite(value) || value <= 0) {
-    throw new Error(`${label} debe ser un número finito mayor que cero.`);
+    throw new Error(`${label} must be a finite number greater than zero.`);
   }
 }
 
 function assertGridDimension(value: number, label: string): void {
   if (!Number.isInteger(value) || value < 3) {
-    throw new Error(`${label} debe ser un entero de al menos 3.`);
+    throw new Error(`${label} must be an integer of at least 3.`);
   }
 }

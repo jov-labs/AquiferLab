@@ -97,28 +97,28 @@ describe("Peaceman well correction", () => {
     );
 
     expect(() => calculateCellToWellHeadLossMeters({ ...base, wellRadiusMeters: 0 })).toThrow(
-      /mayor que cero/,
+      /greater than zero/,
     );
     expect(() =>
       calculateCellToWellHeadLossMeters({ ...base, wellRadiusMeters: equivalentRadius }),
-    ).toThrow(/menor que el radio equivalente/);
+    ).toThrow(/smaller than the Peaceman equivalent radius/);
     expect(() =>
       calculateCellToWellHeadLossMeters({ ...base, wellRadiusMeters: equivalentRadius + 1 }),
-    ).toThrow(/menor que el radio equivalente/);
+    ).toThrow(/smaller than the Peaceman equivalent radius/);
   });
 
   it("rejects out-of-domain K, thickness, or pumping", () => {
     expect(() =>
       calculateCellToWellHeadLossMeters(validParameters({ hydraulicConductivityMetersPerDay: 0 })),
-    ).toThrow(/conductividad/);
+    ).toThrow(/Hydraulic conductivity/);
     expect(() =>
       calculateCellToWellHeadLossMeters(validParameters({ thicknessMeters: -1 })),
-    ).toThrow(/espesor/);
+    ).toThrow(/Thickness/);
     expect(() =>
       calculateCellToWellHeadLossMeters(
         validParameters({ extractionRateCubicMetersPerDay: -1 }),
       ),
-    ).toThrow(/negativo/);
+    ).toThrow(/cannot be negative/);
   });
 
   it("rejects non-positive cell dimensions", () => {
@@ -136,16 +136,16 @@ describe("Peaceman well correction", () => {
       for (const invalidValue of [Number.NaN, Number.POSITIVE_INFINITY]) {
         expect(() =>
           calculateCellToWellHeadLossMeters({ ...base, [key]: invalidValue }),
-        ).toThrow(/finito/);
+        ).toThrow(/finite number/);
       }
     }
     for (const invalidValue of [Number.NaN, Number.NEGATIVE_INFINITY]) {
-      expect(() => estimateWellHeadMeters(invalidValue, base)).toThrow(/finito/);
-      expect(() => estimateWellDrawdownMeters(invalidValue, base)).toThrow(/finito/);
+      expect(() => estimateWellHeadMeters(invalidValue, base)).toThrow(/finite number/);
+      expect(() => estimateWellDrawdownMeters(invalidValue, base)).toThrow(/finite number/);
     }
     expect(() =>
       calculatePeacemanEquivalentRadiusMeters(Number.MAX_VALUE, Number.MAX_VALUE),
-    ).toThrow(/finito/);
+    ).toThrow(/finite number/);
     expect(() =>
       calculateCellToWellHeadLossMeters(
         validParameters({

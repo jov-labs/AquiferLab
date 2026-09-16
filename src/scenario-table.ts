@@ -133,7 +133,7 @@ export function createInitialScenarioTableState(
   };
 }
 
-/** Lee un valor visible de una fila, usando las mismas unidades que los controles existentes. */
+/** Reads a visible row value using the same units as the existing controls. */
 export function getScenarioTableValue(scenario: Scenario, field: ScenarioTableField): number {
   const { parameters } = scenario;
   switch (field) {
@@ -240,7 +240,7 @@ export function updateActiveScenarioTableValue(
   const nextState = updateScenarioInTable(state, activeScenarioId, field, value);
   const scenario = nextState.scenarios.find((candidate) => candidate.id === activeScenarioId);
   if (!scenario) {
-    throw new Error("No existe un escenario activo válido.");
+    throw new Error("No valid active scenario exists.");
   }
   return { state: nextState, scenario };
 }

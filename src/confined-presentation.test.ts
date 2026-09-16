@@ -57,4 +57,13 @@ describe("confined-validity presentation", () => {
       "must not be interpreted as valid",
     );
   });
+
+  it("localizes runtime non-convergence and bootstrap accessibility text", () => {
+    expect(translate("es", "noConvergence")).toBe("NO CONVERGIÓ");
+    expect(translate("en", "noConvergence")).toBe("DID NOT CONVERGE");
+    expect(translate("es", "noConvergenceDetail")).toContain("última superficie válida");
+    expect(translate("en", "noConvergenceDetail")).toContain("last valid surface");
+    expect(translate("es", "scenePanelLabel")).toBe("Visualización Three.js del acuífero");
+    expect(translate("en", "scenePanelLabel")).toBe("Aquifer Three.js visualization");
+  });
 });

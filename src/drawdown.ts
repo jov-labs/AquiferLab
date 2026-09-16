@@ -17,7 +17,7 @@ export function calculateDrawdown(
     referenceShape.rows !== actualShape.rows ||
     referenceShape.columns !== actualShape.columns
   ) {
-    throw new Error("Las matrices de referencia y actual deben tener las mismas dimensiones.");
+    throw new Error("Reference and current matrices must have the same dimensions.");
   }
 
   const drawdownMeters = headsReferenceMeters.map((referenceRow, row) =>
@@ -33,20 +33,20 @@ function validateHeadMatrix(
   label: string,
 ): { rows: number; columns: number } {
   if (matrix.length === 0) {
-    throw new Error(`${label} no puede estar vacía.`);
+    throw new Error(`${label} cannot be empty.`);
   }
   const columns = matrix[0].length;
   if (columns === 0) {
-    throw new Error(`${label} no puede tener filas vacías.`);
+    throw new Error(`${label} cannot have empty rows.`);
   }
 
   for (const row of matrix) {
     if (row.length !== columns) {
-      throw new Error(`${label} debe ser una matriz rectangular.`);
+      throw new Error(`${label} must be a rectangular matrix.`);
     }
     for (const head of row) {
       if (!Number.isFinite(head)) {
-        throw new Error(`${label} debe contener únicamente números finitos.`);
+        throw new Error(`${label} must contain only finite numbers.`);
       }
     }
   }

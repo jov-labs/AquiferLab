@@ -60,9 +60,9 @@ describe("model validation", () => {
 
     expect(error).toBeInstanceOf(Error);
     expect((error as Error).message).toBe(
-      "Se requiere al menos una celda de carga fija para definir una referencia hidráulica.",
+      "At least one fixed-head cell is required to define a hydraulic reference.",
     );
-    expect((error as Error).message).not.toMatch(/río/i);
+    expect((error as Error).message).not.toMatch(/river/i);
   });
 
   it("preserves the 41 default fixed heads in column zero", () => {
@@ -80,13 +80,13 @@ describe("model validation", () => {
 
   it("rejects thickness less than or equal to zero", () => {
     expect(() => solveGroundwater({ ...testModel(), thicknessMeters: 0 })).toThrow(
-      /espesor/,
+      /Thickness/,
     );
   });
 
   it("rejects invalid grid dimensions", () => {
-    expect(() => solveGroundwater({ ...testModel(), rows: 1 })).toThrow(/filas/);
-    expect(() => solveGroundwater({ ...testModel(), columns: 2.5 })).toThrow(/columnas/);
+    expect(() => solveGroundwater({ ...testModel(), rows: 1 })).toThrow(/Row count/);
+    expect(() => solveGroundwater({ ...testModel(), columns: 2.5 })).toThrow(/Column count/);
   });
 
   it("rejects a well located in a fixed-head cell", () => {
@@ -95,7 +95,7 @@ describe("model validation", () => {
         ...testModel(),
         wells: [{ row: 20, column: 0, rateCubicMetersPerDay: 25 }],
       }),
-    ).toThrow(/carga fija/);
+    ).toThrow(/fixed-head cell/);
   });
 
   it("rejects Dirichlet cells outside the grid dimensions", () => {
@@ -104,7 +104,7 @@ describe("model validation", () => {
         ...testModel(),
         fixedHeadCells: [{ row: 41, column: 0, headMeters: 100 }],
       }),
-    ).toThrow(/fuera de la malla/);
+    ).toThrow(/outside the grid/);
   });
 
   it("rejects NaN or infinite Dirichlet heads", () => {
@@ -114,7 +114,7 @@ describe("model validation", () => {
           ...testModel(),
           fixedHeadCells: [{ row: 0, column: 0, headMeters }],
         }),
-      ).toThrow(/número finito/);
+      ).toThrow(/finite number/);
     }
   });
 });

@@ -54,31 +54,31 @@ const LITERS_PER_CUBIC_METER = 1_000;
 
 /** Centralized K conversion: m/s to m/day. */
 export function metersPerSecondToMetersPerDay(value: number): number {
-  assertFinite(value, "La conductividad en m/s");
+  assertFinite(value, "Hydraulic conductivity in m/s");
   return value * SECONDS_PER_DAY;
 }
 
 /** Centralized K conversion: m/day to m/s. */
 export function metersPerDayToMetersPerSecond(value: number): number {
-  assertFinite(value, "La conductividad en m/día");
+  assertFinite(value, "Hydraulic conductivity in m/day");
   return value / SECONDS_PER_DAY;
 }
 
 /** Centralized recharge conversion: mm/year to m/day. */
 export function millimetersPerYearToMetersPerDay(value: number): number {
-  assertFinite(value, "La recarga en mm/año");
+  assertFinite(value, "Recharge in mm/year");
   return value / 1_000 / DAYS_PER_YEAR;
 }
 
 /** Centralized recharge conversion: m/day to mm/year. */
 export function metersPerDayToMillimetersPerYear(value: number): number {
-  assertFinite(value, "La recarga en m/día");
+  assertFinite(value, "Recharge in m/day");
   return value * 1_000 * DAYS_PER_YEAR;
 }
 
 /** Centralized pumping conversion: L/s to m³/day. */
 export function litersPerSecondToCubicMetersPerDay(value: number): number {
-  assertFinite(value, "El bombeo en L/s");
+  assertFinite(value, "Pumping rate in L/s");
   return (value / LITERS_PER_CUBIC_METER) * SECONDS_PER_DAY;
 }
 
@@ -167,7 +167,7 @@ export function solveGroundwater(input: GroundwaterModelInput): GroundwaterResul
           (neighborContribution + input.rechargeMetersPerDay - wellSinks[row][column]) /
           conductanceSum;
         if (!Number.isFinite(nextHead)) {
-          throw new Error("El solver produjo NaN o Infinity.");
+          throw new Error("The solver produced NaN or Infinity.");
         }
 
         const change = Math.abs(nextHead - heads[row][column]);
@@ -197,7 +197,7 @@ function makeResult(
   for (const row of headsMeters) {
     for (const head of row) {
       if (!Number.isFinite(head)) {
-        throw new Error("El resultado contiene NaN o Infinity.");
+        throw new Error("The result contains NaN or Infinity.");
       }
       minHeadMeters = Math.min(minHeadMeters, head);
       maxHeadMeters = Math.max(maxHeadMeters, head);
@@ -216,44 +216,44 @@ function makeResult(
 }
 
 function validateInput(input: GroundwaterModelInput): void {
-  assertPositive(input.widthMeters, "El ancho del dominio");
-  assertPositive(input.heightMeters, "El alto del dominio");
-  assertGridSize(input.rows, "El número de filas");
-  assertGridSize(input.columns, "El número de columnas");
+  assertPositive(input.widthMeters, "Domain width");
+  assertPositive(input.heightMeters, "Domain height");
+  assertGridSize(input.rows, "Row count");
+  assertGridSize(input.columns, "Column count");
   assertPositive(input.hydraulicConductivityMetersPerDay, "K");
-  assertPositive(input.thicknessMeters, "El espesor");
-  assertFinite(input.rechargeMetersPerDay, "La recarga");
-  assertPositive(input.tolerance, "La tolerancia");
+  assertPositive(input.thicknessMeters, "Thickness");
+  assertFinite(input.rechargeMetersPerDay, "Recharge");
+  assertPositive(input.tolerance, "Tolerance");
   if (!Number.isInteger(input.maxIterations) || input.maxIterations <= 0) {
-    throw new Error("El máximo de iteraciones debe ser un entero positivo.");
+    throw new Error("Maximum iterations must be a positive integer.");
   }
   if (input.fixedHeadCells.length === 0) {
     throw new Error(
-      "Se requiere al menos una celda de carga fija para definir una referencia hidráulica.",
+      "At least one fixed-head cell is required to define a hydraulic reference.",
     );
   }
   if (input.wells.length > 2) {
-    throw new Error("El modelo admite como máximo dos pozos de extracción.");
+    throw new Error("The model supports at most two extraction wells.");
   }
 
   const occupiedFixedCells = new Set<number>();
   for (const cell of input.fixedHeadCells) {
-    assertCell(cell.row, cell.column, input.rows, input.columns, "La celda de carga fija");
-    assertFinite(cell.headMeters, "La carga fija");
+    assertCell(cell.row, cell.column, input.rows, input.columns, "Fixed-head cell");
+    assertFinite(cell.headMeters, "Fixed head");
     const index = cell.row * input.columns + cell.column;
     if (occupiedFixedCells.has(index)) {
-      throw new Error("No se permiten celdas de carga fija duplicadas.");
+      throw new Error("Duplicate fixed-head cells are not allowed.");
     }
     occupiedFixedCells.add(index);
   }
   for (const well of input.wells) {
-    assertCell(well.row, well.column, input.rows, input.columns, "El pozo");
+    assertCell(well.row, well.column, input.rows, input.columns, "Well");
     if (occupiedFixedCells.has(well.row * input.columns + well.column)) {
-      throw new Error("Un pozo no puede ocupar una celda de carga fija.");
+      throw new Error("A well cannot occupy a fixed-head cell.");
     }
-    assertFinite(well.rateCubicMetersPerDay, "El bombeo");
+    assertFinite(well.rateCubicMetersPerDay, "Pumping rate");
     if (well.rateCubicMetersPerDay < 0) {
-      throw new Error("El bombeo no puede ser negativo.");
+      throw new Error("Pumping rate cannot be negative.");
     }
   }
 }
@@ -280,20 +280,20 @@ function makeMatrix(rows: number, columns: number, value: number): number[][] {
 
 function assertFinite(value: number, label: string): void {
   if (!Number.isFinite(value)) {
-    throw new Error(`${label} debe ser un número finito.`);
+    throw new Error(`${label} must be a finite number.`);
   }
 }
 
 function assertPositive(value: number, label: string): void {
   assertFinite(value, label);
   if (value <= 0) {
-    throw new Error(`${label} debe ser mayor que cero.`);
+    throw new Error(`${label} must be greater than zero.`);
   }
 }
 
 function assertGridSize(value: number, label: string): void {
   if (!Number.isInteger(value) || value < 2) {
-    throw new Error(`${label} debe ser un entero de al menos 2.`);
+    throw new Error(`${label} must be an integer of at least 2.`);
   }
 }
 
@@ -312,6 +312,6 @@ function assertCell(
     column < 0 ||
     column >= columns
   ) {
-    throw new Error(`${label} está fuera de la malla.`);
+    throw new Error(`${label} is outside the grid.`);
   }
 }

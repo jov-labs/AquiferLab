@@ -53,10 +53,10 @@ describe("visible well A/B slots", () => {
   it.each([
     ["cero", []],
     ["uno", [wellA]],
-    ["tres", [wellA, wellB, { row: 35, column: 10, rateCubicMetersPerDay: 5 }]],
+    ["three", [wellA, wellB, { row: 35, column: 10, rateCubicMetersPerDay: 5 }]],
   ] as const)("rejects %s wells", (_description, wells) => {
     expect(() => getWellSlots(inputWithWells(wells))).toThrow(
-      "La simulación visible requiere exactamente dos pozos.",
+      "The visible simulation requires exactly two wells.",
     );
   });
 });

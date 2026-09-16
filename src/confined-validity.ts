@@ -52,7 +52,7 @@ export function evaluateConfinedModelValidity(
   input: Readonly<ConfinedValidityInput>,
 ): ConfinedValidityResult {
   const { headsMeters, aquiferTopElevationMeters, estimatedWellHeadsMeters } = input;
-  assertFinite(aquiferTopElevationMeters, "La cota del techo del acuífero");
+  assertFinite(aquiferTopElevationMeters, "Aquifer-top elevation");
   validateHeadsMatrix(headsMeters);
   validateEstimatedWellHeads(estimatedWellHeadsMeters);
 
@@ -134,15 +134,15 @@ function isBelowAquiferTop(headMeters: number, aquiferTopElevationMeters: number
 
 function validateHeadsMatrix(headsMeters: readonly (readonly number[])[]): void {
   if (headsMeters.length === 0 || headsMeters[0].length === 0) {
-    throw new Error("La matriz de cargas debe ser rectangular y no vacía.");
+    throw new Error("The head matrix must be rectangular and non-empty.");
   }
   const columns = headsMeters[0].length;
   for (const row of headsMeters) {
     if (row.length !== columns) {
-      throw new Error("La matriz de cargas debe ser rectangular.");
+      throw new Error("The head matrix must be rectangular.");
     }
     for (const headMeters of row) {
-      assertFinite(headMeters, "Cada carga de la malla");
+      assertFinite(headMeters, "Each grid head");
     }
   }
 }
@@ -154,15 +154,15 @@ function validateEstimatedWellHeads(
     return;
   }
   if (estimatedWellHeadsMeters.wellA !== undefined) {
-    assertFinite(estimatedWellHeadsMeters.wellA, "La carga estimada del pozo A");
+    assertFinite(estimatedWellHeadsMeters.wellA, "Estimated head for well A");
   }
   if (estimatedWellHeadsMeters.wellB !== undefined) {
-    assertFinite(estimatedWellHeadsMeters.wellB, "La carga estimada del pozo B");
+    assertFinite(estimatedWellHeadsMeters.wellB, "Estimated head for well B");
   }
 }
 
 function assertFinite(value: number, label: string): void {
   if (!Number.isFinite(value)) {
-    throw new Error(`${label} debe ser un número finito.`);
+    throw new Error(`${label} must be a finite number.`);
   }
 }

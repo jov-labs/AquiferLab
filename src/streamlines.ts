@@ -48,7 +48,7 @@ export interface StreamlineOptions {
   nearZeroFlowMetersPerDay: number;
   /** Explicit capture distance for a fixed head or well, in m. */
   targetToleranceMeters: number;
-  /** Distancia por debajo de la cual un avance se considera estancado, en m. */
+  /** Distance below which an advance is considered stagnant, in m. */
   stagnationToleranceMeters: number;
   /** Distance for detecting that a trajectory returned to an already visited area, in m. */
   repetitionToleranceMeters: number;
@@ -73,7 +73,7 @@ export const DEFAULT_STREAMLINE_OPTIONS: StreamlineOptions = {
 };
 
 /**
- * Genera semillas interiores equiespaciadas. No depende del solver ni de Three.js.
+ * Generates evenly spaced interior seeds. It does not depend on the solver or Three.js.
  */
 export function createStreamlineSeeds(
   domain: StreamlineDomain,
@@ -82,7 +82,7 @@ export function createStreamlineSeeds(
 ): StreamlinePoint[] {
   validateDomain(domain);
   if (!Number.isInteger(columns) || columns <= 0 || !Number.isInteger(rows) || rows <= 0) {
-    throw new Error("La distribución de semillas debe tener dimensiones enteras positivas.");
+    throw new Error("The seed distribution must have positive integer dimensions.");
   }
   return Array.from({ length: rows }, (_, row) =>
     Array.from({ length: columns }, (_, column) => ({
@@ -93,7 +93,7 @@ export function createStreamlineSeeds(
 }
 
 /**
- * Interpola bilinealmente q entre los centros de celda disponibles.
+ * Bilinearly interpolates q between available cell centers.
  * Near the edge, the nearest interior-cell value is extended so a continuous
  * exit from the domain can be detected and clipped.
  */
@@ -106,12 +106,12 @@ export function createDarcyInterpolator(
   const rows = [...new Set(field.vectors.map((vector) => vector.row))].sort((a, b) => a - b);
   const columns = [...new Set(field.vectors.map((vector) => vector.column))].sort((a, b) => a - b);
   if (rows.length === 0 || columns.length === 0) {
-    throw new Error("El campo de Darcy no contiene vectores para interpolar.");
+    throw new Error("The Darcy field contains no vectors to interpolate.");
   }
   for (const row of rows) {
     for (const column of columns) {
       if (!vectors.has(vectorKey(row, column))) {
-        throw new Error("El campo de Darcy debe cubrir una malla rectangular para interpolarse.");
+        throw new Error("The Darcy field must cover a rectangular grid to be interpolated.");
       }
     }
   }
@@ -119,7 +119,7 @@ export function createDarcyInterpolator(
   const dz = domain.heightMeters / domain.rows;
 
   return (point) => {
-    assertFinitePoint(point, "El punto de interpolación");
+  assertFinitePoint(point, "Interpolation point");
     const gridColumn = clamp(point.xMeters / dx - 0.5, columns[0], columns[columns.length - 1]);
     const gridRow = clamp(point.zMeters / dz - 0.5, rows[0], rows[rows.length - 1]);
     const lowerColumn = Math.floor(gridColumn);
@@ -136,13 +136,13 @@ export function createDarcyInterpolator(
     const qzMetersPerDay = bilinear(c0.qzMetersPerDay, c1.qzMetersPerDay, c2.qzMetersPerDay, c3.qzMetersPerDay, columnWeight, rowWeight);
     const magnitudeMetersPerDay = Math.hypot(qxMetersPerDay, qzMetersPerDay);
     if (!Number.isFinite(qxMetersPerDay) || !Number.isFinite(qzMetersPerDay)) {
-      throw new Error("La interpolación del campo de Darcy produjo un valor no finito.");
+      throw new Error("Darcy field interpolation produced a non-finite value.");
     }
     return { qxMetersPerDay, qzMetersPerDay, magnitudeMetersPerDay };
   };
 }
 
-/** Integra una trayectoria en el sentido indicado con RK4 sobre q / |q|. */
+/** Integrates a trajectory in the given direction with RK4 over q / |q|. */
 export function integrateStreamline(
   domain: StreamlineDomain,
   field: DarcyFlowField,
@@ -153,9 +153,9 @@ export function integrateStreamline(
 ): StreamlineTrace {
   validateDomain(domain);
   validateOptions(options);
-  assertFinitePoint(seed, "La semilla");
+  assertFinitePoint(seed, "Seed");
   if (!isInsideDomain(seed, domain)) {
-    throw new Error("La semilla debe estar dentro del dominio.");
+    throw new Error("The seed must be inside the domain.");
   }
   const interpolate = createDarcyInterpolator(domain, field);
   const points = [{ ...seed }];
@@ -177,7 +177,7 @@ export function integrateStreamline(
     if (!candidate) {
       return { points, termination: "nearZeroFlow", lengthMeters };
     }
-    assertFinitePoint(candidate, "El paso RK4");
+    assertFinitePoint(candidate, "RK4 step");
     const segmentLength = distance(position, candidate);
     if (!Number.isFinite(segmentLength) || segmentLength <= options.stagnationToleranceMeters) {
       return { points, termination: "stagnation", lengthMeters };
@@ -237,14 +237,14 @@ function makeVectorGrid(vectors: readonly DarcyVector[]): Map<string, DarcyVecto
   const grid = new Map<string, DarcyVector>();
   for (const vector of vectors) {
     if (!Number.isInteger(vector.row) || !Number.isInteger(vector.column)) {
-      throw new Error("Las coordenadas de los vectores de Darcy deben ser enteras.");
+      throw new Error("Darcy vector coordinates must be integers.");
     }
     if (!Number.isFinite(vector.qxMetersPerDay) || !Number.isFinite(vector.qzMetersPerDay)) {
-      throw new Error("El campo de Darcy contiene valores no finitos.");
+      throw new Error("The Darcy field contains non-finite values.");
     }
     const key = vectorKey(vector.row, vector.column);
     if (grid.has(key)) {
-      throw new Error("El campo de Darcy no puede contener vectores duplicados.");
+      throw new Error("The Darcy field cannot contain duplicate vectors.");
     }
     grid.set(key, vector);
   }
@@ -332,7 +332,7 @@ function firstDomainExitIntersection(
     .sort((left, right) => left - right)
     .at(0);
   if (fraction === undefined) {
-    throw new Error("No se pudo recortar la trayectoria en el borde del dominio.");
+    throw new Error("The trajectory could not be clipped at the domain boundary.");
   }
   return clampPointToDomain(advance(start, end, fraction), domain);
 }
@@ -342,7 +342,7 @@ function appendPointWithinDomain(
   point: StreamlinePoint,
   domain: StreamlineDomain,
 ): void {
-  assertFinitePoint(point, "El punto de la trayectoria");
+  assertFinitePoint(point, "Trajectory point");
   points.push(clampPointToDomain(point, domain));
 }
 
@@ -378,26 +378,26 @@ function clamp(value: number, minimum: number, maximum: number): number {
 
 function validateDomain(domain: StreamlineDomain): void {
   if (!Number.isFinite(domain.widthMeters) || domain.widthMeters <= 0 || !Number.isFinite(domain.heightMeters) || domain.heightMeters <= 0) {
-    throw new Error("El dominio de las líneas de flujo debe tener dimensiones finitas positivas.");
+    throw new Error("The streamline domain must have positive finite dimensions.");
   }
   if (!Number.isInteger(domain.rows) || domain.rows < 1 || !Number.isInteger(domain.columns) || domain.columns < 1) {
-    throw new Error("La malla de las líneas de flujo debe tener dimensiones enteras positivas.");
+    throw new Error("The streamline grid must have positive integer dimensions.");
   }
 }
 
 function validateOptions(options: StreamlineOptions): void {
   for (const [label, value] of Object.entries(options)) {
     if (!Number.isFinite(value) || value <= 0) {
-      throw new Error(`${label} debe ser un número finito mayor que cero.`);
+    throw new Error(`${label} must be a finite number greater than zero.`);
     }
   }
   if (!Number.isInteger(options.maxSteps)) {
-    throw new Error("maxSteps debe ser un entero positivo.");
+    throw new Error("maxSteps must be a positive integer.");
   }
 }
 
 function assertFinitePoint(point: StreamlinePoint, label: string): void {
   if (!Number.isFinite(point.xMeters) || !Number.isFinite(point.zMeters)) {
-    throw new Error(`${label} debe tener coordenadas finitas.`);
+    throw new Error(`${label} must have finite coordinates.`);
   }
 }

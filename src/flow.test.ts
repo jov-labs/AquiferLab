@@ -90,7 +90,7 @@ describe("Darcy specific-discharge field", () => {
 
   it("rejects incompatible headsMeters dimensions", () => {
     const input = flowInput();
-    expect(() => calculateDarcyFlow(input, [[100]])).toThrow(/filas/);
+    expect(() => calculateDarcyFlow(input, [[100]])).toThrow(/row count/);
     expect(() =>
       calculateDarcyFlow(input, Array.from({ length: input.rows }, () => [100])),
     ).toThrow(/rectangular/);
@@ -100,10 +100,10 @@ describe("Darcy specific-discharge field", () => {
     const input = flowInput();
     const headsWithNaN = analyticalHeads(input, () => 100);
     headsWithNaN[2][2] = Number.NaN;
-    expect(() => calculateDarcyFlow(input, headsWithNaN)).toThrow(/NaN ni Infinity/);
+    expect(() => calculateDarcyFlow(input, headsWithNaN)).toThrow(/NaN or Infinity/);
 
     const headsWithInfinity = analyticalHeads(input, () => 100);
     headsWithInfinity[2][2] = Number.POSITIVE_INFINITY;
-    expect(() => calculateDarcyFlow(input, headsWithInfinity)).toThrow(/NaN ni Infinity/);
+    expect(() => calculateDarcyFlow(input, headsWithInfinity)).toThrow(/NaN or Infinity/);
   });
 });

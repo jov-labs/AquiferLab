@@ -14,7 +14,7 @@ export interface WellSlots {
  */
 export function getWellSlots(input: GroundwaterModelInput): WellSlots {
   if (input.wells.length !== 2) {
-    throw new Error("La simulación visible requiere exactamente dos pozos.");
+    throw new Error("The visible simulation requires exactly two wells.");
   }
 
   return {

@@ -68,6 +68,6 @@ describe("GroundwaterModelInput projection to main controls", () => {
           { row: 1, column: 0, headMeters: 101 },
         ],
       }),
-    ).toThrow("carga fija uniforme");
+    ).toThrow("uniform fixed head");
   });
 });

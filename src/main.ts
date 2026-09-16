@@ -237,6 +237,26 @@ function updateLanguageToggle(): void {
   setLanguage(language);
   languageEs.dataset.active = language === "es" ? "true" : "false";
   languageEn.dataset.active = language === "en" ? "true" : "false";
+  document.querySelector<HTMLElement>(".language-switcher")?.setAttribute(
+    "aria-label",
+    t("languageSwitcherLabel"),
+  );
+  document.querySelector<HTMLElement>(".controls-panel")?.setAttribute(
+    "aria-label",
+    t("scenarioControlsLabel"),
+  );
+  document.querySelector<HTMLElement>(".drawdown-legend")?.setAttribute(
+    "aria-label",
+    t("drawdownLegendLabel"),
+  );
+  scenarioComparatorResizeHandle.setAttribute(
+    "aria-label",
+    t("scenarioComparatorResizeLabel"),
+  );
+  document.querySelector<HTMLElement>(".scene-panel")?.setAttribute(
+    "aria-label",
+    t("scenePanelLabel"),
+  );
   welcomeCopy.textContent = `${t("intro")} ${t("noKnowledge")}`;
   welcomeStart.textContent = t("start");
   homeButton.textContent = t("home");
@@ -385,8 +405,8 @@ function downloadActiveHydroModel(): void {
       URL.revokeObjectURL(url);
     }
     solverMessage.textContent = "";
-  } catch (error) {
-    solverMessage.textContent = error instanceof Error ? error.message : t("hydroModelExportFailed");
+  } catch {
+    solverMessage.textContent = t("hydroModelExportFailed");
   }
 }
 
@@ -413,7 +433,7 @@ let lastWellMetricState: LastWellMetricState | null = null;
 function getElement<ElementType extends HTMLElement>(id: string): ElementType {
   const element = document.getElementById(id);
   if (!(element instanceof HTMLElement)) {
-    throw new Error(`No se encontró el elemento de interfaz #${id}.`);
+    throw new Error(`Interface element #${id} was not found.`);
   }
   return element as ElementType;
 }
@@ -526,12 +546,12 @@ function recalculate(actualInput: GroundwaterModelInput): void {
       !actualResult.converged ||
       !actualResult.isValid
     ) {
-      showNoConvergence("El escenario de referencia o el actual no es válido; se conserva la última superficie válida.");
+      showNoConvergence(t("noConvergenceDetail"));
       return;
     }
     drawdown = calculateDrawdown(referenceResult.headsMeters, actualResult.headsMeters);
-  } catch (error) {
-    showNoConvergence(error instanceof Error ? error.message : "Error del solver.");
+  } catch {
+    showNoConvergence(t("calculationFailed"));
     return;
   }
 
@@ -573,7 +593,7 @@ function recalculateActiveScenarioFromControl(
   value: number,
 ): void {
   if (!scenarioTableInterface) {
-    throw new Error("La tabla de escenarios no está inicializada.");
+    throw new Error("The scenario table is not initialized.");
   }
   const scenario = updateActiveScenarioFromControl(scenarioTableInterface, control, value);
   recalculateScenario(scenario);
@@ -909,7 +929,7 @@ function positiveDrawdownLegendGradient(
 
 function showNoConvergence(message: string): void {
   lastWellMetricState = null;
-  status.textContent = "NO CONVERGIÓ";
+  status.textContent = t("noConvergence");
   status.dataset.status = "invalid";
   iterations.textContent = "—";
   minHead.textContent = "—";

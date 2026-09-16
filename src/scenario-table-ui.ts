@@ -358,7 +358,7 @@ export function createScenarioTableInterface(
       (scenario) => scenario.id === selection.activeScenarioId,
     );
     if (!activeScenario) {
-      throw new Error("No existe un escenario activo válido.");
+      throw new Error("No valid active scenario exists.");
     }
     return activeScenario;
   }

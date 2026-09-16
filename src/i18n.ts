@@ -14,6 +14,11 @@ const translations = {
     compareScenarios: "Comparar escenarios",
     closeScenarioComparator: "Cerrar",
     learningDialogLabel: "Ayuda de AquiferLab",
+    languageSwitcherLabel: "Selector de idioma",
+    scenarioControlsLabel: "Controles del escenario",
+    drawdownLegendLabel: "Escala de descenso mostrado en el acuífero",
+    scenarioComparatorResizeLabel: "Redimensionar comparador de escenarios",
+    scenePanelLabel: "Visualización Three.js del acuífero",
     helpButtonAria: (term: string) => `Ayuda sobre ${term}`,
     meshResolution: "Resolución de malla",
     maximumIterations: "Iteraciones máximas",
@@ -176,6 +181,8 @@ const translations = {
     checkScenario:
       "Revisa los datos del escenario antes de interpretar los resultados.",
     noConvergence: "NO CONVERGIÓ",
+    noConvergenceDetail:
+      "El escenario de referencia o el actual no es válido; se conserva la última superficie válida.",
     and: " y ",
   },
   en: {
@@ -189,6 +196,11 @@ const translations = {
     compareScenarios: "Compare scenarios",
     closeScenarioComparator: "Close",
     learningDialogLabel: "AquiferLab help",
+    languageSwitcherLabel: "Language selector",
+    scenarioControlsLabel: "Scenario controls",
+    drawdownLegendLabel: "Water-level decline scale shown in the aquifer",
+    scenarioComparatorResizeLabel: "Resize scenario comparator",
+    scenePanelLabel: "Aquifer Three.js visualization",
     helpButtonAria: (term: string) => `Help about ${term}`,
     meshResolution: "Mesh resolution",
     maximumIterations: "Maximum iterations",
@@ -351,6 +363,8 @@ const translations = {
     checkScenario:
       "Check the scenario data before interpreting the results.",
     noConvergence: "DID NOT CONVERGE",
+    noConvergenceDetail:
+      "The reference or current scenario is invalid; the last valid surface is retained.",
     and: " and ",
   },
 } as const;

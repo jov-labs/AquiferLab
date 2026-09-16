@@ -189,7 +189,7 @@ describe("confined-model validity", () => {
   it("rejects an empty matrix", () => {
     expect(() =>
       evaluateConfinedModelValidity({ headsMeters: [], aquiferTopElevationMeters: 0 }),
-    ).toThrow(/no vacía/);
+    ).toThrow(/non-empty/);
   });
 
   it("rejects an irregular matrix", () => {
@@ -201,17 +201,17 @@ describe("confined-model validity", () => {
   it("rejects NaN and Infinity in heads, top, and wells", () => {
     expect(() =>
       evaluateConfinedModelValidity({ headsMeters: [[Number.NaN]], aquiferTopElevationMeters: 0 }),
-    ).toThrow(/finito/);
+    ).toThrow(/finite number/);
     expect(() =>
       evaluateConfinedModelValidity({ headsMeters: [[1]], aquiferTopElevationMeters: Infinity }),
-    ).toThrow(/finito/);
+    ).toThrow(/finite number/);
     expect(() =>
       evaluateConfinedModelValidity({
         headsMeters: [[1]],
         aquiferTopElevationMeters: 0,
         estimatedWellHeadsMeters: { wellA: Number.NEGATIVE_INFINITY },
       }),
-    ).toThrow(/finito/);
+    ).toThrow(/finite number/);
   });
 
   it("does not modify received inputs", () => {

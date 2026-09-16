@@ -78,7 +78,7 @@ function readWellCellMetric(
   const headMeters = headsMeters[well.row]?.[well.column];
   const drawdown = drawdownMeters[well.row]?.[well.column];
   if (headMeters === undefined || drawdown === undefined) {
-    throw new Error("Las métricas de pozo requieren matrices compatibles con la malla.");
+    throw new Error("Well metrics require matrices compatible with the grid.");
   }
   return { headMeters, drawdownMeters: drawdown };
 }

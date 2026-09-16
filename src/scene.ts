@@ -6,6 +6,7 @@ import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js
 import type { DarcyFlowField } from "./flow.js";
 import type { ExtractionWell } from "./groundwater.js";
 import type { QualitativeStreamline } from "./streamlines.js";
+import { t } from "./i18n.js";
 
 const SURFACE_GRID_INTERVAL = 3;
 const OVERLAY_SURFACE_MARGIN_METERS = 8;
@@ -302,7 +303,7 @@ export function updateWellMarkerPositions(
   wellB: Readonly<ExtractionWell>,
 ): void {
   if (markers.length !== 2) {
-    throw new Error("La escena requiere exactamente dos marcadores de pozo.");
+    throw new Error("The scene requires exactly two well markers.");
   }
 
   updateWellMarkerPosition(markers[0].marker, domain, wellA);
@@ -379,8 +380,7 @@ function addRiver(
 
   const label = document.createElement("div");
   label.className = "river-label";
-  label.textContent =
-    document.documentElement.lang === "en" ? "River" : "Río";
+  label.textContent = t("river");
   container.append(label);
 
   return { marker: river, label };
@@ -609,7 +609,7 @@ function setDrawdownColor(
 
 /**
  * Presentation layer: transforms already integrated polylines into Three.js geometry.
- * No interpreta q ni integra trayectorias.
+ * It does not interpret q or integrate trajectories.
  */
 function updateStreamlineLines(
   group: THREE.Group,
@@ -913,7 +913,7 @@ function isWellLabelRetainedByCut(
   cutEnabled: boolean,
   cutPlane: THREE.Plane,
 ): boolean {
-  // Three.js descarta el semiespacio negativo del plano de recorte.
+  // Three.js discards the clipping plane's negative half-space.
   return !cutEnabled || cutPlane.distanceToPoint(position) >= -CUT_LABEL_PLANE_TOLERANCE_METERS;
 }
 

@@ -45,7 +45,7 @@ export function exportToHydroModel(
 ): HydroModelPayload {
   if (input.rechargeMetersPerDay !== 0) {
     throw new ContractExportError(
-      "hydro_model 0.1.0 solo soporta recharge=0; el modelo tiene una recarga distinta de cero que no puede descartarse sin pérdida.",
+      "hydro_model 0.1.0 supports only recharge=0; the model has non-zero recharge that cannot be discarded without loss.",
     );
   }
 

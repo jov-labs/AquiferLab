@@ -123,7 +123,7 @@ function isHelpKey(value: string | undefined): value is HelpKey {
 function getElement<ElementType extends HTMLElement>(id: string): ElementType {
   const element = document.getElementById(id);
   if (!(element instanceof HTMLElement)) {
-    throw new Error(`No se encontró el elemento de ayuda #${id}.`);
+    throw new Error(`Help element #${id} was not found.`);
   }
   return element as ElementType;
 }
@@ -131,7 +131,7 @@ function getElement<ElementType extends HTMLElement>(id: string): ElementType {
 function getDialog(id: string): HTMLDialogElement {
   const element = document.getElementById(id);
   if (!(element instanceof HTMLDialogElement)) {
-    throw new Error(`No se encontró el diálogo de ayuda #${id}.`);
+    throw new Error(`Help dialog #${id} was not found.`);
   }
   return element;
 }

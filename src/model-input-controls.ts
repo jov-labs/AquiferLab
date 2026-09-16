@@ -39,10 +39,10 @@ export function projectModelInputToControlValues(
 function uniformFixedHeadMeters(input: GroundwaterModelInput): number {
   const firstFixedHead = input.fixedHeadCells[0];
   if (!firstFixedHead) {
-    throw new Error("Los controles principales requieren al menos una carga fija.");
+    throw new Error("The main controls require at least one fixed head.");
   }
   if (input.fixedHeadCells.some((cell) => cell.headMeters !== firstFixedHead.headMeters)) {
-    throw new Error("Los controles principales requieren una carga fija uniforme.");
+    throw new Error("The main controls require a uniform fixed head.");
   }
   return firstFixedHead.headMeters;
 }

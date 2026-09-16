@@ -92,6 +92,9 @@ describe("hydro_model 0.1.0 export", () => {
     input.rechargeMetersPerDay = 120 / 1000 / 365;
     expect(() => exportToHydroModel(input)).toThrow(ContractExportError);
     expect(() => prepareHydroModelDownload(input)).toThrow(ContractExportError);
+    expect(() => exportToHydroModel(input)).toThrow(
+      "hydro_model 0.1.0 supports only recharge=0",
+    );
   });
 
   it("does not emit fields outside the contract", () => {

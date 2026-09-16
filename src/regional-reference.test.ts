@@ -29,7 +29,7 @@ describe("regional hydraulic reference", () => {
     ["east", [{ row: 0, column: 4, headMeters }, { row: 1, column: 4, headMeters }, { row: 2, column: 4, headMeters }]],
     ["north", [{ row: 0, column: 0, headMeters }, { row: 0, column: 1, headMeters }, { row: 0, column: 2, headMeters }, { row: 0, column: 3, headMeters }, { row: 0, column: 4, headMeters }]],
     ["south", [{ row: 2, column: 0, headMeters }, { row: 2, column: 1, headMeters }, { row: 2, column: 2, headMeters }, { row: 2, column: 3, headMeters }, { row: 2, column: 4, headMeters }]],
-  ] as const)("genera exactamente el borde %s", (side, expected) => {
+  ] as const)("generates exactly the %s boundary", (side, expected) => {
     expect(createRegionalFixedHeadCells(grid, side, headMeters)).toEqual(expected);
   });
 

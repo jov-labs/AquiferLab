@@ -9,7 +9,7 @@ export function createScenarioSelection(
 ): ScenarioSelection {
   const firstScenario = scenarios[0];
   if (!firstScenario) {
-    throw new Error("Se requiere al menos un escenario para crear la selección activa.");
+    throw new Error("At least one scenario is required to create the active selection.");
   }
   return { activeScenarioId: firstScenario.id };
 }
@@ -44,7 +44,7 @@ export function reconcileScenarioSelectionAfterRemoval(
   );
   const nextScenario = scenariosAfterRemoval[removedIndex] ?? scenariosAfterRemoval[removedIndex - 1];
   if (!nextScenario) {
-    throw new Error("Se requiere al menos un escenario después de eliminar.");
+    throw new Error("At least one scenario is required after removal.");
   }
   return { activeScenarioId: nextScenario.id };
 }
