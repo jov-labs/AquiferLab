@@ -1,10 +1,19 @@
 # AquiferLab
 
+Interactive groundwater modeling laboratory for exploring pumping, hydraulic
+parameters, drawdown, and flow behavior in a simplified confined aquifer.
+
+[![Workflow](https://github.com/jov-labs/AquiferLab/actions/workflows/pages.yml/badge.svg)](https://github.com/jov-labs/AquiferLab/actions/workflows/pages.yml)
+[![Live demo](https://img.shields.io/badge/live%20demo-open-2ea44f)](https://jov-labs.github.io/AquiferLab/)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](https://github.com/jov-labs/AquiferLab/blob/main/LICENSE)
+
+**[Open the live demo →](https://jov-labs.github.io/AquiferLab/)**
+
+<!-- Add the approved screenshot at docs/images/aquiferlab-main.png when available. -->
+
 English | [Español](README.es.md)
 
-AquiferLab is an interactive web laboratory for experimenting with a simplified
-confined aquifer and observing how pumping and hydraulic parameters modify its
-results. It combines 2D calculation, 3D visualization, and comparable scenarios.
+AquiferLab combines 2D calculation, 3D visualization, and comparable scenarios.
 It does not replace MODFLOW or represent a calibrated real aquifer.
 
 ## Problem and current use
@@ -149,7 +158,7 @@ not include or demonstrate:
 - unconfined aquifers, desaturation, storage, or transient behaviour;
 - spatial heterogeneity, anisotropy, transport, dispersion, particles, or
   interstitial velocity;
-- PWA/offline capability, a backend, scenario persistence, or public hosting;
+- PWA/offline capability, a backend, or scenario persistence;
 - verified compatibility with specific browsers, operating systems, or devices.
 
 ## Local execution
@@ -180,19 +189,17 @@ npm run typecheck
 npm run build
 ```
 
-## Future public demo
+## Live demo
 
-The GitHub Actions workflow validates tests, typecheck, and build, and is ready
-to publish `dist/` to GitHub Pages from `main`. There is not yet a public URL:
-creating/configuring the GitHub repository and authorizing publication are later
-steps.
+The GitHub Actions workflow validates tests, typecheck, and build, then publishes
+`dist/` to GitHub Pages from `main`. The live demo is available at
+https://jov-labs.github.io/AquiferLab/.
 
 ## Technologies and status
 
 AquiferLab uses TypeScript, Vite, Three.js, and Vitest. It is a project under
 development, oriented toward exploration and verifiable presentation of a
-simplified model; it is not presented as a deployed product or a production
-hydrogeological tool.
+simplified model; it is not presented as a production hydrogeological tool.
 
 ## License
 
