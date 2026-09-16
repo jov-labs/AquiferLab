@@ -4,7 +4,7 @@ import {
   type GroundwaterModelInput,
 } from "./groundwater.js";
 
-/** Pozos visibles históricos del simulador, en el orden A/B. */
+/** Historical visible wells of the simulator, in A/B order. */
 export const INITIAL_WELL_A: Readonly<ExtractionWell> = {
   row: 20,
   column: 20,
@@ -18,8 +18,8 @@ export const INITIAL_WELL_B: Readonly<ExtractionWell> = {
 };
 
 /**
- * Construye la configuración hidráulica inicial visible sin leer controles DOM.
- * Conserva los defaults del modelo y materializa los dos pozos históricos A/B.
+ * Builds the visible initial hydraulic configuration without reading DOM controls.
+ * Preserves model defaults and materializes the two historical A/B wells.
  */
 export function createInitialModelInput(): GroundwaterModelInput {
   const defaultInput = createDefaultModelInput();

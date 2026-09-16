@@ -14,14 +14,14 @@ import {
 } from "./help-ui.js";
 import { translate } from "./i18n.js";
 
-describe("catálogo de ayuda educativa", () => {
-  it("incluye todos los términos obligatorios en español e inglés sin claves desalineadas", () => {
+describe("educational help catalog", () => {
+  it("includes all required terms in Spanish and English without misaligned keys", () => {
     const expectedKeys = [...REQUIRED_HELP_KEYS].sort();
     expect(Object.keys(HELP_CATALOG.es).sort()).toEqual(expectedKeys);
     expect(Object.keys(HELP_CATALOG.en).sort()).toEqual(expectedKeys);
   });
 
-  it("no contiene explicaciones obligatorias vacías", () => {
+  it("contains no empty required explanations", () => {
     for (const language of ["es", "en"] as const) {
       for (const key of REQUIRED_HELP_KEYS) {
         const entry = getHelpEntry(language, key);
@@ -31,7 +31,7 @@ describe("catálogo de ayuda educativa", () => {
     }
   });
 
-  it("distingue la carga de celda de la estimación dentro del pozo", () => {
+  it("distinguishes cell head from the in-well estimate", () => {
     expect(getHelpEntry("es", "well-a-cell-head").description).not.toBe(
       getHelpEntry("es", "well-a-estimated-head").description,
     );
@@ -39,14 +39,14 @@ describe("catálogo de ayuda educativa", () => {
     expect(getHelpEntry("es", "well-a-estimated-head").description).toMatch(/Peaceman/i);
   });
 
-  it("aclara que Darcy no es velocidad intersticial y que las líneas no dan tiempo de viaje", () => {
+  it("clarifies that Darcy flux is not interstitial velocity and that lines do not provide travel time", () => {
     expect(getHelpEntry("es", "maximum-darcy-flux").description).toMatch(/No es la velocidad/i);
     expect(getHelpEntry("es", "qualitative-flow-lines").description).toMatch(/tiempo real de viaje/i);
     expect(getHelpEntry("en", "maximum-darcy-flux").description).toMatch(/not the actual travel velocity/i);
     expect(getHelpEntry("en", "qualitative-flow-lines").description).toMatch(/real travel time/i);
   });
 
-  it("incluye en la guía todos los límites científicos obligatorios", () => {
+  it("includes all required scientific limitations in the guide", () => {
     const spanishGuide = QUICK_GUIDE.es.map((section) => `${section.title} ${section.description}`).join(" ");
     const englishGuide = QUICK_GUIDE.en.map((section) => `${section.title} ${section.description}`).join(" ");
     expect(QUICK_GUIDE.es).toHaveLength(8);
@@ -61,7 +61,7 @@ describe("catálogo de ayuda educativa", () => {
     expect(englishGuide).toMatch(/drilling, pumping, permits, investment/i);
   });
 
-  it("consolida el aviso del acuífero de ejemplo dentro de una sola sección destacada", () => {
+  it("consolidates the example-aquifer notice into a single featured section", () => {
     const exampleSections = QUICK_GUIDE.es.filter(
       (section) => section.title === "Acuífero transmisivo de ejemplo",
     );
@@ -80,7 +80,7 @@ describe("catálogo de ayuda educativa", () => {
     );
   });
 
-  it("usa la etiqueta visible corregida y actualiza las etiquetas aria por idioma", () => {
+  it("uses the corrected visible label and updates aria labels by language", () => {
     expect(translate("es", "maxDarcy")).toBe("Flujo específico de Darcy máximo");
     expect(translate("en", "maxDarcy")).toBe("Maximum Darcy flux");
     expect(translate("es", "maxDarcy")).not.toContain("Q Darcy máx.");
@@ -88,7 +88,7 @@ describe("catálogo de ayuda educativa", () => {
     expect(getHelpButtonAriaLabel("en", "status")).toBe("Help about Status");
   });
 
-  it("restaura el estado de ayuda al cerrar y permite abrirlo de nuevo", () => {
+  it("restores help state when closed and allows it to be opened again", () => {
     const context = openContextHelp("status");
     expect(context).toEqual({ kind: "context", key: "status" });
     expect(closeHelp()).toEqual({ kind: "closed" });

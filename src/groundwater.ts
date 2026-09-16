@@ -1,6 +1,6 @@
 /**
- * Motor estacionario 2D para un acuífero confinado, homogéneo e isotrópico.
- * Todas las propiedades que recibe el solver usan unidades internas SI-día.
+ * Steady-state 2D engine for a homogeneous, isotropic confined aquifer.
+ * All properties received by the solver use internal SI-day units.
  */
 
 export interface FixedHeadCell {
@@ -12,7 +12,7 @@ export interface FixedHeadCell {
 export interface ExtractionWell {
   row: number;
   column: number;
-  /** Caudal de extracción en m³/día. Debe ser mayor o igual que cero. */
+  /** Extraction rate in m³/day. Must be greater than or equal to zero. */
   rateCubicMetersPerDay: number;
 }
 
@@ -21,28 +21,28 @@ export interface GroundwaterModelInput {
   heightMeters: number;
   rows: number;
   columns: number;
-  /** Conductividad hidráulica K, en m/día. */
+  /** Hydraulic conductivity K, in m/day. */
   hydraulicConductivityMetersPerDay: number;
-  /** Espesor constante b, en m. */
+  /** Constant thickness b, in m. */
   thicknessMeters: number;
-  /** Recarga distribuida R, en m/día. */
+  /** Distributed recharge R, in m/day. */
   rechargeMetersPerDay: number;
-  /** Celdas de río u otras fronteras de carga hidráulica fija. */
+  /** River cells or other fixed-head boundaries. */
   fixedHeadCells: readonly FixedHeadCell[];
-  /** Hasta dos pozos de extracción. */
+  /** Up to two extraction wells. */
   wells: readonly ExtractionWell[];
   tolerance: number;
   maxIterations: number;
 }
 
 export interface GroundwaterResult {
-  /** Campo de carga hidráulica en m, indexado como [fila][columna]. */
+  /** Hydraulic-head field in m, indexed as [row][column]. */
   headsMeters: number[][];
   converged: boolean;
-  /** Un resultado no convergente se marca explícitamente como no válido. */
+  /** A non-convergent result is explicitly marked invalid. */
   isValid: boolean;
   iterations: number;
-  /** Máximo cambio absoluto de carga de la última iteración, en m. */
+  /** Maximum absolute head change from the last iteration, in m. */
   residualMeters: number;
   minHeadMeters: number;
   maxHeadMeters: number;
@@ -52,37 +52,37 @@ const DAYS_PER_YEAR = 365;
 const SECONDS_PER_DAY = 86_400;
 const LITERS_PER_CUBIC_METER = 1_000;
 
-/** Conversión centralizada de K: m/s a m/día. */
+/** Centralized K conversion: m/s to m/day. */
 export function metersPerSecondToMetersPerDay(value: number): number {
   assertFinite(value, "La conductividad en m/s");
   return value * SECONDS_PER_DAY;
 }
 
-/** Conversión centralizada de K: m/día a m/s. */
+/** Centralized K conversion: m/day to m/s. */
 export function metersPerDayToMetersPerSecond(value: number): number {
   assertFinite(value, "La conductividad en m/día");
   return value / SECONDS_PER_DAY;
 }
 
-/** Conversión centralizada de recarga: mm/año a m/día. */
+/** Centralized recharge conversion: mm/year to m/day. */
 export function millimetersPerYearToMetersPerDay(value: number): number {
   assertFinite(value, "La recarga en mm/año");
   return value / 1_000 / DAYS_PER_YEAR;
 }
 
-/** Conversión centralizada de recarga: m/día a mm/año. */
+/** Centralized recharge conversion: m/day to mm/year. */
 export function metersPerDayToMillimetersPerYear(value: number): number {
   assertFinite(value, "La recarga en m/día");
   return value * 1_000 * DAYS_PER_YEAR;
 }
 
-/** Conversión centralizada de bombeo: L/s a m³/día. */
+/** Centralized pumping conversion: L/s to m³/day. */
 export function litersPerSecondToCubicMetersPerDay(value: number): number {
   assertFinite(value, "El bombeo en L/s");
   return (value / LITERS_PER_CUBIC_METER) * SECONDS_PER_DAY;
 }
 
-/** Devuelve una configuración nueva para un dominio de 2 000 m × 2 000 m. */
+/** Returns a new configuration for a 2,000 m × 2,000 m domain. */
 export function createDefaultModelInput(): GroundwaterModelInput {
   const rows = 41;
   const columns = 41;
@@ -108,8 +108,8 @@ export function createDefaultModelInput(): GroundwaterModelInput {
 }
 
 /**
- * Resuelve ∇·(T∇h) + R - Q = 0 con Gauss-Seidel en una malla de celdas.
- * Las caras sin vecino son límites de no flujo; las celdas prescritas son carga fija.
+ * Solves ∇·(T∇h) + R - Q = 0 with Gauss-Seidel on a cell grid.
+ * Faces without a neighbour are no-flow boundaries; prescribed cells are fixed-head.
  */
 export function solveGroundwater(input: GroundwaterModelInput): GroundwaterResult {
   validateInput(input);

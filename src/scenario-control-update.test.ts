@@ -34,8 +34,8 @@ function activeScenarioTable(initialState: ScenarioTableState, activeScenarioId 
   };
 }
 
-describe("actualización del Scenario activo desde controles principales", () => {
-  it("mapea los seis controles al contrato hidráulico de la tabla", () => {
+describe("active Scenario update from main controls", () => {
+  it("maps the six controls to the table hydraulic contract", () => {
     const updates: readonly [MainHydraulicControl, number, string, number][] = [
       ["hydraulicConductivityExponent", -5, "hydraulicConductivity", 1e-5],
       ["recharge", 250, "recharge", 250],
@@ -50,7 +50,7 @@ describe("actualización del Scenario activo desde controles principales", () =>
     }
   });
 
-  it("conserva la frontera regional, pozos y escenario no activo al actualizar los seis controles", () => {
+  it("preserves the regional boundary, wells, and inactive scenario when updating all six controls", () => {
     const initial = setScenarioRegionalReferenceSideInTable(
       setScenarioReferenceInTable(
         createInitialScenarioTableState({

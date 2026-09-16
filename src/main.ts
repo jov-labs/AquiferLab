@@ -960,7 +960,7 @@ for (const radiusControl of [wellARadius, wellBRadius]) {
 }
 
 aquiferTopElevation.addEventListener("input", () => {
-  // La cota sólo reclasifica la última solución; no interviene en recalculate().
+  // The elevation only reclassifies the latest solution; it does not participate in recalculate().
   updateConfinedValidity();
 });
 

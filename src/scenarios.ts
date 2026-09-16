@@ -4,7 +4,7 @@ import {
   type RegionalReferenceSide,
 } from "./regional-reference.js";
 
-/** Número máximo de escenarios que puede contener el comparador futuro. */
+/** Maximum number of scenarios the future comparator can contain. */
 export const MAX_SCENARIOS = 4;
 
 export type HydraulicReferenceKind = "river" | "regional";
@@ -12,7 +12,7 @@ export type { RegionalReferenceSide } from "./regional-reference.js";
 
 export interface ScenarioBoundaryMetadata {
   readonly referenceKind: HydraulicReferenceKind;
-  /** Lado completo usado únicamente cuando la referencia es regional. */
+  /** Full side used only when the reference is regional. */
   readonly regionalReferenceSide: RegionalReferenceSide;
 }
 
@@ -22,9 +22,9 @@ export interface ScenarioBoundaryOptions {
 }
 
 /**
- * Configuración de un escenario hidrogeológico.
+ * Hydrogeological scenario configuration.
  *
- * `GroundwaterModelInput` es el mismo contrato que consume el solver actual.
+ * `GroundwaterModelInput` is the same contract consumed by the current solver.
  */
 export interface Scenario {
   readonly id: string;
@@ -48,7 +48,7 @@ export type AddScenarioResult =
       readonly scenarios: readonly Scenario[];
     };
 
-/** Crea un escenario aislado a partir de parámetros ya válidos para el solver. */
+/** Creates an isolated scenario from parameters already valid for the solver. */
 export function createScenario({ id, name, parameters, boundary }: CreateScenarioOptions): Scenario {
   return {
     id,
@@ -58,7 +58,7 @@ export function createScenario({ id, name, parameters, boundary }: CreateScenari
   };
 }
 
-/** Devuelve una copia del escenario con un nombre nuevo. */
+/** Returns a copy of the scenario with a new name. */
 export function renameScenario(scenario: Scenario, name: string): Scenario {
   return {
     ...scenario,
@@ -68,7 +68,7 @@ export function renameScenario(scenario: Scenario, name: string): Scenario {
   };
 }
 
-/** Devuelve una copia del escenario con una configuración nueva e independiente. */
+/** Returns a scenario copy with a new independent configuration. */
 export function updateScenarioParameters(
   scenario: Scenario,
   parameters: GroundwaterModelInput,
@@ -80,7 +80,7 @@ export function updateScenarioParameters(
   };
 }
 
-/** Devuelve una copia con la procedencia semántica de la referencia actualizada. */
+/** Returns a copy with updated semantic provenance for the reference. */
 export function setScenarioHydraulicReference(
   scenario: Scenario,
   referenceKind: HydraulicReferenceKind,
@@ -92,7 +92,7 @@ export function setScenarioHydraulicReference(
   };
 }
 
-/** Configura el lado de carga fija de un escenario regional sin tocar pozos ni otros parámetros. */
+/** Configures a regional scenario's fixed-head side without changing wells or other parameters. */
 export function setScenarioRegionalReferenceSide(
   scenario: Scenario,
   regionalReferenceSide: RegionalReferenceSide,
@@ -129,7 +129,7 @@ export function setScenarioRegionalReferenceSide(
   };
 }
 
-/** Añade un escenario mientras la colección no alcance el límite definido. */
+/** Adds a scenario while the collection has not reached its defined limit. */
 export function addScenario(
   scenarios: readonly Scenario[],
   scenario: Scenario,
@@ -141,12 +141,12 @@ export function addScenario(
   return { ok: true, scenarios: [...scenarios, cloneScenario(scenario)] };
 }
 
-/** Elimina el escenario cuyo id coincide; si no existe, devuelve una copia de la colección. */
+/** Removes the matching scenario; if it does not exist, returns a collection copy. */
 export function removeScenario(scenarios: readonly Scenario[], id: string): readonly Scenario[] {
   return scenarios.filter((scenario) => scenario.id !== id);
 }
 
-/** Busca un escenario por su identificador estable. */
+/** Finds a scenario by its stable identifier. */
 export function getScenarioById(
   scenarios: readonly Scenario[],
   id: string,

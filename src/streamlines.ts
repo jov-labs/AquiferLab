@@ -1,6 +1,6 @@
 import type { DarcyFlowField, DarcyVector } from "./flow.js";
 
-/** Punto físico del plano del modelo; x aumenta al este y z al sur. */
+/** Physical point in the model plane; x increases eastward and z southward. */
 export interface StreamlinePoint {
   xMeters: number;
   zMeters: number;
@@ -44,13 +44,13 @@ export interface StreamlineOptions {
   stepLengthMeters: number;
   maxSteps: number;
   maxLengthMeters: number;
-  /** Umbral explícito de |q|, en m/día, para detener una trayectoria. */
+  /** Explicit |q| threshold, in m/day, for stopping a trajectory. */
   nearZeroFlowMetersPerDay: number;
-  /** Distancia explícita de captura de carga fija o pozo, en m. */
+  /** Explicit capture distance for a fixed head or well, in m. */
   targetToleranceMeters: number;
   /** Distancia por debajo de la cual un avance se considera estancado, en m. */
   stagnationToleranceMeters: number;
-  /** Distancia para detectar que la trayectoria volvió a una zona ya visitada, en m. */
+  /** Distance for detecting that a trajectory returned to an already visited area, in m. */
   repetitionToleranceMeters: number;
 }
 
@@ -94,8 +94,8 @@ export function createStreamlineSeeds(
 
 /**
  * Interpola bilinealmente q entre los centros de celda disponibles.
- * Cerca del borde se prolonga el valor de la celda interior más próxima para
- * poder detectar y recortar una salida continua del dominio.
+ * Near the edge, the nearest interior-cell value is extended so a continuous
+ * exit from the domain can be detected and clipped.
  */
 export function createDarcyInterpolator(
   domain: StreamlineDomain,
@@ -217,7 +217,7 @@ export function integrateStreamline(
   return { points, termination: "maxSteps", lengthMeters };
 }
 
-/** Integra cada semilla hacia adelante y atrás y devuelve una polilínea continua. */
+/** Integrates each seed forward and backward and returns a continuous polyline. */
 export function calculateQualitativeStreamlines(
   input: CalculateStreamlinesInput,
 ): QualitativeStreamline[] {
@@ -308,7 +308,7 @@ function isInsideDomain(point: StreamlinePoint, domain: StreamlineDomain): boole
   return point.xMeters >= 0 && point.xMeters <= domain.widthMeters && point.zMeters >= 0 && point.zMeters <= domain.heightMeters;
 }
 
-/** Devuelve el primer cruce del segmento interior → exterior, exactamente sobre el rectángulo. */
+/** Returns the first interior-to-exterior segment crossing exactly on the rectangle. */
 function firstDomainExitIntersection(
   start: StreamlinePoint,
   end: StreamlinePoint,

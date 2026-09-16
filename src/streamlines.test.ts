@@ -46,8 +46,8 @@ function fieldFrom(
   };
 }
 
-describe("líneas de flujo cualitativas", () => {
-  it("en un campo uniforme genera líneas rectas con la dirección esperada", () => {
+describe("qualitative streamlines", () => {
+  it("generates straight lines in the expected direction in a uniform field", () => {
     const trace = integrateStreamline(
       domain,
       fieldFrom(() => ({ qxMetersPerDay: 2, qzMetersPerDay: 0 })),
@@ -64,7 +64,7 @@ describe("líneas de flujo cualitativas", () => {
     }
   });
 
-  it("en un campo radial hacia un pozo las líneas se aproximan al pozo", () => {
+  it("approaches the well in a radial field toward a well", () => {
     const well = { xMeters: 50, zMeters: 50, kind: "well" as const };
     const trace = integrateStreamline(
       domain,
@@ -88,7 +88,7 @@ describe("líneas de flujo cualitativas", () => {
     expect(Math.hypot(lastPoint.xMeters - well.xMeters, lastPoint.zMeters - well.zMeters)).toBeLessThanOrEqual(options.targetToleranceMeters);
   });
 
-  it("termina al alcanzar una carga fija y conserva la clasificación del pozo", () => {
+  it("ends at a fixed head and preserves well classification", () => {
     const fixedHead = { xMeters: 50, zMeters: 50, kind: "fixedHead" as const };
     const well = { xMeters: 80, zMeters: 50, kind: "well" as const };
     const trace = integrateStreamline(
@@ -105,7 +105,7 @@ describe("líneas de flujo cualitativas", () => {
     expect(well.kind).toBe("well");
   });
 
-  it("mantiene las mismas trayectorias para referencias con las mismas cargas fijas", () => {
+  it("keeps the same trajectories for references with the same fixed heads", () => {
     const fixedHeadTargetsA = [
       { xMeters: 50, zMeters: 50, kind: "fixedHead" as const },
     ];
@@ -117,7 +117,7 @@ describe("líneas de flujo cualitativas", () => {
     expect(traceB).toEqual(traceA);
   });
 
-  it("termina de forma segura en una región de flujo prácticamente nulo", () => {
+  it("ends safely in a near-zero-flow region", () => {
     const trace = integrateStreamline(
       domain,
       fieldFrom(() => ({ qxMetersPerDay: 1e-12, qzMetersPerDay: 0 })),
@@ -131,7 +131,7 @@ describe("líneas de flujo cualitativas", () => {
     expect(trace.points).toHaveLength(1);
   });
 
-  it("recorta la trayectoria cuando sale del dominio", () => {
+  it("clips the trajectory when it exits the domain", () => {
     const trace = integrateStreamline(
       domain,
       fieldFrom(() => ({ qxMetersPerDay: -1, qzMetersPerDay: 0 })),
@@ -145,7 +145,7 @@ describe("líneas de flujo cualitativas", () => {
     expect(trace.points.at(-1)).toEqual({ xMeters: 0, zMeters: 50 });
   });
 
-  it("termina exactamente en el primer borde incluso con un paso grande", () => {
+  it("ends exactly at the first boundary even with a large step", () => {
     const trace = integrateStreamline(
       domain,
       fieldFrom(() => ({ qxMetersPerDay: 3, qzMetersPerDay: 4 })),
@@ -159,7 +159,7 @@ describe("líneas de flujo cualitativas", () => {
     expect(trace.points).toEqual([{ xMeters: 10, zMeters: 20 }, { xMeters: 70, zMeters: 100 }]);
   });
 
-  it("respeta el límite máximo de pasos", () => {
+  it("respects the maximum step limit", () => {
     const trace = integrateStreamline(
       domain,
       fieldFrom(() => ({ qxMetersPerDay: 1, qzMetersPerDay: 0 })),
@@ -173,7 +173,7 @@ describe("líneas de flujo cualitativas", () => {
     expect(trace.points).toHaveLength(4);
   });
 
-  it("no genera NaN ni infinito", () => {
+  it("does not generate NaN or infinity", () => {
     const field = fieldFrom((xMeters, zMeters) => ({
       qxMetersPerDay: 50 - zMeters,
       qzMetersPerDay: xMeters - 50,
@@ -198,7 +198,7 @@ describe("líneas de flujo cualitativas", () => {
     }
   });
 
-  it("no cambia la dirección al multiplicar q por una constante positiva", () => {
+  it("does not change direction when q is multiplied by a positive constant", () => {
     const unitField = fieldFrom(() => ({ qxMetersPerDay: 3, qzMetersPerDay: 4 }));
     const scaledField = fieldFrom(() => ({ qxMetersPerDay: 21, qzMetersPerDay: 28 }));
     const seed = { xMeters: 20, zMeters: 20 };

@@ -1,8 +1,7 @@
 /**
- * Exportación del modelo actual al contrato hidrogeológico hydro_model 0.1.0
- * alojado en GeoData Core. Transformación pura: nunca modifica la entrada y
- * rechaza explícitamente los estados que el contrato 0.1.0 no puede
- * representar sin pérdida.
+ * Exports the current model to the hydrogeological hydro_model 0.1.0 contract
+ * hosted in GeoData Core. Pure transformation: it never modifies the input and
+ * explicitly rejects states that the 0.1.0 contract cannot represent without loss.
  */
 
 import type { GroundwaterModelInput } from "./groundwater.js";
@@ -33,7 +32,7 @@ export interface HydroModelPayload {
   recharge: 0;
 }
 
-/** Error controlado cuando el modelo actual no es representable bajo hydro_model 0.1.0. */
+/** Controlled error when the current model is not representable under hydro_model 0.1.0. */
 export class ContractExportError extends Error {
   constructor(message: string) {
     super(message);
@@ -82,7 +81,7 @@ export function serializeHydroModel(payload: Readonly<HydroModelPayload>): strin
   return JSON.stringify(payload);
 }
 
-/** Prepara el contenido contractual que la interfaz entrega como descarga. */
+/** Prepares the contract content that the interface provides as a download. */
 export function prepareHydroModelDownload(
   input: Readonly<GroundwaterModelInput>,
 ): { filename: typeof HYDRO_MODEL_FILENAME; content: string } {

@@ -24,8 +24,8 @@ function withRiverHead(
   };
 }
 
-describe("cálculo puro de abatimiento", () => {
-  it("devuelve cero para matrices idénticas", () => {
+describe("pure drawdown calculation", () => {
+  it("returns zero for identical matrices", () => {
     const heads = [
       [100, 101],
       [102, 103],
@@ -40,14 +40,14 @@ describe("cálculo puro de abatimiento", () => {
     expect(result.maxDrawdownMeters).toBe(0);
   });
 
-  it("calcula 10 m para referencia 100 y actual 90", () => {
+  it("calculates 10 m for reference 100 and actual 90", () => {
     const result = calculateDrawdown([[100]], [[90]]);
 
     expect(result.drawdownMeters).toEqual([[10]]);
     expect(result.maxDrawdownMeters).toBe(10);
   });
 
-  it("calcula diferencias y máximo para una matriz variable", () => {
+  it("calculates differences and maximum for a variable matrix", () => {
     const result = calculateDrawdown(
       [
         [100, 90],
@@ -66,38 +66,38 @@ describe("cálculo puro de abatimiento", () => {
     expect(result.maxDrawdownMeters).toBe(5);
   });
 
-  it("preserva abatimiento negativo sin clamping", () => {
+  it("preserves negative drawdown without clamping", () => {
     const result = calculateDrawdown([[90]], [[100]]);
 
     expect(result.drawdownMeters).toEqual([[-10]]);
     expect(result.maxDrawdownMeters).toBe(-10);
   });
 
-  it("rechaza dimensiones incompatibles", () => {
+  it("rejects incompatible dimensions", () => {
     expect(() => calculateDrawdown([[100, 100]], [[100], [100]])).toThrow(/dimensiones/);
   });
 
-  it("rechaza matrices no rectangulares", () => {
+  it("rejects non-rectangular matrices", () => {
     expect(() => calculateDrawdown([[100], [100, 100]], [[100], [100]])).toThrow(
       /rectangular/,
     );
   });
 
-  it("rechaza matrices vacías", () => {
+  it("rejects empty matrices", () => {
     expect(() => calculateDrawdown([], [])).toThrow(/vacía/);
   });
 
-  it("rechaza NaN", () => {
+  it("rejects NaN", () => {
     expect(() => calculateDrawdown([[Number.NaN]], [[100]])).toThrow(/finitos/);
   });
 
-  it("rechaza Infinity", () => {
+  it("rejects Infinity", () => {
     expect(() => calculateDrawdown([[100]], [[Number.POSITIVE_INFINITY]])).toThrow(
       /finitos/,
     );
   });
 
-  it("no modifica las matrices de entrada", () => {
+  it("does not modify input matrices", () => {
     const reference = [
       [100, 90],
       [80, 70],
@@ -116,8 +116,8 @@ describe("cálculo puro de abatimiento", () => {
   });
 });
 
-describe("abatimiento con el modelo estacionario", () => {
-  it("es aproximadamente nulo en el escenario real sin bombeo", () => {
+describe("drawdown with the steady-state model", () => {
+  it("is approximately zero in the real no-pumping scenario", () => {
     const input = createDefaultModelInput();
     const reference = solveGroundwater(withoutPumping(input));
     const actual = solveGroundwater(withoutPumping(input));
@@ -131,7 +131,7 @@ describe("abatimiento con el modelo estacionario", () => {
     expect(maximumAbsoluteDrawdown).toBeLessThanOrEqual(1e-9);
   }, 20_000);
 
-  it("produce abatimiento positivo cerca de un pozo de extracción real", () => {
+  it("produces positive drawdown near a real extraction well", () => {
     const actualInput: GroundwaterModelInput = {
       ...createDefaultModelInput(),
       wells: [{ row: 20, column: 20, rateCubicMetersPerDay: 25 }],
@@ -146,7 +146,7 @@ describe("abatimiento con el modelo estacionario", () => {
     expect(drawdown.maxDrawdownMeters).toBeGreaterThan(0);
   }, 20_000);
 
-  it("mantiene el abatimiento al trasladar la carga prescrita del río", () => {
+  it("preserves drawdown when moving the prescribed river head", () => {
     const base: GroundwaterModelInput = {
       ...createDefaultModelInput(),
       wells: [{ row: 20, column: 20, rateCubicMetersPerDay: 25 }],

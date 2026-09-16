@@ -2,8 +2,8 @@ import type { GroundwaterModelInput } from "./groundwater.js";
 import type { Scenario } from "./scenarios.js";
 
 /**
- * Materializa los parámetros hidráulicos de un escenario para una ejecución futura.
- * Los metadatos de frontera ya deben estar reflejados en `fixedHeadCells`.
+ * Materializes a scenario's hydraulic parameters for a future run.
+ * Boundary metadata must already be reflected in `fixedHeadCells`.
  */
 export function buildModelInput(scenario: Scenario): GroundwaterModelInput {
   const { parameters } = scenario;

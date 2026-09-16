@@ -4,20 +4,20 @@ import { createDefaultModelInput } from "./groundwater.js";
 import { getScenarioVisualState } from "./scenario-visual.js";
 import { createScenario, setScenarioHydraulicReference } from "./scenarios.js";
 
-describe("visibilidad visual de la referencia del escenario", () => {
-  it("muestra el río para una referencia river y por defecto", () => {
+describe("scenario reference visual visibility", () => {
+  it("shows the river for a river reference and by default", () => {
     const scenario = createScenario({
       id: "scenario-1",
-      name: "Escenario 1",
+      name: "Scenario 1",
       parameters: createDefaultModelInput(),
     });
 
     expect(getScenarioVisualState(scenario.boundary.referenceKind)).toEqual({ showRiver: true });
   });
 
-  it("oculta el río para una referencia regional sin alterar el modelo", () => {
+  it("hides the river for a regional reference without altering the model", () => {
     const parameters = createDefaultModelInput();
-    const scenario = createScenario({ id: "scenario-1", name: "Escenario 1", parameters });
+    const scenario = createScenario({ id: "scenario-1", name: "Scenario 1", parameters });
     const regional = setScenarioHydraulicReference(scenario, "regional");
 
     expect(getScenarioVisualState(regional.boundary.referenceKind)).toEqual({ showRiver: false });

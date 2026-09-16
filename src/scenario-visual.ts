@@ -4,7 +4,7 @@ export interface ScenarioVisualState {
   readonly showRiver: boolean;
 }
 
-/** Traduce la semántica de la referencia a una instrucción exclusivamente visual. */
+/** Translates reference semantics into an exclusively visual instruction. */
 export function getScenarioVisualState(
   referenceKind: HydraulicReferenceKind,
 ): ScenarioVisualState {

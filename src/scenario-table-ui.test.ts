@@ -66,7 +66,7 @@ function makeDocument(): { createElement: (tagName: string) => FakeElement } {
   return { createElement: (tagName) => new FakeElement(tagName) };
 }
 
-describe("render DOM del comparador de escenarios", () => {
+describe("scenario comparator DOM rendering", () => {
   const originalDocument = globalThis.document;
   const originalStorage = globalThis.localStorage;
 
@@ -87,7 +87,7 @@ describe("render DOM del comparador de escenarios", () => {
     globalThis.localStorage = originalStorage;
   });
 
-  it("conserva encabezados, etiquetas, controles y K con un escenario", () => {
+  it("preserves headers, labels, controls, and K with one scenario", () => {
     const container = new FakeElement("div");
     const comparator = createScenarioTableInterface(
       container as unknown as HTMLElement,
@@ -122,7 +122,7 @@ describe("render DOM del comparador de escenarios", () => {
     expect(kInputs).toHaveLength(1);
   });
 
-  it("alinea la columna de unidad después de todos los escenarios", () => {
+  it("aligns the unit column after all scenarios", () => {
     const container = new FakeElement("div");
     const comparator = createScenarioTableInterface(
       container as unknown as HTMLElement,
@@ -138,7 +138,7 @@ describe("render DOM del comparador de escenarios", () => {
     expect(columns.at(-1)?.className).toBe("scenario-unit-column");
   });
 
-  it("calcula el ancho mínimo de tabla según el número de escenarios", () => {
+  it("calculates the minimum table width based on the number of scenarios", () => {
     expect(getScenarioTableMinWidth(1)).toBe(325);
     expect(getScenarioTableMinWidth(2)).toBe(445);
     expect(getScenarioTableMinWidth(3)).toBe(565);

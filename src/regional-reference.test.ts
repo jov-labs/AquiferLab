@@ -8,8 +8,8 @@ import {
 const grid = { rows: 3, columns: 5 };
 const headMeters = 107;
 
-describe("referencia hidráulica regional", () => {
-  it("reproduce exactamente la frontera histórica Oeste por defecto", () => {
+describe("regional hydraulic reference", () => {
+  it("reproduces the historical West boundary exactly by default", () => {
     const input = createDefaultModelInput();
     const regionalInput = {
       ...input,
@@ -43,7 +43,7 @@ describe("referencia hidráulica regional", () => {
     },
   );
 
-  it("incluye las esquinas como parte normal del borde seleccionado", () => {
+  it("includes corners as ordinary parts of the selected edge", () => {
     expect(createRegionalFixedHeadCells(grid, "west", headMeters)).toEqual(
       expect.arrayContaining([
         { row: 0, column: 0, headMeters },
@@ -58,7 +58,7 @@ describe("referencia hidráulica regional", () => {
     );
   });
 
-  it("cambiar de lado cambia la solución sin alterar el solver", () => {
+  it("changes the solution when side changes without altering the solver", () => {
     const base = {
       ...createDefaultModelInput(),
       rows: 5,

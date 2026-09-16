@@ -7,7 +7,7 @@ export interface WellCorrectionParameters {
   wellRadiusMeters: number;
 }
 
-/** Radio equivalente de Peaceman para el modelo isotrópico actual. */
+/** Peaceman equivalent radius for the current isotropic model. */
 export function calculatePeacemanEquivalentRadiusMeters(
   cellWidthMeters: number,
   cellHeightMeters: number,
@@ -19,7 +19,7 @@ export function calculatePeacemanEquivalentRadiusMeters(
   return equivalentRadiusMeters;
 }
 
-/** Pérdida logarítmica desde la carga representativa de celda hasta el radio del pozo. */
+/** Logarithmic loss from representative cell head to well radius. */
 export function calculateCellToWellHeadLossMeters(
   parameters: Readonly<WellCorrectionParameters>,
 ): number {

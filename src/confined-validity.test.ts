@@ -78,8 +78,8 @@ function validityForFixedEducationalScenario(wellALitersPerSecond: number) {
   return { input, solution, validity };
 }
 
-describe("validez del modelo confinado", () => {
-  it("es válida cuando todas las cargas de malla están sobre el techo", () => {
+describe("confined-model validity", () => {
+  it("is valid when all grid heads are above the top", () => {
     const result = evaluateConfinedModelValidity({
       headsMeters: [[1, 2], [3, 4]],
       aquiferTopElevationMeters: 0,
@@ -93,7 +93,7 @@ describe("validez del modelo confinado", () => {
     expect(result.percentageCellsBelowAquiferTop).toBe(0);
   });
 
-  it("considera válida una carga exactamente igual al techo", () => {
+  it("considers a head exactly equal to the top valid", () => {
     const result = evaluateConfinedModelValidity({
       headsMeters: [[0]],
       aquiferTopElevationMeters: 0,
@@ -103,7 +103,7 @@ describe("validez del modelo confinado", () => {
     expect(result.minimumMarginToAquiferTopMeters).toBe(0);
   });
 
-  it("detecta una celda bajo el techo", () => {
+  it("detects a cell below the top", () => {
     const result = evaluateConfinedModelValidity({
       headsMeters: [[1, -0.25], [2, 3]],
       aquiferTopElevationMeters: 0,
@@ -114,7 +114,7 @@ describe("validez del modelo confinado", () => {
     expect(result.cellsBelowAquiferTop).toBe(1);
   });
 
-  it("calcula porcentaje y déficit máximo para varias celdas bajo el techo", () => {
+  it("calculates percentage and maximum deficit for several cells below the top", () => {
     const result = evaluateConfinedModelValidity({
       headsMeters: [[-2, -1], [0, 3]],
       aquiferTopElevationMeters: 0,
@@ -125,7 +125,7 @@ describe("validez del modelo confinado", () => {
     expect(result.maximumGridDeficitBelowAquiferTopMeters).toBe(2);
   });
 
-  it("advierte si sólo la carga estimada del pozo está bajo el techo", () => {
+  it("warns when only the estimated well head is below the top", () => {
     const result = evaluateConfinedModelValidity({
       headsMeters: [[2]],
       aquiferTopElevationMeters: 0,
@@ -139,7 +139,7 @@ describe("validez del modelo confinado", () => {
     expect(result.wellA.deficitBelowAquiferTopMeters).toBe(0.5);
   });
 
-  it("evalúa A y B con estados distintos", () => {
+  it("evaluates A and B with different states", () => {
     const result = evaluateConfinedModelValidity({
       headsMeters: [[1]],
       aquiferTopElevationMeters: 0,
@@ -151,7 +151,7 @@ describe("validez del modelo confinado", () => {
     expect(result.level).toBe("wellDegraded");
   });
 
-  it("identifica ambos pozos degradados sin invalidar la malla", () => {
+  it("identifies both degraded wells without invalidating the grid", () => {
     const result = evaluateConfinedModelValidity({
       headsMeters: [[1, 2]],
       aquiferTopElevationMeters: 0,
@@ -164,7 +164,7 @@ describe("validez del modelo confinado", () => {
     expect(result.wellB.status).toBe("OUTSIDE_CONFINED_RANGE");
   });
 
-  it("da precedencia a meshInvalid aunque ambos pozos estén fuera de rango", () => {
+  it("gives meshInvalid precedence even when both wells are out of range", () => {
     const result = evaluateConfinedModelValidity({
       headsMeters: [[-0.1, 1]],
       aquiferTopElevationMeters: 0,
@@ -176,7 +176,7 @@ describe("validez del modelo confinado", () => {
     expect(result.wellB.status).toBe("OUTSIDE_CONFINED_RANGE");
   });
 
-  it("admite una cota de techo negativa", () => {
+  it("accepts a negative top elevation", () => {
     const result = evaluateConfinedModelValidity({
       headsMeters: [[-4, -3]],
       aquiferTopElevationMeters: -5,
@@ -186,19 +186,19 @@ describe("validez del modelo confinado", () => {
     expect(result.level).toBe("valid");
   });
 
-  it("rechaza una matriz vacía", () => {
+  it("rejects an empty matrix", () => {
     expect(() =>
       evaluateConfinedModelValidity({ headsMeters: [], aquiferTopElevationMeters: 0 }),
     ).toThrow(/no vacía/);
   });
 
-  it("rechaza una matriz irregular", () => {
+  it("rejects an irregular matrix", () => {
     expect(() =>
       evaluateConfinedModelValidity({ headsMeters: [[1], [1, 2]], aquiferTopElevationMeters: 0 }),
     ).toThrow(/rectangular/);
   });
 
-  it("rechaza NaN e Infinity en cargas, techo y pozos", () => {
+  it("rejects NaN and Infinity in heads, top, and wells", () => {
     expect(() =>
       evaluateConfinedModelValidity({ headsMeters: [[Number.NaN]], aquiferTopElevationMeters: 0 }),
     ).toThrow(/finito/);
@@ -214,7 +214,7 @@ describe("validez del modelo confinado", () => {
     ).toThrow(/finito/);
   });
 
-  it("no modifica las entradas recibidas", () => {
+  it("does not modify received inputs", () => {
     const input = {
       headsMeters: [[1, -1], [2, 3]],
       aquiferTopElevationMeters: 0,
@@ -227,7 +227,7 @@ describe("validez del modelo confinado", () => {
     expect(input).toEqual(before);
   });
 
-  it("usa tolerancia sólo para ruido numérico", () => {
+  it("uses tolerance only for numerical noise", () => {
     const result = evaluateConfinedModelValidity({
       headsMeters: [[-CONFINED_VALIDITY_TOLERANCE_METERS / 2]],
       aquiferTopElevationMeters: 0,
@@ -237,7 +237,7 @@ describe("validez del modelo confinado", () => {
     expect(result.level).toBe("valid");
   });
 
-  it("marca inválida una diferencia mayor que la tolerancia", () => {
+  it("marks a difference greater than tolerance invalid", () => {
     const result = evaluateConfinedModelValidity({
       headsMeters: [[-CONFINED_VALIDITY_TOLERANCE_METERS * 1.01]],
       aquiferTopElevationMeters: 0,
@@ -246,7 +246,7 @@ describe("validez del modelo confinado", () => {
     expect(result.level).toBe("meshInvalid");
   });
 
-  it("clasifica 15 L/s como wellDegraded con parámetros explícitos", () => {
+  it("classifies 15 L/s as wellDegraded with explicit parameters", () => {
     const { solution, validity } = validityForFixedEducationalScenario(15);
 
     expect(solution.converged).toBe(true);
@@ -264,7 +264,7 @@ describe("validez del modelo confinado", () => {
     );
   }, 20_000);
 
-  it("clasifica el escenario documentado de 50 L/s como meshInvalid", () => {
+  it("classifies the documented 50 L/s scenario as meshInvalid", () => {
     const { solution, validity } = validityForFixedEducationalScenario(50);
 
     expect(solution.converged).toBe(true);

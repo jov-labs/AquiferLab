@@ -18,7 +18,7 @@ const MIN_DARCY_ARROW_LENGTH = 24;
 const STREAMLINE_OVERLAY_OFFSET_METERS = 20;
 const CUT_LABEL_PLANE_TOLERANCE_METERS = 1e-6;
 
-/** Escala visual pura del abatimiento no negativo usando el rango real visible. */
+/** Pure visual scaling of non-negative drawdown using the actual visible range. */
 export function getPositiveDrawdownColor(
   drawdownMeters: number,
   minimumDrawdownMeters: number,
@@ -104,7 +104,7 @@ export interface WellMarkerPositionTarget {
   readonly label: unknown;
 }
 
-/** Representación Three.js: recibe campos ya resueltos, sin cálculo hidrogeológico. */
+/** Three.js representation: receives resolved fields and performs no hydrogeological calculation. */
 export function createAquiferScene(
   container: HTMLElement,
   domain: SceneDomain,
@@ -155,7 +155,7 @@ export function createAquiferScene(
   });
   clippingMaterials.push(surfaceMaterial);
   const surface = new THREE.Mesh(surfaceGeometry, surfaceMaterial);
-  surface.name = "Superficie piezométrica curvada (oculta en modo abatimiento)";
+  surface.name = "Curved piezometric surface (hidden in drawdown mode)";
   surface.visible = false;
   surface.renderOrder = 2;
   scene.add(surface);
@@ -163,7 +163,7 @@ export function createAquiferScene(
   const drawdownPlaneMaterial = surfaceMaterial.clone();
   clippingMaterials.push(drawdownPlaneMaterial);
   const drawdownPlane = new THREE.Mesh(drawdownPlaneGeometry, drawdownPlaneMaterial);
-  drawdownPlane.name = "Mapa horizontal de abatimiento";
+  drawdownPlane.name = "Horizontal drawdown map";
   drawdownPlane.renderOrder = 2;
   scene.add(drawdownPlane);
   const surfaceGridGeometry = new LineSegmentsGeometry();
@@ -176,17 +176,17 @@ export function createAquiferScene(
   });
   clippingMaterials.push(surfaceGridMaterial);
   const surfaceGrid = new LineSegments2(surfaceGridGeometry, surfaceGridMaterial);
-  surfaceGrid.name = "Cuadrícula de superficie piezométrica";
+  surfaceGrid.name = "Piezometric surface grid";
   surfaceGrid.renderOrder = 3;
   surfaceGrid.frustumCulled = false;
   scene.add(surfaceGrid);
   const darcyGroup = new THREE.Group();
-  darcyGroup.name = "Campo de descarga específica de Darcy";
+  darcyGroup.name = "Darcy specific-discharge field";
   darcyGroup.renderOrder = 4;
   scene.add(darcyGroup);
   const darcyArrows: THREE.Group[] = [];
   const streamlineGroup = new THREE.Group();
-  streamlineGroup.name = "Líneas de flujo cualitativas";
+  streamlineGroup.name = "Qualitative streamlines";
   streamlineGroup.renderOrder = 5;
   scene.add(streamlineGroup);
   const streamlines: THREE.Line[] = [];
@@ -325,7 +325,7 @@ function addGeologicalContext(
 ): void {
   const layers = [
     { name: "Unidad superior (contexto)", y: -12, color: 0x9d805f },
-    { name: "Acuífero confinado", y: -25, color: 0x2d8d9b },
+    { name: "Confined aquifer", y: -25, color: 0x2d8d9b },
     { name: "Unidad basal (contexto)", y: -38, color: 0x5c6174 },
   ];
 
@@ -349,7 +349,7 @@ function addGeologicalContext(
 
 function createGeologicalContextGeometry(domain: SceneDomain): THREE.BoxGeometry {
   const geometry = new THREE.BoxGeometry(domain.widthMeters, 10, domain.heightMeters);
-  // BoxGeometry asigna el grupo 2 a la cara superior. Se conserva el resto del bloque como contexto lateral.
+  // BoxGeometry assigns group 2 to the top face. The rest of the block is preserved as lateral context.
   const sideAndBottomGroups = geometry.groups.filter((group) => group.materialIndex !== 2);
   geometry.clearGroups();
   for (const group of sideAndBottomGroups) {
@@ -372,9 +372,9 @@ function addRiver(
   });
   clippingMaterials.push(material);
   const river = new THREE.Mesh(geometry, material);
-  // column = 0 está en el borde occidental del dominio visual.
+  // column = 0 is at the western edge of the visual domain.
   river.position.set(-domain.widthMeters / 2, 1, 0);
-  river.name = "Nivel del agua del río: 100 m";
+  river.name = "River water level: 100 m";
   scene.add(river);
 
   const label = document.createElement("div");
@@ -608,7 +608,7 @@ function setDrawdownColor(
 }
 
 /**
- * Capa de presentación: transforma polilíneas ya integradas a geometría Three.js.
+ * Presentation layer: transforms already integrated polylines into Three.js geometry.
  * No interpreta q ni integra trayectorias.
  */
 function updateStreamlineLines(
@@ -652,7 +652,7 @@ function updateStreamlineLines(
       depthWrite: false,
     });
     const line = new THREE.Line(geometry, material);
-    line.name = "Línea de flujo cualitativa";
+    line.name = "Qualitative streamline";
     line.renderOrder = 5;
     line.frustumCulled = false;
     lineObjects.push(line);
@@ -682,8 +682,8 @@ function interpolateSurfaceElevation(
 }
 
 /**
- * La superficie está definida en centros de celda, no en los extremos físicos
- * de la caja. Esta es la única conversión físico → Three.js para sus overlays.
+ * The surface is defined at cell centres, not at the physical box boundaries.
+ * This is the only physical-to-Three.js conversion for its overlays.
  */
 function surfacePositionAtPhysicalPoint(
   domain: SceneDomain,
@@ -732,7 +732,7 @@ function updateDarcyArrows(
   }
 
   for (const vector of data.field.vectors) {
-    // El cálculo contiene cada celda interior; sólo se muestrea cada siete para legibilidad.
+    // The calculation contains every interior cell; only every seventh is sampled for readability.
     if (
       (vector.row - 1) % DARCY_VISUAL_SAMPLE_INTERVAL !== 0 ||
       (vector.column - 1) % DARCY_VISUAL_SAMPLE_INTERVAL !== 0

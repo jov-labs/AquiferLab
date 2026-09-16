@@ -14,8 +14,8 @@ export interface ModelInputControlValues {
 }
 
 /**
- * Convierte un input hidráulico a los valores que exponen los controles principales.
- * Requiere una carga fija uniforme porque la interfaz actual solo dispone de un control.
+ * Converts a hydraulic input to the values exposed by the main controls.
+ * Requires a uniform fixed head because the current interface provides only one control.
  */
 export function projectModelInputToControlValues(
   input: GroundwaterModelInput,

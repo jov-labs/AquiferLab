@@ -23,12 +23,12 @@ function scenarios(): Scenario[] {
   ];
 }
 
-describe("selección activa de escenarios", () => {
-  it("activa inicialmente el primer escenario", () => {
+describe("active scenario selection", () => {
+  it("initially activates the first scenario", () => {
     expect(createScenarioSelection(scenarios())).toEqual({ activeScenarioId: "one" });
   });
 
-  it("mantiene exactamente un id activo válido", () => {
+  it("keeps exactly one valid active id", () => {
     const available = scenarios();
     const selection = setActiveScenario(
       createScenarioSelection(available),
@@ -40,7 +40,7 @@ describe("selección activa de escenarios", () => {
     expect(available.filter((scenario) => scenario.id === selection.activeScenarioId)).toHaveLength(1);
   });
 
-  it("permite activar el segundo escenario sin modificar ningún Scenario", () => {
+  it("allows activating the second scenario without modifying any Scenario", () => {
     const available = scenarios();
     const before = structuredClone(available);
     const selection = setActiveScenario(createScenarioSelection(available), available, "two");
@@ -49,7 +49,7 @@ describe("selección activa de escenarios", () => {
     expect(available).toEqual(before);
   });
 
-  it("conserva el activo al añadir un escenario", () => {
+  it("preserves the active scenario when adding one", () => {
     const available = scenarios();
     const selection = setActiveScenario(createScenarioSelection(available), available, "two");
     const withNewScenario = [...available, createScenario({ id: "four", name: "Cuatro", parameters: createDefaultModelInput() })];
@@ -57,7 +57,7 @@ describe("selección activa de escenarios", () => {
     expect(setActiveScenario(selection, withNewScenario, selection.activeScenarioId)).toEqual(selection);
   });
 
-  it("conserva el activo si se elimina otro escenario", () => {
+  it("preserves the active scenario when another scenario is removed", () => {
     const before = scenarios();
     const selection = setActiveScenario(createScenarioSelection(before), before, "two");
     const after = before.filter((scenario) => scenario.id !== "three");
@@ -65,7 +65,7 @@ describe("selección activa de escenarios", () => {
     expect(reconcileScenarioSelectionAfterRemoval(selection, before, after, "three")).toEqual(selection);
   });
 
-  it("selecciona el siguiente si se elimina el activo", () => {
+  it("selects the next scenario when the active one is removed", () => {
     const before = scenarios();
     const selection = setActiveScenario(createScenarioSelection(before), before, "two");
     const after = before.filter((scenario) => scenario.id !== "two");
@@ -75,7 +75,7 @@ describe("selección activa de escenarios", () => {
     });
   });
 
-  it("selecciona el anterior si se elimina el último activo", () => {
+  it("selects the previous scenario when the last active one is removed", () => {
     const before = scenarios();
     const selection = setActiveScenario(createScenarioSelection(before), before, "three");
     const after = before.filter((scenario) => scenario.id !== "three");
@@ -85,7 +85,7 @@ describe("selección activa de escenarios", () => {
     });
   });
 
-  it("nunca deja un activeScenarioId inexistente", () => {
+  it("never leaves a nonexistent activeScenarioId", () => {
     const before = scenarios();
     const selection = { activeScenarioId: "missing" };
     const after = before.filter((scenario) => scenario.id !== "one");
@@ -95,7 +95,7 @@ describe("selección activa de escenarios", () => {
     });
   });
 
-  it("renombrar no altera la selección", () => {
+  it("does not alter selection when renaming", () => {
     const before = scenarios();
     const selection = setActiveScenario(createScenarioSelection(before), before, "two");
     const renamed = before.map((scenario) =>
@@ -105,7 +105,7 @@ describe("selección activa de escenarios", () => {
     expect(setActiveScenario(selection, renamed, selection.activeScenarioId)).toEqual(selection);
   });
 
-  it("editar parámetros no altera la selección", () => {
+  it("does not alter selection when editing parameters", () => {
     const before = scenarios();
     const selection = setActiveScenario(createScenarioSelection(before), before, "two");
     const updated = before.map((scenario) =>
@@ -117,7 +117,7 @@ describe("selección activa de escenarios", () => {
     expect(setActiveScenario(selection, updated, selection.activeScenarioId)).toEqual(selection);
   });
 
-  it("cambiar river/regional no altera la selección", () => {
+  it("does not alter selection when changing river/regional", () => {
     const before = scenarios();
     const selection = setActiveScenario(createScenarioSelection(before), before, "two");
     const updated = before.map((scenario) =>

@@ -8,8 +8,8 @@ import {
 } from "./groundwater.js";
 import { projectModelInputToControlValues } from "./model-input-controls.js";
 
-describe("proyección de GroundwaterModelInput a controles principales", () => {
-  it("convierte K de m/día al exponente mostrado en m/s", () => {
+describe("GroundwaterModelInput projection to main controls", () => {
+  it("converts K from m/day to the displayed exponent in m/s", () => {
     const values = projectModelInputToControlValues({
       ...createDefaultModelInput(),
       hydraulicConductivityMetersPerDay: metersPerSecondToMetersPerDay(1e-5),
@@ -18,7 +18,7 @@ describe("proyección de GroundwaterModelInput a controles principales", () => {
     expect(values.hydraulicConductivityExponent).toBeCloseTo(-5);
   });
 
-  it("convierte recarga y caudales a las unidades de los controles", () => {
+  it("converts recharge and rates to control units", () => {
     const values = projectModelInputToControlValues({
       ...createDefaultModelInput(),
       rechargeMetersPerDay: millimetersPerYearToMetersPerDay(125),
@@ -33,7 +33,7 @@ describe("proyección de GroundwaterModelInput a controles principales", () => {
     expect(values.wellBRateLitersPerSecond).toBeCloseTo(22);
   });
 
-  it("conserva espesor y carga de referencia en metros", () => {
+  it("preserves thickness and reference head in metres", () => {
     const values = projectModelInputToControlValues({
       ...createDefaultModelInput(),
       thicknessMeters: 35,
@@ -47,7 +47,7 @@ describe("proyección de GroundwaterModelInput a controles principales", () => {
     expect(values.referenceHeadMeters).toBe(107);
   });
 
-  it("no muta el input fuente", () => {
+  it("does not mutate the source input", () => {
     const input = {
       ...createDefaultModelInput(),
       wells: [{ row: 20, column: 20, rateCubicMetersPerDay: 12 }],
@@ -59,7 +59,7 @@ describe("proyección de GroundwaterModelInput a controles principales", () => {
     expect(input).toEqual(before);
   });
 
-  it("rechaza cargas fijas con valores distintos porque no hay un control equivalente", () => {
+  it("rejects fixed heads with different values because no equivalent control exists", () => {
     expect(() =>
       projectModelInputToControlValues({
         ...createDefaultModelInput(),

@@ -28,15 +28,15 @@ function validParameters(
   };
 }
 
-describe("corrección de pozo de Peaceman", () => {
-  it("calcula el radio equivalente isotrópico", () => {
+describe("Peaceman well correction", () => {
+  it("calculates the isotropic equivalent radius", () => {
     expect(calculatePeacemanEquivalentRadiusMeters(10, 20)).toBeCloseTo(
       0.14 * Math.sqrt(10 ** 2 + 20 ** 2),
       12,
     );
   });
 
-  it("reproduce la estabilidad corregida del benchmark 21×21, 41×41 y 81×81", () => {
+  it("reproduces corrected stability for the 21×21, 41×41, and 81×81 benchmark", () => {
     const benchmark = [
       { grid: 21, cellHeadMeters: 93.68459601748835, expectedWellHeadMeters: 85.34579078961622 },
       { grid: 41, cellHeadMeters: 92.61949892294881, expectedWellHeadMeters: 85.34551925133775 },
@@ -57,7 +57,7 @@ describe("corrección de pozo de Peaceman", () => {
     expect(Math.max(...estimatedHeads) - Math.min(...estimatedHeads)).toBeLessThan(0.001);
   });
 
-  it("con bombeo cero conserva carga y abatimiento de celda", () => {
+  it("preserves cell head and drawdown with zero pumping", () => {
     const parameters = validParameters({ extractionRateCubicMetersPerDay: 0 });
 
     expect(calculateCellToWellHeadLossMeters(parameters)).toBe(0);
@@ -65,7 +65,7 @@ describe("corrección de pozo de Peaceman", () => {
     expect(estimateWellDrawdownMeters(5, parameters)).toBe(5);
   });
 
-  it("con bombeo positivo reduce carga y aumenta abatimiento", () => {
+  it("reduces head and increases drawdown with positive pumping", () => {
     const parameters = validParameters();
     const loss = calculateCellToWellHeadLossMeters(parameters);
 
@@ -74,7 +74,7 @@ describe("corrección de pozo de Peaceman", () => {
     expect(estimateWellDrawdownMeters(5, parameters)).toBeCloseTo(5 + loss, 12);
   });
 
-  it("acepta un radio positivo cercano pero menor que el radio equivalente", () => {
+  it("accepts a positive radius close to but smaller than the equivalent radius", () => {
     const base = validParameters();
     const equivalentRadius = calculatePeacemanEquivalentRadiusMeters(
       base.cellWidthMeters,
@@ -89,7 +89,7 @@ describe("corrección de pozo de Peaceman", () => {
     expect(Number.isFinite(loss)).toBe(true);
   });
 
-  it("rechaza radio cero o radio mayor o igual que re", () => {
+  it("rejects zero radius or radius greater than or equal to re", () => {
     const base = validParameters();
     const equivalentRadius = calculatePeacemanEquivalentRadiusMeters(
       base.cellWidthMeters,
@@ -107,7 +107,7 @@ describe("corrección de pozo de Peaceman", () => {
     ).toThrow(/menor que el radio equivalente/);
   });
 
-  it("rechaza K, espesor o bombeo fuera de dominio", () => {
+  it("rejects out-of-domain K, thickness, or pumping", () => {
     expect(() =>
       calculateCellToWellHeadLossMeters(validParameters({ hydraulicConductivityMetersPerDay: 0 })),
     ).toThrow(/conductividad/);
@@ -121,7 +121,7 @@ describe("corrección de pozo de Peaceman", () => {
     ).toThrow(/negativo/);
   });
 
-  it("rechaza dimensiones de celda no positivas", () => {
+  it("rejects non-positive cell dimensions", () => {
     expect(() =>
       calculateCellToWellHeadLossMeters(validParameters({ cellWidthMeters: 0 })),
     ).toThrow(/Δx/);
@@ -130,7 +130,7 @@ describe("corrección de pozo de Peaceman", () => {
     ).toThrow(/Δz/);
   });
 
-  it("rechaza NaN e Infinity en todas las entradas", () => {
+  it("rejects NaN and Infinity in all inputs", () => {
     const base = validParameters();
     for (const key of Object.keys(base) as (keyof WellCorrectionParameters)[]) {
       for (const invalidValue of [Number.NaN, Number.POSITIVE_INFINITY]) {
@@ -156,7 +156,7 @@ describe("corrección de pozo de Peaceman", () => {
     ).toThrow();
   });
 
-  it("no modifica los parámetros recibidos", () => {
+  it("does not modify the received parameters", () => {
     const parameters = validParameters();
     const before = structuredClone(parameters);
 
@@ -167,7 +167,7 @@ describe("corrección de pozo de Peaceman", () => {
     expect(parameters).toEqual(before);
   });
 
-  it("corrige dos pozos únicamente con su propio bombeo y radio", () => {
+  it("corrects two wells using only their own pumping rate and radius", () => {
     const wellA = validParameters({ extractionRateCubicMetersPerDay: 200, wellRadiusMeters: 0.1 });
     const wellB = validParameters({ extractionRateCubicMetersPerDay: 50, wellRadiusMeters: 0.4 });
     const lossA = calculateCellToWellHeadLossMeters(wellA);
@@ -178,7 +178,7 @@ describe("corrección de pozo de Peaceman", () => {
     expect(estimateWellHeadMeters(90, wellB)).toBeCloseTo(90 - lossB, 12);
   });
 
-  it("calcula el escenario A=50 L/s, B=0 L/s y rw=0.10 m", () => {
+  it("calculates the A=50 L/s, B=0 L/s, rw=0.10 m scenario", () => {
     const base = createDefaultModelInput();
     const actualInput = {
       ...base,

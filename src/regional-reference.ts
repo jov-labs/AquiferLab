@@ -9,7 +9,7 @@ export interface RegionalReferenceGrid {
   readonly columns: number;
 }
 
-/** Construye la frontera completa de carga fija para una referencia regional. */
+/** Builds the complete fixed-head boundary for a regional reference. */
 export function createRegionalFixedHeadCells(
   grid: RegionalReferenceGrid,
   side: RegionalReferenceSide,

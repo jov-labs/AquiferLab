@@ -6,8 +6,8 @@ import {
   scenarioComparatorWidthFromPointer,
 } from "./scenario-comparator-resize.js";
 
-describe("redimensionamiento del comparador", () => {
-  it("limita el ancho a sus límites", () => {
+describe("comparator resizing", () => {
+  it("clamps width to its bounds", () => {
     expect(clampScenarioComparatorWidth(MIN_SCENARIO_COMPARATOR_WIDTH - 1)).toBe(
       MIN_SCENARIO_COMPARATOR_WIDTH,
     );
@@ -16,7 +16,7 @@ describe("redimensionamiento del comparador", () => {
     );
   });
 
-  it("calcula el ancho a partir del desplazamiento horizontal", () => {
+  it("calculates width from horizontal displacement", () => {
     expect(scenarioComparatorWidthFromPointer(100, 300, 450)).toBe(650);
     expect(scenarioComparatorWidthFromPointer(100, 300, -100)).toBe(
       MIN_SCENARIO_COMPARATOR_WIDTH,

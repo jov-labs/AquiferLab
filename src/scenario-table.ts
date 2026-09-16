@@ -37,7 +37,7 @@ export type ScenarioTableField =
   | "wellBY"
   | "wellDistance";
 
-/** Campos hidráulicos editables también desde los controles principales. */
+/** Hydraulic fields also editable from the main controls. */
 export type ScenarioTableHydraulicField =
   | "hydraulicConductivity"
   | "recharge"
@@ -121,7 +121,7 @@ export type UpdateScenarioPositionResult =
       readonly state: ScenarioTableState;
     };
 
-/** Crea las dos columnas iniciales a partir de la configuración vigente del simulador. */
+/** Creates the two initial columns from the simulator's current configuration. */
 export function createInitialScenarioTableState(
   parameters: GroundwaterModelInput,
 ): ScenarioTableState {
@@ -162,7 +162,7 @@ export function getScenarioTableValue(scenario: Scenario, field: ScenarioTableFi
   }
 }
 
-/** Actualiza una sola fila sin alterar los demás parámetros del escenario. */
+/** Updates one row without altering the scenario's other parameters. */
 export function updateScenarioTableValue(
   scenario: Scenario,
   field: ScenarioTableField,
@@ -230,7 +230,7 @@ export function updateScenarioInTable(
   };
 }
 
-/** Actualiza un campo hidráulico del escenario seleccionado sin cambiar la selección. */
+/** Updates a hydraulic field of the selected scenario without changing the selection. */
 export function updateActiveScenarioTableValue(
   state: ScenarioTableState,
   activeScenarioId: string,
@@ -245,7 +245,7 @@ export function updateActiveScenarioTableValue(
   return { state: nextState, scenario };
 }
 
-/** Actualiza solo la procedencia semántica de la carga fija del escenario indicado. */
+/** Updates only the semantic provenance of the indicated scenario's fixed head. */
 export function setScenarioReferenceInTable(
   state: ScenarioTableState,
   id: string,
@@ -258,7 +258,7 @@ export function setScenarioReferenceInTable(
   };
 }
 
-/** Configura el borde regional del escenario indicado. */
+/** Configures the regional boundary of the specified scenario. */
 export function setScenarioRegionalReferenceSideInTable(
   state: ScenarioTableState,
   id: string,
@@ -273,7 +273,7 @@ export function setScenarioRegionalReferenceSideInTable(
   };
 }
 
-/** Actualiza X o Y de un pozo usando la celda que contiene esa coordenada física. */
+/** Updates a well's X or Y using the cell that contains that physical coordinate. */
 export function updateScenarioPositionInTable(
   state: ScenarioTableState,
   id: string,

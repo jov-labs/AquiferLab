@@ -10,8 +10,8 @@ function model(overrides: Partial<GroundwaterModelInput> = {}): GroundwaterModel
   return { ...createDefaultModelInput(), ...overrides };
 }
 
-describe("validación mínima de modelos estacionarios", () => {
-  it("considera válido el modelo predeterminado", () => {
+describe("minimum steady-state model validation", () => {
+  it("considers the default model valid", () => {
     expect(validateStationaryModel(createDefaultModelInput())).toEqual({
       valid: true,
       code: "VALID",
@@ -19,20 +19,20 @@ describe("validación mínima de modelos estacionarios", () => {
   });
 
   it.each([
-    ["sin pozos y sin recarga", { rechargeMetersPerDay: 0, wells: [] }],
-    ["con recarga positiva", { rechargeMetersPerDay: 1, wells: [] }],
-    ["con bombeo", { rechargeMetersPerDay: 0, wells: [{ row: 20, column: 20, rateCubicMetersPerDay: 1 }] }],
+    ["without wells or recharge", { rechargeMetersPerDay: 0, wells: [] }],
+    ["with positive recharge", { rechargeMetersPerDay: 1, wells: [] }],
+    ["with pumping", { rechargeMetersPerDay: 0, wells: [{ row: 20, column: 20, rateCubicMetersPerDay: 1 }] }],
     [
-      "con recarga y extracción compensadas",
+      "with balanced recharge and extraction",
       { rechargeMetersPerDay: 1, wells: [{ row: 20, column: 20, rateCubicMetersPerDay: 1 }] },
     ],
-  ])("rechaza un modelo sin referencia hidráulica (%s)", (_description, overrides) => {
+  ])("rejects a model without a hydraulic reference (%s)", (_description, overrides) => {
     expect(
       validateStationaryModel(model({ ...overrides, fixedHeadCells: [] })),
     ).toEqual({ valid: false, code: "MISSING_HYDRAULIC_REFERENCE" });
   });
 
-  it("rechaza una carga fija fuera de la malla", () => {
+  it("rejects a fixed head outside the grid", () => {
     expect(
       validateStationaryModel(
         model({ fixedHeadCells: [{ row: 41, column: 0, headMeters: 100 }] }),
@@ -41,7 +41,7 @@ describe("validación mínima de modelos estacionarios", () => {
   });
 
   it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
-    "rechaza una carga fija no finita (%s)",
+    "rejects a non-finite fixed head (%s)",
     (headMeters) => {
       expect(
         validateStationaryModel(
@@ -51,7 +51,7 @@ describe("validación mínima de modelos estacionarios", () => {
     },
   );
 
-  it("rechaza un pozo sobre una carga fija", () => {
+  it("rejects a well on a fixed-head cell", () => {
     expect(
       validateStationaryModel(
         model({ wells: [{ row: 20, column: 0, rateCubicMetersPerDay: 1 }] }),
@@ -59,7 +59,7 @@ describe("validación mínima de modelos estacionarios", () => {
     ).toEqual({ valid: false, code: "WELL_ON_FIXED_HEAD" });
   });
 
-  it("acepta una carga fija interna válida", () => {
+  it("accepts a valid internal fixed head", () => {
     expect(
       validateStationaryModel(
         model({ fixedHeadCells: [{ row: 20, column: 20, headMeters: 100 }] }),
@@ -67,7 +67,7 @@ describe("validación mínima de modelos estacionarios", () => {
     ).toEqual({ valid: true, code: "VALID" });
   });
 
-  it("acepta múltiples cargas fijas con valores distintos", () => {
+  it("accepts multiple fixed heads with different values", () => {
     expect(
       validateStationaryModel(
         model({
@@ -80,7 +80,7 @@ describe("validación mínima de modelos estacionarios", () => {
     ).toEqual({ valid: true, code: "VALID" });
   });
 
-  it("no muta la entrada", () => {
+  it("does not mutate the input", () => {
     const input = model({
       fixedHeadCells: [
         { row: 0, column: 0, headMeters: 90 },

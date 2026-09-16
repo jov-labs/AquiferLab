@@ -48,8 +48,8 @@ function worstCaseEducationalInput(): GroundwaterModelInput {
   };
 }
 
-describe("escenario educativo predeterminado", () => {
-  it("mantiene válido el peor caso de bombeo de 50 + 50 L/s", () => {
+describe("default educational scenario", () => {
+  it("keeps the 50 + 50 L/s worst pumping case valid", () => {
     const input = worstCaseEducationalInput();
     const solution = solveGroundwater(input);
     const correctionParameters = (wellIndex: 0 | 1) => ({

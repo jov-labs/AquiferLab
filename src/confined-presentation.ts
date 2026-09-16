@@ -1,6 +1,6 @@
 import type { ConfinedValidityResult } from "./confined-validity.js";
 
-/** Estado de presentación derivado exclusivamente de la clasificación científica. */
+/** Presentation state derived exclusively from the scientific classification. */
 export interface ConfinedPresentationState {
   level: ConfinedValidityResult["level"];
   meshOutputsDegraded: boolean;
@@ -9,8 +9,8 @@ export interface ConfinedPresentationState {
 }
 
 /**
- * Determina qué grupos visuales se atenúan sin volver a evaluar física.
- * meshInvalid domina deliberadamente las marcas individuales de pozo.
+ * Determines which visual groups are dimmed without re-evaluating physics.
+ * meshInvalid deliberately takes precedence over individual well flags.
  */
 export function getConfinedPresentationState(
   validity: Readonly<ConfinedValidityResult>,

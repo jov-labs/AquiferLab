@@ -35,8 +35,8 @@ function modelParameters(): GroundwaterModelInput {
   };
 }
 
-describe("adaptador de ejecución de Scenario", () => {
-  it("conserva todos los valores escalares, la malla y el dominio", () => {
+describe("Scenario execution adapter", () => {
+  it("preserves all scalar values, the grid, and the domain", () => {
     const scenario = createScenario({ id: "base", name: "Base", parameters: modelParameters() });
     const input = buildModelInput(scenario);
 
@@ -51,7 +51,7 @@ describe("adaptador de ejecución de Scenario", () => {
     expect(input.maxIterations).toBe(12_345);
   });
 
-  it("conserva exactamente wells y fixedHeadCells", () => {
+  it("preserves wells and fixedHeadCells exactly", () => {
     const scenario = createScenario({ id: "base", name: "Base", parameters: modelParameters() });
     const input = buildModelInput(scenario);
 
@@ -60,7 +60,7 @@ describe("adaptador de ejecución de Scenario", () => {
   });
 
   it.each(["west", "east", "north", "south"] as const)(
-    "lleva la frontera regional %s al solver sin reinterpretarla",
+    "passes the regional %s boundary to the solver without reinterpretation",
     (side: RegionalReferenceSide) => {
       const regional = createScenario({
         id: "regional",
@@ -77,7 +77,7 @@ describe("adaptador de ejecución de Scenario", () => {
     },
   );
 
-  it("produce soluciones distintas para referencias regionales oeste y este", () => {
+  it("produces different solutions for west and east regional references", () => {
     const regional = createScenario({
       id: "regional",
       name: "Regional",
@@ -99,10 +99,10 @@ describe("adaptador de ejecución de Scenario", () => {
     expect(westResult.headsMeters[2][0]).not.toBe(eastResult.headsMeters[2][0]);
   });
 
-  it("no reinterpreta la geometría física de una referencia river", () => {
+  it("does not reinterpret the physical geometry of a river reference", () => {
     const scenario = createScenario({
       id: "river",
-      name: "Río",
+      name: "River",
       parameters: modelParameters(),
       boundary: { referenceKind: "river", regionalReferenceSide: "south" },
     });
@@ -113,7 +113,7 @@ describe("adaptador de ejecución de Scenario", () => {
     expect(solveGroundwater(input)).toMatchObject({ converged: true, isValid: true });
   });
 
-  it("no muta el Scenario y aísla wells y fixedHeadCells mutables", () => {
+  it("does not mutate the Scenario and isolates mutable wells and fixedHeadCells", () => {
     const scenario = createScenario({ id: "base", name: "Base", parameters: modelParameters() });
     const before = structuredClone(scenario);
     const input = buildModelInput(scenario);

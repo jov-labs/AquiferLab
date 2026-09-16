@@ -14,8 +14,8 @@ export interface DarcyFlowField {
 }
 
 /**
- * Calcula la descarga específica de Darcy en las celdas interiores.
- * No calcula velocidad intersticial ni trayectorias de partículas.
+ * Calculates Darcy specific discharge in interior cells.
+ * Does not calculate interstitial velocity or particle trajectories.
  */
 export function calculateDarcyFlow(
   input: GroundwaterModelInput,

@@ -14,8 +14,8 @@ function inputWithWells(wells: readonly ExtractionWell[]): GroundwaterModelInput
   return { ...createDefaultModelInput(), wells };
 }
 
-describe("slots A/B de pozos visibles", () => {
-  it("asocia wells[0] con A y wells[1] con B sin copiarlos", () => {
+describe("visible well A/B slots", () => {
+  it("associates wells[0] with A and wells[1] with B without copying them", () => {
     const slots = getWellSlots(inputWithWells([wellA, wellB]));
 
     expect(slots.a).toBe(wellA);
@@ -24,7 +24,7 @@ describe("slots A/B de pozos visibles", () => {
     expect(slots.b).toEqual({ row: 30, column: 25, rateCubicMetersPerDay: 42 });
   });
 
-  it("no modifica el input ni sus pozos", () => {
+  it("does not modify the input or its wells", () => {
     const input = inputWithWells([wellA, wellB]);
     const before = structuredClone(input);
 
@@ -33,7 +33,7 @@ describe("slots A/B de pozos visibles", () => {
     expect(input).toEqual(before);
   });
 
-  it("mantiene A y B distintos aunque compartan celda", () => {
+  it("keeps A and B distinct even when they share a cell", () => {
     const sharedCellA: ExtractionWell = { row: 15, column: 18, rateCubicMetersPerDay: 10 };
     const sharedCellB: ExtractionWell = { row: 15, column: 18, rateCubicMetersPerDay: 25 };
     const slots = getWellSlots(inputWithWells([sharedCellA, sharedCellB]));
@@ -43,7 +43,7 @@ describe("slots A/B de pozos visibles", () => {
     expect(slots.a).not.toBe(slots.b);
   });
 
-  it("intercambia los slots al intercambiar el orden de wells", () => {
+  it("swaps slots when well order is swapped", () => {
     const slots = getWellSlots(inputWithWells([wellB, wellA]));
 
     expect(slots.a).toBe(wellB);
@@ -54,7 +54,7 @@ describe("slots A/B de pozos visibles", () => {
     ["cero", []],
     ["uno", [wellA]],
     ["tres", [wellA, wellB, { row: 35, column: 10, rateCubicMetersPerDay: 5 }]],
-  ] as const)("rechaza %s pozos", (_description, wells) => {
+  ] as const)("rejects %s wells", (_description, wells) => {
     expect(() => getWellSlots(inputWithWells(wells))).toThrow(
       "La simulación visible requiere exactamente dos pozos.",
     );

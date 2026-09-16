@@ -26,7 +26,7 @@ export interface WellEstimatedMetrics {
   readonly drawdowns: { readonly wellA: number; readonly wellB: number };
 }
 
-/** Lee las métricas de las celdas ocupadas por los slots A/B del input ejecutado. */
+/** Reads metrics from the cells occupied by A/B slots in the executed input. */
 export function readWellCellMetrics(
   input: GroundwaterModelInput,
   headsMeters: readonly (readonly number[])[],
@@ -35,7 +35,7 @@ export function readWellCellMetrics(
   return readWellCellMetricsForSlots(getWellSlots(input), headsMeters, drawdownMeters);
 }
 
-/** Aplica la corrección de Peaceman a las celdas de los slots A/B del input ejecutado. */
+/** Applies the Peaceman correction to cells occupied by A/B slots in the executed input. */
 export function calculateEstimatedWellMetrics(
   input: GroundwaterModelInput,
   headsMeters: readonly (readonly number[])[],

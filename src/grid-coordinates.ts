@@ -10,7 +10,7 @@ export interface GridCell {
   column: number;
 }
 
-/** Convierte una celda de la malla a su centro físico, en metros desde el origen del dominio. */
+/** Converts a grid cell to its physical centre, in metres from the domain origin. */
 export function gridCellCenterMeters(
   input: Pick<GroundwaterModelInput, "widthMeters" | "heightMeters" | "rows" | "columns">,
   row: number,
@@ -23,7 +23,7 @@ export function gridCellCenterMeters(
 }
 
 /**
- * Localiza la celda que contiene una coordenada física. El borde superior no pertenece a una celda.
+ * Locates the cell containing a physical coordinate. The upper boundary belongs to no cell.
  */
 export function gridCellAtMeters(
   input: Pick<GroundwaterModelInput, "widthMeters" | "heightMeters" | "rows" | "columns">,

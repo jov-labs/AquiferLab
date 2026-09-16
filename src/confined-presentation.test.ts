@@ -12,8 +12,8 @@ function validityFor(headsMeters: number[][], wellA: number, wellB: number) {
   });
 }
 
-describe("presentación de validez confinada", () => {
-  it("atenúa sólo A y vuelve a la presentación normal al regresar a válido", () => {
+describe("confined-validity presentation", () => {
+  it("dims only A and returns to normal presentation when valid again", () => {
     const onlyADegraded = getConfinedPresentationState(validityFor([[1]], -0.1, 1));
 
     expect(onlyADegraded).toEqual({
@@ -32,7 +32,7 @@ describe("presentación de validez confinada", () => {
     });
   });
 
-  it("atenúa toda salida científica cuando la malla es inválida", () => {
+  it("dims all scientific output when the grid is invalid", () => {
     const presentation = getConfinedPresentationState(validityFor([[-0.1]], 1, 1));
 
     expect(presentation).toEqual({
@@ -43,7 +43,7 @@ describe("presentación de validez confinada", () => {
     });
   });
 
-  it("expresa en ES y EN que una malla inválida no debe interpretarse como válida", () => {
+  it("states in ES and EN that an invalid grid must not be interpreted as valid", () => {
     expect(translate("es", "meshInvalidStatus")).toBe(
       "Escenario fuera del modelo confinado",
     );

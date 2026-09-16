@@ -29,12 +29,12 @@ function tableState() {
   });
 }
 
-describe("modelo de presentación del comparador de escenarios", () => {
-  it("inicializa dos escenarios", () => {
+describe("scenario comparator presentation model", () => {
+  it("initializes two scenarios", () => {
     expect(tableState().scenarios).toHaveLength(2);
   });
 
-  it("muestra los valores de cada Scenario en las unidades de los controles existentes", () => {
+  it("shows each Scenario value using the existing control units", () => {
     const [scenario] = tableState().scenarios;
 
     expect(getScenarioTableValue(scenario, "hydraulicConductivity")).toBeCloseTo(1e-4);
@@ -50,7 +50,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(getScenarioTableValue(scenario, "wellDistance")).toBeCloseTo(624.6950475544243);
   });
 
-  it("edita una celda sólo en el escenario correspondiente", () => {
+  it("edits a cell only in the corresponding scenario", () => {
     const original = tableState();
     const updated = updateScenarioInTable(original, "scenario-1", "thickness", 35);
 
@@ -59,7 +59,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(original.scenarios[0].parameters.thicknessMeters).toBe(20);
   });
 
-  it("actualiza exclusivamente el escenario activo y devuelve su versión nueva", () => {
+  it("updates only the active scenario and returns its new version", () => {
     const initial = tableState();
     const selection = createScenarioSelection(initial.scenarios);
     const result = updateActiveScenarioTableValue(
@@ -77,7 +77,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(initial.scenarios[0].parameters.thicknessMeters).toBe(20);
   });
 
-  it("conserva el metadato regional y la geometría al actualizar la carga activa", () => {
+  it("preserves regional metadata and geometry when updating the active head", () => {
     const regional = setScenarioRegionalReferenceSideInTable(
       setScenarioReferenceInTable(tableState(), "scenario-1", "regional"),
       "scenario-1",
@@ -96,7 +96,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(result.scenario.parameters.fixedHeadCells.every((cell) => cell.headMeters === 110)).toBe(true);
   });
 
-  it("actualiza los caudales activos por slot sin mover los pozos", () => {
+  it("updates active rates by slot without moving the wells", () => {
     const initial = tableState();
     const afterA = updateActiveScenarioTableValue(initial, "scenario-1", "wellARate", 15);
     const afterB = updateActiveScenarioTableValue(afterA.state, "scenario-1", "wellBRate", 25);
@@ -116,7 +116,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(afterB.state.scenarios[1]).toEqual(initial.scenarios[1]);
   });
 
-  it("acumula actualizaciones hidráulicas sobre el escenario activo más reciente", () => {
+  it("accumulates hydraulic updates on the latest active scenario", () => {
     const initial = tableState();
     const afterK = updateActiveScenarioTableValue(
       initial,
@@ -136,7 +136,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(afterRecharge.scenario.parameters.thicknessMeters).toBe(20);
   });
 
-  it("expone exactamente las referencias Río y Regional", () => {
+  it("exposes exactly the River and Regional reference options", () => {
     expect(HYDRAULIC_REFERENCE_OPTIONS).toEqual(["river", "regional"]);
     expect(tableState().scenarios.map((scenario) => scenario.boundary.referenceKind)).toEqual([
       "river",
@@ -144,7 +144,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     ]);
   });
 
-  it("cambia solo la referencia del escenario indicado", () => {
+  it("changes only the reference of the specified scenario", () => {
     const initial = tableState();
     const regional = setScenarioReferenceInTable(initial, "scenario-1", "regional");
 
@@ -157,7 +157,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(regional.scenarios[0].parameters.wells).toEqual(initial.scenarios[0].parameters.wells);
   });
 
-  it("mantiene editable la carga de referencia sin depender del metadato", () => {
+  it("keeps the reference head editable independently of metadata", () => {
     const initial = setScenarioReferenceInTable(tableState(), "scenario-1", "regional");
     const updated = updateScenarioInTable(initial, "scenario-1", "riverHead", 110);
 
@@ -166,7 +166,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(updated.scenarios[1].parameters.fixedHeadCells[0].headMeters).toBe(100);
   });
 
-  it("mantiene la carga fija al cambiar de Río a Regional", () => {
+  it("preserves the fixed head when switching from River to Regional", () => {
     const initial = tableState();
     const regional = setScenarioReferenceInTable(initial, "scenario-1", "regional");
 
@@ -175,7 +175,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     );
   });
 
-  it("configura el lado regional solo en el escenario indicado", () => {
+  it("sets the regional side only in the specified scenario", () => {
     const initial = setScenarioReferenceInTable(tableState(), "scenario-1", "regional");
     const east = setScenarioRegionalReferenceSideInTable(initial, "scenario-1", "east");
 
@@ -186,13 +186,13 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(east.scenarios[1]).toEqual(initial.scenarios[1]);
   });
 
-  it("usa una etiqueta neutral para la fila de carga", () => {
+  it("uses a neutral label for the head row", () => {
     expect(SCENARIO_TABLE_ROWS.find((row) => row.field === "riverHead")?.labelKey).toBe(
       "scenarioReferenceHead",
     );
   });
 
-  it("cambia X de A sólo en el escenario indicado y conserva su caudal", () => {
+  it("changes A X only in the specified scenario and preserves its rate", () => {
     const initial = tableState();
     const result = updateScenarioPositionInTable(initial, "scenario-1", "wellAX", 1_100);
 
@@ -206,7 +206,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(result.state.scenarios[1].parameters.wells[0]).toEqual(initial.scenarios[1].parameters.wells[0]);
   });
 
-  it("cambia Y de B sólo en el escenario indicado y conserva su caudal", () => {
+  it("changes B Y only in the specified scenario and preserves its rate", () => {
     const initial = tableState();
     const result = updateScenarioPositionInTable(initial, "scenario-1", "wellBY", 1_500);
 
@@ -220,12 +220,12 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(result.state.scenarios[1].parameters.wells[1]).toEqual(initial.scenarios[1].parameters.wells[1]);
   });
 
-  it("conserva las propiedades adicionales existentes del pozo al moverlo", () => {
+  it("preserves existing additional well properties when moving it", () => {
     const wellA = {
       row: 20,
       column: 20,
       rateCubicMetersPerDay: 86.4,
-      existingMetadata: "preservar",
+      existingMetadata: "preserve",
     };
     const state = createInitialScenarioTableState({
       ...createDefaultModelInput(),
@@ -236,11 +236,11 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect((result.state.scenarios[0].parameters.wells[0] as typeof wellA).existingMetadata).toBe(
-      "preservar",
+      "preserve",
     );
   });
 
-  it("recalcula la distancia A–B a partir de las posiciones de cada escenario", () => {
+  it("recalculates the A–B distance from the well positions in each scenario", () => {
     const initial = tableState();
     const result = updateScenarioPositionInTable(initial, "scenario-1", "wellBX", 1_000);
 
@@ -254,7 +254,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     );
   });
 
-  it("rechaza una coordenada fuera del dominio sin corromper el Scenario", () => {
+  it("rejects an out-of-domain coordinate without corrupting the Scenario", () => {
     const initial = tableState();
     const result = updateScenarioPositionInTable(initial, "scenario-1", "wellAX", 2_000);
 
@@ -266,7 +266,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     });
   });
 
-  it("mantiene parámetros no relacionados al cambiar una posición", () => {
+  it("preserves unrelated parameters when changing a position", () => {
     const initial = tableState();
     const result = updateScenarioPositionInTable(initial, "scenario-1", "wellAY", 1_100);
 
@@ -282,13 +282,13 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(after.wells[1]).toEqual(initial.scenarios[0].parameters.wells[1]);
   });
 
-  it("renombra un escenario", () => {
-    const renamed = renameScenarioInTable(tableState(), "scenario-1", "Recarga alta");
+  it("renames a scenario", () => {
+    const renamed = renameScenarioInTable(tableState(), "scenario-1", "High recharge");
 
-    expect(renamed.scenarios[0].name).toBe("Recarga alta");
+    expect(renamed.scenarios[0].name).toBe("High recharge");
   });
 
-  it("permite añadir hasta cuatro escenarios y no un quinto", () => {
+  it("allows adding up to four scenarios but not a fifth", () => {
     let state = tableState();
     while (state.scenarios.length < MAX_SCENARIOS) {
       const result = addScenarioToTable(state);
@@ -304,7 +304,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     expect(fifth).toMatchObject({ ok: false, reason: "MAX_SCENARIOS_REACHED", state });
   });
 
-  it("permite añadir después de eliminar un escenario", () => {
+  it("allows adding a scenario after removing one", () => {
     const full = addScenarioToTable(addScenarioToTable(tableState()).state);
     expect(full.ok).toBe(true);
     if (!full.ok) return;
@@ -320,7 +320,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     }
   });
 
-  it("no permite eliminar el último escenario", () => {
+  it("does not allow removing the last scenario", () => {
     const initial = tableState();
     const afterFirstRemoval = removeScenarioFromTable(initial, "scenario-1");
     expect(afterFirstRemoval.ok).toBe(true);
@@ -332,7 +332,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     });
   });
 
-  it("declara las unidades correctas en una columna separada", () => {
+  it("declares the correct units in a separate column", () => {
     expect(SCENARIO_TABLE_ROWS.map((row) => row.unitKey)).toEqual([
       "metersPerSecondUnit",
       "rechargeUnit",
@@ -348,7 +348,7 @@ describe("modelo de presentación del comparador de escenarios", () => {
     ]);
   });
 
-  it("conserva intactos los parámetros no mostrados al editar una fila", () => {
+  it("preserves hidden parameters unchanged when editing a row", () => {
     const initial = tableState();
     const before = initial.scenarios[0].parameters;
     const updated = updateScenarioInTable(initial, "scenario-1", "wellARate", 12);

@@ -1,12 +1,12 @@
-/** Tolerancia numérica para comparar cargas con la cota del techo, en m. */
+/** Numerical tolerance for comparing heads with the aquifer-top elevation, in m. */
 export const CONFINED_VALIDITY_TOLERANCE_METERS = 1e-9;
 
 export type ConfinedValidityStatus = "VALID_CONFINED" | "OUTSIDE_CONFINED_RANGE";
 
 /**
- * Nivel de validez para presentación. La malla domina porque invalida todas
- * las salidas derivadas, mientras que una estimación de pozo sólo afecta ese
- * posproceso de Peaceman.
+ * Validity level for presentation. The grid takes precedence because it
+ * invalidates all derived outputs, whereas a well estimate affects only that
+ * Peaceman post-processing.
  */
 export type ConfinedValidityLevel = "valid" | "wellDegraded" | "meshInvalid";
 
@@ -31,9 +31,9 @@ export interface WellConfinedValidity {
 }
 
 export interface ConfinedValidityResult {
-  /** Clasificación con precedencia: meshInvalid > wellDegraded > valid. */
+  /** Classification precedence: meshInvalid > wellDegraded > valid. */
   level: ConfinedValidityLevel;
-  /** Estado binario conservado para compatibilidad con consumidores existentes. */
+  /** Binary state retained for compatibility with existing consumers. */
   status: ConfinedValidityStatus;
   minimumGridHeadMeters: number;
   minimumMarginToAquiferTopMeters: number;
@@ -45,8 +45,8 @@ export interface ConfinedValidityResult {
 }
 
 /**
- * Evalúa si una solución de transmisividad constante permanece en el dominio
- * de un acuífero completamente confinado. No modifica las cargas recibidas.
+ * Evaluates whether a constant-transmissivity solution remains within the
+ * domain of a fully confined aquifer. Does not modify received heads.
  */
 export function evaluateConfinedModelValidity(
   input: Readonly<ConfinedValidityInput>,

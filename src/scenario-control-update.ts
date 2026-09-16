@@ -12,14 +12,14 @@ export type MainHydraulicControl =
 
 export interface ScenarioControlUpdate {
   readonly field: ScenarioTableHydraulicField;
-  /** Valor en las unidades visibles que ya normaliza scenario-table.ts. */
+  /** Value in visible units, already normalized by scenario-table.ts. */
   readonly value: number;
 }
 
 /**
- * Adapta un valor bruto de los controles principales al contrato de la tabla.
- * Las conversiones restantes a unidades internas son responsabilidad de los
- * actualizadores puros de scenario-table.ts.
+ * Adapts a raw value from the main controls to the table contract.
+ * Pure updaters in scenario-table.ts are responsible for remaining conversions
+ * to internal units.
  */
 export function scenarioControlUpdate(
   control: MainHydraulicControl,
@@ -41,7 +41,7 @@ export function scenarioControlUpdate(
   }
 }
 
-/** Actualiza el escenario activo mediante la interfaz, sin leer el DOM ni ejecutar cálculos. */
+/** Updates the active scenario through the interface without reading the DOM or running calculations. */
 export function updateActiveScenarioFromControl(
   scenarioTable: Pick<ScenarioTableInterface, "updateActiveScenarioValue">,
   control: MainHydraulicControl,

@@ -14,8 +14,8 @@ import {
 import { buildModelInput } from "./scenario-execution.js";
 import { createInitialScenarioTableState } from "./scenario-table.js";
 
-describe("input hidráulico inicial visible", () => {
-  it("reproduce los defaults históricos y materializa los pozos A/B sin leer el DOM", () => {
+describe("visible initial hydraulic input", () => {
+  it("reproduces historical defaults and materializes A/B wells without reading the DOM", () => {
     const defaults = createDefaultModelInput();
     const input = createInitialModelInput();
 
@@ -36,7 +36,7 @@ describe("input hidráulico inicial visible", () => {
     expect(input.wells).toEqual([INITIAL_WELL_A, INITIAL_WELL_B]);
   });
 
-  it("crea escenarios iniciales ejecutables equivalentes y conserva la solución histórica", () => {
+  it("creates equivalent runnable initial scenarios and preserves the historical solution", () => {
     const initialInput = createInitialModelInput();
     const [activeScenario] = createInitialScenarioTableState(initialInput).scenarios;
     const input = buildModelInput(activeScenario);

@@ -32,8 +32,8 @@ function analyticalHeads(
   );
 }
 
-describe("campo de descarga específica de Darcy", () => {
-  it("devuelve flujo nulo para una carga constante", () => {
+describe("Darcy specific-discharge field", () => {
+  it("returns zero flow for a constant head", () => {
     const input = flowInput();
     const field = calculateDarcyFlow(input, analyticalHeads(input, () => 100));
 
@@ -45,7 +45,7 @@ describe("campo de descarga específica de Darcy", () => {
     }
   });
 
-  it("calcula qx para un gradiente lineal sólo en X", () => {
+  it("calculates qx for a linear gradient only in X", () => {
     const input = flowInput();
     const slopeX = 0.02;
     const field = calculateDarcyFlow(
@@ -59,7 +59,7 @@ describe("campo de descarga específica de Darcy", () => {
     }
   });
 
-  it("calcula qz para un gradiente lineal sólo en Z", () => {
+  it("calculates qz for a linear gradient only in Z", () => {
     const input = flowInput();
     const slopeZ = 0.015;
     const field = calculateDarcyFlow(
@@ -73,7 +73,7 @@ describe("campo de descarga específica de Darcy", () => {
     }
   });
 
-  it("calcula la magnitud para un gradiente lineal combinado", () => {
+  it("calculates magnitude for a combined linear gradient", () => {
     const input = flowInput();
     const slopeX = 0.01;
     const slopeZ = 0.015;
@@ -88,7 +88,7 @@ describe("campo de descarga específica de Darcy", () => {
     }
   });
 
-  it("rechaza dimensiones de headsMeters incompatibles", () => {
+  it("rejects incompatible headsMeters dimensions", () => {
     const input = flowInput();
     expect(() => calculateDarcyFlow(input, [[100]])).toThrow(/filas/);
     expect(() =>
@@ -96,7 +96,7 @@ describe("campo de descarga específica de Darcy", () => {
     ).toThrow(/rectangular/);
   });
 
-  it("rechaza NaN e Infinity", () => {
+  it("rejects NaN and Infinity", () => {
     const input = flowInput();
     const headsWithNaN = analyticalHeads(input, () => 100);
     headsWithNaN[2][2] = Number.NaN;

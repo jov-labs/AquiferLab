@@ -26,7 +26,7 @@ export interface HelpInterface {
   refreshLanguage(): void;
 }
 
-/** Gestiona un único diálogo reutilizable para ayudas contextuales y la guía rápida. */
+/** Manages one reusable dialog for contextual help and the quick guide. */
 export function createHelpInterface(): HelpInterface {
   const dialog = getDialog("learning-dialog");
   const title = getElement<HTMLElement>("learning-dialog-title");

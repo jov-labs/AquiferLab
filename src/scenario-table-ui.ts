@@ -46,7 +46,7 @@ export interface ScenarioTableOptions {
   readonly onScenarioActivated?: (scenario: Scenario) => void;
 }
 
-/** Renderiza el editor de escenarios y notifica de forma opcional su selección activa. */
+/** Renders the scenario editor and optionally notifies its active selection. */
 export function createScenarioTableInterface(
   container: HTMLElement,
   parameters: GroundwaterModelInput,

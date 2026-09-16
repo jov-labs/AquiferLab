@@ -36,11 +36,11 @@ function correctionLoss(
   });
 }
 
-describe("métricas de pozos del input ejecutado", () => {
+describe("well metrics from the executed input", () => {
   const headsMeters = matrix((row, column) => row * 100 + column);
   const drawdownMeters = matrix((row, column) => row + column / 100);
 
-  it("lee la carga y el abatimiento de A desde su celda desplazada", () => {
+  it("reads A head and drawdown from its displaced cell", () => {
     const input = inputWithWells(
       { row: 3, column: 4, rateCubicMetersPerDay: 120 },
       { row: 28, column: 30, rateCubicMetersPerDay: 0 },
@@ -51,7 +51,7 @@ describe("métricas de pozos del input ejecutado", () => {
     expect(metrics.a.headMeters).not.toBe(headsMeters[20][20]);
   });
 
-  it("lee la carga y el abatimiento de B desde su celda desplazada", () => {
+  it("reads B head and drawdown from its displaced cell", () => {
     const input = inputWithWells(
       { row: 20, column: 20, rateCubicMetersPerDay: 0 },
       { row: 7, column: 9, rateCubicMetersPerDay: 60 },
@@ -62,7 +62,7 @@ describe("métricas de pozos del input ejecutado", () => {
     expect(metrics.b.headMeters).not.toBe(headsMeters[28][30]);
   });
 
-  it("corrige cada slot con su propio caudal, celda y radio", () => {
+  it("corrects each slot with its own rate, cell, and radius", () => {
     const wellA = { row: 3, column: 4, rateCubicMetersPerDay: 120 };
     const wellB = { row: 7, column: 9, rateCubicMetersPerDay: 40 };
     const input = inputWithWells(wellA, wellB);
@@ -79,7 +79,7 @@ describe("métricas de pozos del input ejecutado", () => {
     expect(metrics.drawdowns.wellB).toBeCloseTo(7.09 + lossB);
   });
 
-  it("intercambia semánticamente A/B al intercambiar wells", () => {
+  it("semantically swaps A/B when wells are swapped", () => {
     const wellA = { row: 3, column: 4, rateCubicMetersPerDay: 120 };
     const wellB = { row: 7, column: 9, rateCubicMetersPerDay: 40 };
     const metrics = readWellCellMetrics(
@@ -92,7 +92,7 @@ describe("métricas de pozos del input ejecutado", () => {
     expect(metrics.b).toEqual({ headMeters: 304, drawdownMeters: 3.04 });
   });
 
-  it("conserva las métricas históricas cuando las posiciones históricas se mantienen", () => {
+  it("preserves historical metrics when historical positions are retained", () => {
     const input = inputWithWells(
       { row: 20, column: 20, rateCubicMetersPerDay: 10 },
       { row: 28, column: 30, rateCubicMetersPerDay: 20 },
@@ -104,7 +104,7 @@ describe("métricas de pozos del input ejecutado", () => {
     });
   });
 
-  it("no modifica el input fuente", () => {
+  it("does not modify the source input", () => {
     const input = inputWithWells(
       { row: 3, column: 4, rateCubicMetersPerDay: 120 },
       { row: 7, column: 9, rateCubicMetersPerDay: 40 },

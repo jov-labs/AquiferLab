@@ -80,7 +80,7 @@ function physicalCoordinateToCell(
 
 function thiemHeadMeters(radiusMeters: number): number {
   if (!(radiusMeters > 0) || !Number.isFinite(radiusMeters)) {
-    throw new Error("El radio de Thiem debe ser finito y mayor que cero.");
+    throw new Error("The Thiem radius must be finite and greater than zero.");
   }
   const transmissivity = RADIAL_K_METERS_PER_DAY * RADIAL_THICKNESS_METERS;
   return (
@@ -330,8 +330,8 @@ function currentScenarioStudy(grid: number): CurrentScenarioRow {
   return row;
 }
 
-describe("benchmark radial estacionario de Thiem", () => {
-  it("es reproducible y no modifica la entrada", () => {
+describe("steady-state radial Thiem benchmark", () => {
+  it("is reproducible and does not modify the input", () => {
     const input = radialModel(21);
     const before = structuredClone(input);
     const first = solveGroundwater(input);
@@ -342,7 +342,7 @@ describe("benchmark radial estacionario de Thiem", () => {
     expect(first.converged).toBe(true);
   }, 120_000);
 
-  it("reduce el error de observación al refinar 21 → 41 → 81", () => {
+  it("reduces observation error when refining 21 → 41 → 81", () => {
     const rows = GRID_SIZES.map(radialStudy);
 
     expect(rows[1].observationRmsErrorMeters).toBeLessThan(rows[0].observationRmsErrorMeters);
@@ -358,7 +358,7 @@ describe("benchmark radial estacionario de Thiem", () => {
     expect(rows.every((row) => Number.isFinite(row.cellHeadMeters))).toBe(true);
   }, 120_000);
 
-  it("la corrección de Peaceman estabiliza la estimación a rw sin alterar el solver", () => {
+  it("Peaceman correction stabilizes the estimate at rw without altering the solver", () => {
     const rows = GRID_SIZES.map(radialStudy);
     const rawCellRange =
       Math.max(...rows.map((row) => row.cellHeadMeters)) -
@@ -373,7 +373,7 @@ describe("benchmark radial estacionario de Thiem", () => {
     );
   }, 120_000);
 
-  it("usa el radio equivalente solicitado para una celda cuadrada", () => {
+  it("uses the requested equivalent radius for a square cell", () => {
     const spacingMeters = 10;
     expect(peacemanEquivalentRadius(spacingMeters, spacingMeters)).toBeCloseTo(
       0.14 * Math.sqrt(2) * spacingMeters,
@@ -385,13 +385,13 @@ describe("benchmark radial estacionario de Thiem", () => {
     );
   });
 
-  it("mantiene el escenario actual convergente en 41×41 y 81×81", () => {
+  it("keeps the current scenario convergent at 41×41 and 81×81", () => {
     const rows = [41, 81].map(currentScenarioStudy);
 
     expect(rows.every((row) => Number.isFinite(row.minHeadMeters))).toBe(true);
   }, 120_000);
 
-  it("publica resultados para la auditoría científica", () => {
+  it("publishes results for the scientific audit", () => {
     console.log("THIEM_BENCHMARK", JSON.stringify(GRID_SIZES.map(radialStudy)));
     console.log("CURRENT_SCENARIO", JSON.stringify([41, 81].map(currentScenarioStudy)));
   }, 120_000);

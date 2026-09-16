@@ -4,8 +4,8 @@ export interface DrawdownResult {
 }
 
 /**
- * Calcula el abatimiento bruto por celda: s = h_referencia - h_actual.
- * Los valores negativos se conservan para mantener el dato científico trazable.
+ * Calculates raw drawdown per cell: s = h_reference - h_actual.
+ * Negative values are retained to keep the scientific data traceable.
  */
 export function calculateDrawdown(
   headsReferenceMeters: readonly (readonly number[])[],

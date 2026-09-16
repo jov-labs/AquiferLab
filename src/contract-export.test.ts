@@ -9,7 +9,7 @@ import {
   serializeHydroModel,
 } from "./contract-export.js";
 
-/** Caso asimétrico comprobado en GDC-P1.3. */
+/** Asymmetric case verified in GDC-P1.3. */
 function asymmetricCase(): GroundwaterModelInput {
   return {
     widthMeters: 400,
@@ -29,8 +29,8 @@ function asymmetricCase(): GroundwaterModelInput {
   };
 }
 
-describe("exportación hydro_model 0.1.0", () => {
-  it("exporta el caso asimétrico con celdas de 100 m", () => {
+describe("hydro_model 0.1.0 export", () => {
+  it("exports the asymmetric case with 100 m cells", () => {
     const input = asymmetricCase();
     const payload = exportToHydroModel(input);
     expect(payload.grid).toEqual({
@@ -41,17 +41,17 @@ describe("exportación hydro_model 0.1.0", () => {
     });
   });
 
-  it("usa exactamente contract_version 0.1.0", () => {
+  it("uses contract_version 0.1.0 exactly", () => {
     expect(exportToHydroModel(asymmetricCase()).contract_version).toBe("0.1.0");
   });
 
-  it("usa exactamente unidades m/day", () => {
+  it("uses m/day units exactly", () => {
     const payload = exportToHydroModel(asymmetricCase());
     expect(payload.units).toEqual({ length: "m", time: "day" });
     expect(payload.model).toEqual({ confined: true, steady_state: true });
   });
 
-  it("conserva posiciones y valores de CHD y pozos con extracción positiva", () => {
+  it("preserves CHD positions and values and wells with positive extraction", () => {
     const payload = exportToHydroModel(asymmetricCase());
     expect(payload.fixed_heads).toEqual([
       { row: 0, column: 0, head: 12 },
@@ -62,20 +62,20 @@ describe("exportación hydro_model 0.1.0", () => {
     ]);
   });
 
-  it("no modifica la entrada", () => {
+  it("does not modify the input", () => {
     const input = asymmetricCase();
     const copy = structuredClone(input);
     exportToHydroModel(input);
     expect(input).toEqual(copy);
   });
 
-  it("es determinista para la misma entrada", () => {
+  it("is deterministic for the same input", () => {
     const first = serializeHydroModel(exportToHydroModel(asymmetricCase()));
     const second = serializeHydroModel(exportToHydroModel(asymmetricCase()));
     expect(first).toBe(second);
   });
 
-  it("prepara hydro_model.json desde la serialización contractual", () => {
+  it("prepares hydro_model.json from contract serialization", () => {
     const input = asymmetricCase();
     const copy = structuredClone(input);
     const download = prepareHydroModelDownload(input);
@@ -87,14 +87,14 @@ describe("exportación hydro_model 0.1.0", () => {
     expect(input).toEqual(copy);
   });
 
-  it("rechaza recarga distinta de cero en lugar de descartarla", () => {
+  it("rejects non-zero recharge rather than discarding it", () => {
     const input = asymmetricCase();
     input.rechargeMetersPerDay = 120 / 1000 / 365;
     expect(() => exportToHydroModel(input)).toThrow(ContractExportError);
     expect(() => prepareHydroModelDownload(input)).toThrow(ContractExportError);
   });
 
-  it("no emite campos fuera del contrato", () => {
+  it("does not emit fields outside the contract", () => {
     const payload = exportToHydroModel(asymmetricCase());
     expect(Object.keys(payload).sort()).toEqual(
       [

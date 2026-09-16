@@ -19,20 +19,20 @@ function testModel(): GroundwaterModelInput {
   };
 }
 
-describe("conversiones centralizadas", () => {
-  it("convierte K de m/s a m/día", () => {
+describe("centralized conversions", () => {
+  it("converts K from m/s to m/day", () => {
     expect(metersPerSecondToMetersPerDay(1e-5)).toBeCloseTo(0.864, 12);
   });
 
-  it("convierte recarga de mm/año a m/día", () => {
+  it("converts recharge from mm/year to m/day", () => {
     expect(millimetersPerYearToMetersPerDay(365)).toBeCloseTo(0.001, 12);
   });
 
-  it("convierte bombeo de L/s a m³/día", () => {
+  it("converts pumping from L/s to m³/day", () => {
     expect(litersPerSecondToCubicMetersPerDay(1)).toBeCloseTo(86.4, 12);
   });
 
-  it("compone correctamente la conversión inversa de K", () => {
+  it("correctly composes the inverse K conversion", () => {
     const metersPerDay = 0.864;
     expect(metersPerSecondToMetersPerDay(metersPerDayToMetersPerSecond(metersPerDay))).toBeCloseTo(
       metersPerDay,
@@ -40,7 +40,7 @@ describe("conversiones centralizadas", () => {
     );
   });
 
-  it("compone correctamente la conversión inversa de recarga", () => {
+  it("correctly composes the inverse recharge conversion", () => {
     const metersPerDay = 120 / 1_000 / 365;
     expect(millimetersPerYearToMetersPerDay(metersPerDayToMillimetersPerYear(metersPerDay))).toBeCloseTo(
       metersPerDay,
@@ -49,8 +49,8 @@ describe("conversiones centralizadas", () => {
   });
 });
 
-describe("validación del modelo", () => {
-  it("rechaza un modelo sin carga fija y diagnostica la falta de referencia hidráulica", () => {
+describe("model validation", () => {
+  it("rejects a model without fixed head and diagnoses the missing hydraulic reference", () => {
     let error: unknown;
     try {
       solveGroundwater({ ...testModel(), fixedHeadCells: [] });
@@ -65,31 +65,31 @@ describe("validación del modelo", () => {
     expect((error as Error).message).not.toMatch(/río/i);
   });
 
-  it("conserva las 41 cargas fijas predeterminadas en la columna cero", () => {
+  it("preserves the 41 default fixed heads in column zero", () => {
     const model = createDefaultModelInput();
 
     expect(model.fixedHeadCells).toHaveLength(41);
     expect(model.fixedHeadCells.every((cell) => cell.column === 0)).toBe(true);
   });
 
-  it("rechaza K menor o igual que cero", () => {
+  it("rejects K less than or equal to zero", () => {
     expect(() =>
       solveGroundwater({ ...testModel(), hydraulicConductivityMetersPerDay: 0 }),
     ).toThrow(/K/);
   });
 
-  it("rechaza espesor menor o igual que cero", () => {
+  it("rejects thickness less than or equal to zero", () => {
     expect(() => solveGroundwater({ ...testModel(), thicknessMeters: 0 })).toThrow(
       /espesor/,
     );
   });
 
-  it("rechaza dimensiones de malla inválidas", () => {
+  it("rejects invalid grid dimensions", () => {
     expect(() => solveGroundwater({ ...testModel(), rows: 1 })).toThrow(/filas/);
     expect(() => solveGroundwater({ ...testModel(), columns: 2.5 })).toThrow(/columnas/);
   });
 
-  it("rechaza un pozo situado en una celda de carga fija", () => {
+  it("rejects a well located in a fixed-head cell", () => {
     expect(() =>
       solveGroundwater({
         ...testModel(),
@@ -98,7 +98,7 @@ describe("validación del modelo", () => {
     ).toThrow(/carga fija/);
   });
 
-  it("rechaza celdas Dirichlet fuera de las dimensiones de la malla", () => {
+  it("rejects Dirichlet cells outside the grid dimensions", () => {
     expect(() =>
       solveGroundwater({
         ...testModel(),
@@ -107,7 +107,7 @@ describe("validación del modelo", () => {
     ).toThrow(/fuera de la malla/);
   });
 
-  it("rechaza cargas Dirichlet NaN o infinitas", () => {
+  it("rejects NaN or infinite Dirichlet heads", () => {
     for (const headMeters of [Number.NaN, Number.POSITIVE_INFINITY]) {
       expect(() =>
         solveGroundwater({
@@ -119,8 +119,8 @@ describe("validación del modelo", () => {
   });
 });
 
-describe("solver de flujo confinado", () => {
-  it("mantiene exactamente las cargas prescritas", () => {
+describe("confined flow solver", () => {
+  it("preserves the prescribed heads exactly", () => {
     const model = testModel();
     const result = solveGroundwater(model);
 
@@ -129,7 +129,7 @@ describe("solver de flujo confinado", () => {
     }
   });
 
-  it("mantiene un campo Dirichlet espacial con cargas distintas", () => {
+  it("preserves a spatial Dirichlet field with different heads", () => {
     const model: GroundwaterModelInput = {
       ...testModel(),
       fixedHeadCells: [
@@ -148,7 +148,7 @@ describe("solver de flujo confinado", () => {
     expect(model).toEqual(before);
   });
 
-  it("reproduce el benchmark 1D de recarga con carga fija y límite de no flujo", () => {
+  it("reproduces the 1D recharge benchmark with fixed head and a no-flow boundary", () => {
     const widthMeters = 1_000;
     const columns = 11;
     const rows = 5;
@@ -180,8 +180,8 @@ describe("solver de flujo confinado", () => {
     const representativeRow = 2;
     let maximumErrorMeters = 0;
 
-    // La carga fija está en el centro de la primera celda (x = dx/2) y la
-    // cara exterior de la última celda está en x = L con flujo nulo. Para
+    // The fixed head is at the center of the first cell (x = dx/2), and the
+    // outer face of the last cell is at x = L with zero flow. For
     // T h'' + R = 0: h(x) = hD + (R/T)[(L-xD)(x-xD) - (x-xD)²/2].
     for (let column = 0; column < columns; column += 1) {
       const x = (column + 0.5) * dx;
@@ -199,7 +199,7 @@ describe("solver de flujo confinado", () => {
     expect(maximumErrorMeters).toBeLessThanOrEqual(2e-7);
   });
 
-  it("no crea un cono artificial para un pozo inactivo", () => {
+  it("does not create an artificial cone for an inactive well", () => {
     const base = testModel();
     const withoutWell = solveGroundwater(base);
     const inactiveWell = solveGroundwater({
@@ -207,12 +207,12 @@ describe("solver de flujo confinado", () => {
       wells: [{ row: 20, column: 20, rateCubicMetersPerDay: 0 }],
     });
 
-    // Hay recarga y una carga fija: existe gradiente, pero el pozo a cero
-    // no debe modificar ningún nodo respecto al mismo caso sin pozo.
+    // Recharge and a fixed head create a gradient, but a zero-rate well
+    // must not modify any node relative to the same case without a well.
     expect(inactiveWell.headsMeters).toEqual(withoutWell.headsMeters);
   });
 
-  it("incrementar el bombeo aumenta el abatimiento junto al pozo", () => {
+  it("increasing pumping increases drawdown next to the well", () => {
     const base = testModel();
     const noPumping = solveGroundwater({
       ...base,
@@ -227,7 +227,7 @@ describe("solver de flujo confinado", () => {
     expect(pumping.headsMeters[20][20]).toBeLessThan(noPumping.headsMeters[20][20]);
   });
 
-  it("converge con la configuración por defecto a 50 L/s en el pozo A", () => {
+  it("converges with the default configuration at 50 L/s in well A", () => {
     const result = solveGroundwater({
       ...createDefaultModelInput(),
       wells: [
@@ -250,7 +250,7 @@ describe("solver de flujo confinado", () => {
     }
   });
 
-  it("es exactamente determinista para entradas idénticas", () => {
+  it("is exactly deterministic for identical inputs", () => {
     const model: GroundwaterModelInput = {
       ...testModel(),
       wells: [{ row: 20, column: 20, rateCubicMetersPerDay: 25 }],
@@ -259,7 +259,7 @@ describe("solver de flujo confinado", () => {
     expect(solveGroundwater(model)).toEqual(solveGroundwater(model));
   });
 
-  it("reporta no convergencia cuando el máximo de iteraciones es insuficiente", () => {
+  it("reports non-convergence when the maximum iteration count is insufficient", () => {
     const result = solveGroundwater({
       ...testModel(),
       tolerance: 1e-16,
@@ -271,7 +271,7 @@ describe("solver de flujo confinado", () => {
     expect(result.iterations).toBe(1);
   });
 
-  it("no contiene NaN ni Infinity en un resultado convergente", () => {
+  it("contains no NaN or Infinity values in a converged result", () => {
     const result = solveGroundwater({
       ...testModel(),
       wells: [{ row: 20, column: 20, rateCubicMetersPerDay: 25 }],

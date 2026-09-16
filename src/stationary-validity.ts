@@ -11,7 +11,7 @@ export interface StationaryValidityResult {
   readonly code: StationaryValidityCode;
 }
 
-/** Comprueba las condiciones mínimas de referencia para un modelo estacionario. */
+/** Checks the minimum reference conditions for a steady-state model. */
 export function validateStationaryModel(
   input: GroundwaterModelInput,
 ): StationaryValidityResult {

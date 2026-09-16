@@ -1,8 +1,8 @@
 import type { ExtractionWell, GroundwaterModelInput } from "./groundwater.js";
 
 /**
- * Pozos de la interfaz visible, identificados únicamente por su posición en la colección.
- * Las referencias devueltas pertenecen al input y deben tratarse como solo lectura.
+ * Wells in the visible interface, identified only by their position in the collection.
+ * Returned references belong to the input and must be treated as read-only.
  */
 export interface WellSlots {
   readonly a: Readonly<ExtractionWell>;
@@ -10,7 +10,7 @@ export interface WellSlots {
 }
 
 /**
- * Expone los dos pozos que requiere la interfaz visible: wells[0] es A y wells[1] es B.
+ * Exposes the two wells required by the visible interface: wells[0] is A and wells[1] is B.
  */
 export function getWellSlots(input: GroundwaterModelInput): WellSlots {
   if (input.wells.length !== 2) {
