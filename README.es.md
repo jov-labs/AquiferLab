@@ -10,7 +10,7 @@ confinado simplificado.
 
 **[Abrir la demo en vivo →](https://jov-labs.github.io/AquiferLab/)**
 
-<!-- Añadir la captura aprobada en docs/images/aquiferlab-main.png cuando esté disponible. -->
+![Modelo interactivo de aguas subterráneas en AquiferLab](docs/images/aquiferlab-main.png)
 
 [English](README.md) | Español
 

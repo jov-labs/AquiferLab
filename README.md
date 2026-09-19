@@ -9,7 +9,7 @@ parameters, drawdown, and flow behavior in a simplified confined aquifer.
 
 **[Open the live demo →](https://jov-labs.github.io/AquiferLab/)**
 
-<!-- Add the approved screenshot at docs/images/aquiferlab-main.png when available. -->
+![AquiferLab interactive groundwater model](docs/images/aquiferlab-main.png)
 
 English | [Español](README.es.md)
 
